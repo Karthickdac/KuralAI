@@ -188,13 +188,29 @@ async function handleRecordingStatus(req, res) {
 // ── Inbound Call Handler ───────────────────────────────────────────────────────
 
 /**
- * POST /webhook/call/incoming
- * Fires when someone dials your Exotel ExoPhone number.
- * Configure in Exotel Console → ExoPhones → (your number) → Incoming Webhook URL.
+ * Normalize an Indian phone number to E.164 (+91XXXXXXXXXX).
+ * Exotel sends numbers in local format (07358337470 or 08047280398).
  */
+function normalizePhone(num) {
+  if (!num) return num;
+  num = String(num).trim().replace(/\s+/g, '');
+  if (num.startsWith('+')) return num;                 // already E.164
+  if (num.startsWith('91') && num.length === 12) return '+' + num; // 91XXXXXXXXXX
+  if (num.startsWith('0') && num.length === 11) return '+91' + num.slice(1); // 0XXXXXXXXXX
+  if (num.length === 10) return '+91' + num;           // bare 10-digit
+  return num;
+}
+
 async function handleIncomingCall(req, res) {
-  const { CallSid, From, To } = req.body;
-  logger.info(`Inbound call from ${From} to ${To}, sid=${CallSid}`);
+  // Exotel Passthru may send params as query string OR body — merge both
+  const params = { ...req.query, ...req.body };
+  const CallSid = params.CallSid;
+  // Exotel uses both From/To and CallFrom/CallTo
+  const From = normalizePhone(params.From || params.CallFrom);
+  const To   = normalizePhone(params.To   || params.CallTo);
+
+  logger.info(`Inbound call from ${From} to ${To}, sid=${CallSid}, type=${params.CallType || 'n/a'}`);
+  logger.debug('Inbound webhook params:', JSON.stringify(params));
 
   try {
     // Load the configured inbound workflow (or auto-detect the first active one)
