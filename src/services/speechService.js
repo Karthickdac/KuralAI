@@ -196,11 +196,18 @@ function buildTamilSSML(text, voiceName) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  // Tamil neural voices handle English loan words natively — no lang switching needed.
-  // Keep prosody minimal: slight rate reduction only. No pitch changes.
+  // Per-gender prosody tuning for Madurai mass style:
+  //   Male  (Valluvar) — slower, slightly deeper: confident Madurai male cadence
+  //   Female (Pallavi) — near-natural speed, slight warmth: professional Madurai female tone
+  // Tamil neural voices handle English loan words natively — no lang/break tags needed.
+  // mstts:express-as is NOT supported by ta-IN voices; plain prosody sounds best.
+  const isMale = /valluvar/i.test(voiceName);
+  const rate   = isMale ? '0.88' : '0.95';
+  const pitch  = isMale ? '-2Hz' : '+1Hz';
+
   return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="ta-IN">
   <voice name="${voiceName}">
-    <prosody rate="0.95">
+    <prosody rate="${rate}" pitch="${pitch}">
       ${escaped}
     </prosody>
   </voice>
