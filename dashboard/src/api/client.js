@@ -80,4 +80,9 @@ export const workflowsApi = {
   remove: (id) => api.delete(`/api/workflows/${id}`),
 };
 
+export const ttsApi = {
+  preview: (text, voice) =>
+    api.post('/api/tts/preview', { text, voice }, { responseType: 'arraybuffer', timeout: 25000 }),
+};
+
 export default api;

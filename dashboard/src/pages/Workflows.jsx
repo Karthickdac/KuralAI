@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { workflowsApi } from '../api/client';
+import { workflowsApi, ttsApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './Workflows.module.css';
 
@@ -14,75 +14,66 @@ const STATUS_CONFIG = {
   completed:{ label: 'Done',     bg: 'var(--primary-light)', color: 'var(--primary-text)' },
 };
 
-/* ─── Script Preview Hook ──────────────────────────────────────────────── */
+/* ─── Script Preview Hook — Azure Neural TTS ───────────────────────────── */
 function useScriptPreview() {
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying]   = useState(false);
+  const [loading, setLoading]   = useState(false);
   const [progress, setProgress] = useState(0);
-  const bestVoice = useRef(null);
-  const progressTimer = useRef(null);
-  const startTime = useRef(0);
-  const duration = useRef(0);
-
-  // Pick best available voice — prefer Tamil, fall back to anything
-  useEffect(() => {
-    function pickVoice() {
-      const all = window.speechSynthesis?.getVoices() || [];
-      const tamil = all.find(v => v.lang.startsWith('ta'));
-      bestVoice.current = tamil || all[0] || null;
-    }
-    pickVoice();
-    window.speechSynthesis?.addEventListener('voiceschanged', pickVoice);
-    return () => window.speechSynthesis?.removeEventListener('voiceschanged', pickVoice);
-  }, []);
+  const [ttsError, setTtsError] = useState('');
+  const audioRef   = useRef(null);
+  const blobUrlRef = useRef(null);
 
   const stop = useCallback(() => {
-    window.speechSynthesis?.cancel();
-    clearInterval(progressTimer.current);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current = null;
+    }
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
     setPlaying(false);
     setProgress(0);
   }, []);
 
-  const play = useCallback((text) => {
+  const play = useCallback(async (text, voice) => {
     if (!text?.trim()) return;
     if (playing) { stop(); return; }
 
-    window.speechSynthesis.cancel();
+    setLoading(true);
+    setTtsError('');
 
-    const utter = new SpeechSynthesisUtterance(text);
-    if (bestVoice.current) utter.voice = bestVoice.current;
-    utter.lang = 'ta-IN';
-    utter.rate = 0.88;
-    utter.pitch = 1.05;
+    try {
+      const response = await ttsApi.preview(text, voice);
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
 
-    // Estimate duration by word count (~120 wpm for TTS)
-    const words = text.trim().split(/\s+/).length;
-    duration.current = (words / 120) * 60 * 1000;
+      const audio = new Audio(url);
+      audioRef.current = audio;
 
-    utter.onstart = () => {
+      audio.ontimeupdate = () => {
+        if (audio.duration) setProgress(audio.currentTime / audio.duration);
+      };
+      audio.onended = () => { setPlaying(false); setProgress(0); };
+      audio.onerror = () => { setPlaying(false); setProgress(0); };
+
+      await audio.play();
       setPlaying(true);
-      setProgress(0);
-      startTime.current = Date.now();
-      progressTimer.current = setInterval(() => {
-        const elapsed = Date.now() - startTime.current;
-        setProgress(Math.min(elapsed / duration.current, 0.99));
-      }, 80);
-    };
-
-    const finish = () => {
-      clearInterval(progressTimer.current);
-      setPlaying(false);
-      setProgress(0);
-    };
-
-    utter.onend = finish;
-    utter.onerror = finish;
-
-    window.speechSynthesis.speak(utter);
+    } catch (err) {
+      const msg = err.response?.data
+        ? (() => { try { return JSON.parse(new TextDecoder().decode(err.response.data)).error; } catch { return ''; } })()
+        : '';
+      setTtsError(msg || 'Could not generate audio. Check your Azure Speech credentials in Settings.');
+    } finally {
+      setLoading(false);
+    }
   }, [playing, stop]);
 
   useEffect(() => () => stop(), [stop]);
 
-  return { playing, progress, play, stop };
+  return { playing, loading, progress, ttsError, play, stop };
 }
 
 /* ─── Waveform Animation ───────────────────────────────────────────────── */
@@ -107,8 +98,9 @@ function Waveform({ playing }) {
 
 /* ─── Script Preview Panel ─────────────────────────────────────────────── */
 function ScriptPreview({ script }) {
-  const { playing, progress, play, stop } = useScriptPreview();
+  const { playing, loading, progress, ttsError, play, stop } = useScriptPreview();
   const isEmpty = !script?.trim();
+  const busy = loading || playing;
 
   return (
     <div className={styles.previewPanel}>
@@ -120,7 +112,7 @@ function ScriptPreview({ script }) {
           </svg>
           Script Preview
         </div>
-        <span className={styles.previewBadge}>Device TTS · Azure in production</span>
+        <span className={styles.previewBadge}>Azure Neural TTS · ta-IN</span>
       </div>
 
       <div className={styles.previewBody}>
@@ -128,9 +120,24 @@ function ScriptPreview({ script }) {
           {isEmpty ? 'Type your AI script above to preview it…' : script}
         </div>
 
-        {playing && (
+        {ttsError && (
+          <div className={styles.ttsError}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {ttsError}
+          </div>
+        )}
+
+        {(playing || loading) && (
           <div className={styles.progressBar}>
-            <div className={styles.progressFill} style={{ width: `${progress * 100}%` }} />
+            <div
+              className={styles.progressFill}
+              style={{
+                width: loading ? '100%' : `${progress * 100}%`,
+                transition: loading ? 'none' : 'width 0.1s linear',
+                opacity: loading ? 0.4 : 1,
+                animation: loading ? 'pulse 1.2s ease-in-out infinite' : 'none',
+              }}
+            />
           </div>
         )}
 
@@ -140,10 +147,15 @@ function ScriptPreview({ script }) {
             <button
               type="button"
               className={`${styles.playBtn} ${playing ? styles.stopBtn : ''}`}
-              disabled={isEmpty}
+              disabled={isEmpty || loading}
               onClick={() => playing ? stop() : play(script)}
             >
-              {playing ? (
+              {loading ? (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation:'spin 0.8s linear infinite' }}><path d="M21 12a9 9 0 11-6.22-8.56"/></svg>
+                  Generating…
+                </>
+              ) : playing ? (
                 <>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                   Stop

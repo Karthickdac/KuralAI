@@ -282,3 +282,22 @@
   from { transform: scaleY(0.4); }
   to   { transform: scaleY(1); }
 }
+
+.ttsError {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--danger-text);
+  background: var(--danger-bg);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
