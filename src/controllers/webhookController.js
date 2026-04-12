@@ -272,14 +272,15 @@ async function handleIncomingCall(req, res) {
     // rejected by Exotel AppConnect before any verb executes.
     // Return bare <Say><Hangup> so we can confirm <Say> itself works.
     // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 10: <Say language="ta-IN"> (capital IN) inside <Gather>.
-    // Previous session changed ta-IN → ta-in. That lowercase may be the root bug.
-    // Exotel docs show "ta-IN" as the correct BCP-47 tag.
-    // If call lasts >10 sec and user hears Tamil → this is the fix.
+    // DIAG STEP 11: <Play> INSIDE <Gather> with a tmpfiles.org public URL.
+    // Confirmed: Gather alone works (46s call 1). Play inside Gather doesn't abort call.
+    // If URL is reachable by Exotel's media service, audio plays and gather waits.
+    // tmpfiles.org is a known-working public HTTP host (audio/mpeg confirmed).
     const baseUrl = (settings.appUrl || `https://${process.env.REPLIT_DEV_DOMAIN}`).replace(/\/$/, '');
-    logger.info(`DIAG: returning Gather+Say language=ta-IN (capital IN) for call ${call.id}`);
+    const audioUrl = 'http://tmpfiles.org/dl/33263939/greeting.mp3';
+    logger.info(`DIAG: returning Gather+Play(tmpfiles) for call ${call.id}`);
     res.type('text/xml').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" timeout="30" action="${baseUrl}/call/gather" method="GET">\n    <Say language="ta-IN">வணக்கம். நான் KuralAI. உங்கள் order பற்றி பேசுவோம். தயவுசெய்து பேசுங்கள்.</Say>\n  </Gather>\n  <Hangup/>\n</Response>`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" timeout="30" action="${baseUrl}/call/gather" method="GET">\n    <Play>${audioUrl}</Play>\n  </Gather>\n  <Hangup/>\n</Response>`
     );
     return;
   } catch (error) {
