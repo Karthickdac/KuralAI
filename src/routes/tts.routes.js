@@ -10,6 +10,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { authenticateToken } = require('../middleware/auth');
+const { buildTamilSSML } = require('../services/speechService');
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 
@@ -49,14 +50,14 @@ router.post('/preview', authenticateToken, async (req, res) => {
     });
   }
 
-  const selectedVoice = voice || cfg.voice;
+  // Allow per-request voice override; fall back to stored setting
+  if (voice) process.env.AZURE_SPEECH_VOICE = voice;
 
-  // Build SSML
-  const ssml = `<speak version="1.0" xml:lang="ta-IN" xmlns="http://www.w3.org/2001/10/synthesis">
-  <voice name="${selectedVoice}">
-    ${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-  </voice>
-</speak>`;
+  // Build rich SSML with slang-aware prosody, en-IN code-switching, and pauses
+  const ssml = buildTamilSSML(text);
+
+  // Restore env if we overrode it
+  if (voice) process.env.AZURE_SPEECH_VOICE = cfg.voice;
 
   const endpoint = `https://${cfg.region}.tts.speech.microsoft.com/cognitiveservices/v1`;
 

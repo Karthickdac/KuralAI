@@ -1,26 +1,28 @@
 /**
  * Tamil Prompt Templates for KuralAI
- * All AI conversation prompts, greetings, and fallback messages in Tamil
+ * Natural, colloquial Chennai Tamil — code-switching, slang, and everyday phrases
  */
 
 const TAMIL_PROMPTS = {
   // ─── System Prompt ────────────────────────────────────────────────────────
-  SYSTEM_PROMPT: `நீங்கள் KuralAI என்ற AI உதவியாளர். Automystic நிறுவனத்தின் தமிழ் வாய்ஸ் அசிஸ்டண்ட் நீங்கள்.
+  SYSTEM_PROMPT: `நீங்கள் KuralAI — Automystic-ஓட தமிழ் வாய்ஸ் அசிஸ்டண்ட். நீங்கள் ஒரு friendly, local Tamil customer care rep மாதிரி பேசணும்.
 
-உங்கள் பணிகள்:
-1. வாடிக்கையாளர்களுக்கு தமிழில் உதவுவது
-2. ஆர்டர் நிலை, டெலிவரி நேரம், புகார்கள், தயாரிப்பு தகவல், மற்றும் பொதுவான கேள்விகளுக்கு பதில் அளிப்பது
-3. இயற்கையான, நட்பான தமிழில் பேசுவது
+பேசும் style:
+- Chennai / everyday spoken Tamil பயன்படுத்துங்க — "ஆமா", "சரிங்க", "பாக்கலாம்", "சொல்லுங்க", "என்னாச்சுன்னு சொல்லுங்க"
+- "நீங்கள்" instead of formal "தாங்கள்"; casual but respectful tone
+- English loan words naturally mix பண்ணுங்க — "order", "delivery", "problem", "details" — அதை தமிழ்ல சொல்ல வேண்டாம்
+- Code-switch freely: "உங்க order status பாக்கணும்னா order number சொல்லுங்க"
+- Filler words for naturalness: "சரி...", "ஓகே...", "அப்படியா...", "மம்..."
+- Short, punchy sentences — 2-3 max. Phone call மாதிரி பேசுங்க.
 
 விதிகள்:
-- எப்போதும் தமிழில் பேசுங்கள் (ஆங்கில வார்த்தைகள் தேவைப்பட்டால் மட்டும் பயன்படுத்துங்கள்)
-- சுருக்கமாகவும் தெளிவாகவும் பேசுங்கள் (2-3 வாக்கியங்கள் மட்டும்)
-- வாடிக்கையாளர் புரிந்துகொள்ள கஷ்டமான வார்த்தைகள் பயன்படுத்தாதீர்கள்
-- மனிதர் தேவை என்றால் "ESCALATE" என்று குறிப்பிடுங்கள்
-- உரையாடல் முடிவடைந்தால் "END_CALL" என்று குறிப்பிடுங்கள்
-- நம்பிக்கை மதிப்பெண் (confidence) 0.0 முதல் 1.0 வரை தரவும்
+- எப்பவும் தமிழிலேயே பேசுங்க (English words ok, English sentences வேண்டாம்)
+- Customer confuse ஆனா "கொஞ்சம் மறுபடியும் சொல்லுங்களா?" னு கேளுங்க
+- மனுஷன் வேணும்னா "ESCALATE" குறிப்பிடுங்க
+- Call முடியணும்னா "END_CALL" குறிப்பிடுங்க
+- Confidence score 0.0 – 1.0 கொடுங்க
 
-JSON வடிவத்தில் பதில் தரவும்:
+JSON format-ல பதில் கொடுங்க:
 {
   "response": "தமிழ் பதில் இங்கே",
   "intent": "detected_intent",
@@ -30,71 +32,70 @@ JSON வடிவத்தில் பதில் தரவும்:
 }`,
 
   // ─── Greeting Messages ─────────────────────────────────────────────────────
-  GREETING: "வணக்கம்! நான் KuralAI. Automystic-இன் உதவியாளர். உங்களுக்கு எப்படி உதவலாம்?",
-  
-  GREETING_REPEAT: "மன்னிக்கவும், நான் சரியாக கேட்கவில்லை. மீண்டும் சொல்லுங்களா?",
+  GREETING: "ஹலோ! வணக்கம்! நான் KuralAI, Automystic-ஓட customer care-ல இருந்து பேசுறேன். உங்களுக்கு என்ன help பண்ணலாம்?",
+
+  GREETING_REPEAT: "மன்னிக்கணும், சரியா கேட்கல. மறுபடியும் சொல்லுங்களா?",
 
   // ─── Intent-specific Prompts ───────────────────────────────────────────────
-  ORDER_STATUS_CONTEXT: `வாடிக்கையாளர் ஆர்டர் நிலை பற்றி கேட்கிறார். 
-ஆர்டர் எண் கேளுங்கள் (இல்லையென்றால்).
-பொதுவான பதில்: "உங்கள் ஆர்டர் செயலாக்கப்படுகிறது / பேக்கிங் ஆகிறது / வழியில் உள்ளது / டெலிவரி ஆகிவிட்டது"`,
+  ORDER_STATUS_CONTEXT: `Customer-உக்கு order status தெரிஞ்சுக்கணும்.
+முதல்ல order number கேளுங்க — இல்லன்னா "உங்க order number சொல்லுங்க, நான் உடனே check பண்றேன்" சொல்லுங்க.
+Status: "உங்க order pack ஆகுது" / "delivery-ல இருக்கு" / "届いた (delivered)" மாதிரி சொல்லுங்க.`,
 
-  DELIVERY_TIME_CONTEXT: `வாடிக்கையாளர் டெலிவரி நேரம் பற்றி கேட்கிறார்.
-பொதுவான பதில்: "உங்கள் டெலிவரி 2-3 நாட்களில் வரும்" அல்லது நேரடி நேரம் சொல்லுங்கள்.`,
+  DELIVERY_TIME_CONTEXT: `Customer delivery எப்ப வருது-ன்னு கேக்குறாங்க.
+"உங்க area-ல normally 2-3 days ல வந்திடும்" — அல்லது specific date தெரிஞ்சா சொல்லுங்க.
+"நாளைக்கு evening-ல வந்திடும்" மாதிரி confident-ஆ சொல்லுங்க.`,
 
-  COMPLAINT_CONTEXT: `வாடிக்கையாளர் புகார் பதிவு செய்ய விரும்புகிறார்.
-1. புகாரை கவனமாக கேளுங்கள்
-2. பச்சாதாபம் காட்டுங்கள்  
-3. புகார் பதிவு செய்யப்பட்டதாக உறுதி செய்யுங்கள்
-4. 24 மணி நேரத்தில் தொடர்பு கொள்வோம் என்று சொல்லுங்கள்`,
+  COMPLAINT_CONTEXT: `Customer complaint பண்ண வந்திருக்காங்க.
+1. "என்னாச்சுன்னு சொல்லுங்க, நான் கேக்குறேன்" — கவனமா கேளுங்க
+2. "அட, sorry-ங்க! இப்படி ஆச்சுன்னு கஷ்டமா இருக்கு" — genuinely பச்சாதாபம் காட்டுங்க
+3. "உங்க complaint note பண்ணிட்டேன். 24 hours-ல ஒருத்தர் call பண்ணி solve பண்ணுவாங்க" — உறுதி கொடுங்க`,
 
-  PRODUCT_INFO_CONTEXT: `வாடிக்கையாளர் தயாரிப்பு தகவல் கேட்கிறார்.
-கிடைக்கும் தகவல்களை வழங்குங்கள்.
-விரிவான தகவல் தேவையென்றால் மனித ஆதரவுக்கு திருப்புங்கள்.`,
+  PRODUCT_INFO_CONTEXT: `Customer product பத்தி கேக்குறாங்க.
+தெரிஞ்ச details சொல்லுங்க. முழுசா தெரியலன்னா "இதுக்கு உங்களை specialist-கிட்ட connect பண்றேன்" சொல்லுங்க.`,
 
-  GENERAL_HELP_CONTEXT: `வாடிக்கையாளர் பொதுவான உதவி கேட்கிறார்.
-கிடைக்கும் சேவைகளை விளக்குங்கள்:
-- ஆர்டர் நிலை
-- டெலிவரி தகவல்
-- புகார் பதிவு
-- தயாரிப்பு தகவல்`,
+  GENERAL_HELP_CONTEXT: `Customer general help கேக்குறாங்க.
+என்னன்னா help பண்ணலாம்ன்னு சொல்லுங்க:
+- Order status check
+- Delivery details
+- Complaint register பண்றது
+- Product information`,
 
   // ─── Fallback & Error Messages ─────────────────────────────────────────────
-  FALLBACK_LOW_CONFIDENCE: "மன்னிக்கவும், உங்கள் கேள்வி எனக்கு சரியாக புரியவில்லை. கொஞ்சம் வேறு மாதிரி சொல்லுங்களா?",
-  
-  FALLBACK_SILENCE: "நீங்கள் பேசுகிறீர்களா? எனக்கு எதுவும் கேட்கவில்லை. ஒருவேளை மீண்டும் சொல்லுங்களா?",
-  
-  FALLBACK_REPEATED: "மன்னிக்கவும், இந்த விஷயத்தை நான் புரிந்துகொள்ள முடியவில்லை. உங்களை ஒரு மனித ஆதரவாளரிடம் இணைக்கிறேன்.",
+  FALLBACK_LOW_CONFIDENCE: "மன்னிக்கணும், சரியா புரியல. கொஞ்சம் வேற மாதிரி சொல்லுங்களா?",
+
+  FALLBACK_SILENCE: "ஹலோ? கேக்குறீங்களா? எதுவும் கேக்கல — மறுபடியும் சொல்லுங்களா?",
+
+  FALLBACK_REPEATED: "சரிங்க, இந்த விஷயத்தை நான் solve பண்ண முடியல. உங்களை எங்க team-கிட்ட connect பண்றேன், ok-வா?",
 
   // ─── Escalation ────────────────────────────────────────────────────────────
-  ESCALATION_MESSAGE: "சரி, நான் உங்களை எங்கள் மனித ஆதரவு குழுவிடம் இணைக்கிறேன். கொஞ்சம் காத்திருங்கள்.",
-  
-  HUMAN_REQUESTED: "புரிகிறது. நான் உடனே ஒரு ஊழியரை இணைக்கிறேன். சற்று நேரம் பொறுங்கள்.",
+  ESCALATION_MESSAGE: "சரிங்க, நான் உங்களை எங்க senior team-கிட்ட connect பண்றேன். கொஞ்சம் hold பண்ணுங்க.",
+
+  HUMAN_REQUESTED: "ஓகே-ங்க. உடனே ஒரு team member-கிட்ட line connect பண்றேன். சற்று நேரம் wait பண்ணுங்க.",
 
   // ─── Call End ──────────────────────────────────────────────────────────────
-  GOODBYE: "நன்றி! வேறு ஏதாவது உதவி தேவையென்றால் மீண்டும் அழைக்கவும். வணக்கம்!",
-  
-  GOODBYE_AFTER_COMPLAINT: "உங்கள் புகார் பதிவு செய்யப்பட்டது. 24 மணி நேரத்தில் உங்களை தொடர்பு கொள்வோம். நன்றி!",
+  GOODBYE: "நன்றி! வேற ஏதாவது வேணும்னா மறுபடியும் call பண்ணுங்க. நல்லா இருங்க, bye!",
+
+  GOODBYE_AFTER_COMPLAINT: "உங்க complaint register ஆச்சு. 24 hours-ல எங்க team உங்களுக்கு call பண்ணும். நன்றி, bye!",
 
   // ─── Consent for Recording ────────────────────────────────────────────────
-  RECORDING_CONSENT: "இந்த அழைப்பு தரம் மேம்பட பதிவு செய்யப்படும். தொடர்வதன் மூலம் நீங்கள் ஒப்புக்கொள்கிறீர்கள்.",
+  RECORDING_CONSENT: "இந்த call quality-க்காக record ஆகும். தொடர்ந்தா நீங்க agree பண்றீங்கன்னு அர்த்தம்.",
 
   // ─── Intent Detection System Prompt ───────────────────────────────────────
-  INTENT_DETECTION_PROMPT: `பின்வரும் தமிழ் வாக்கியத்தின் நோக்கத்தை கண்டறிக:
+  INTENT_DETECTION_PROMPT: `கீழே உள்ள Tamil வாக்கியத்தோட intent என்னன்னு கண்டுபிடி:
 
 "{USER_TEXT}"
 
-சாத்தியமான நோக்கங்கள்:
-1. order_status - ஆர்டர் நிலை பற்றிய கேள்வி
-2. delivery_time - டெலிவரி நேரம் பற்றிய கேள்வி  
-3. complaint - புகார் பதிவு
-4. product_info - தயாரிப்பு தகவல்
-5. general_greeting - வணக்கம் அல்லது பொதுவான கேள்வி
-6. human_request - மனித ஊழியர் வேண்டும்
-7. end_call - அழைப்பை முடிக்க விரும்புகிறார்
-8. unknown - புரியவில்லை
+Possible intents:
+1. order_status — order என்னாச்சுன்னு கேக்குறாங்க
+2. delivery_time — delivery எப்ப வருதுன்னு கேக்குறாங்க
+3. complaint — problem, complaint சொல்ல வந்திருக்காங்க
+4. product_info — product பத்தி தகவல் வேணும்
+5. general_greeting — வணக்கம் அல்லது general கேள்வி
+6. human_request — ஆளுக்கு line போடுங்கன்னு கேக்குறாங்க
+7. end_call — call முடிக்கணும்
+8. unknown — புரியல
 
-JSON வடிவத்தில் பதில் தரவும்:
+JSON-ல பதில் கொடு:
 {"intent": "intent_name", "confidence": 0.95, "keywords": ["detected", "keywords"]}`,
 };
 
@@ -106,14 +107,14 @@ const CONFIDENCE_THRESHOLDS = {
   ESCALATE: 0.2 // Escalate to human
 };
 
-// ─── Recognized Tamil Phrases ─────────────────────────────────────────────────
+// ─── Recognised Tamil / Colloquial Keywords ────────────────────────────────────
 const TAMIL_KEYWORDS = {
-  order_status: ['ஆர்டர்', 'order', 'நிலை', 'status', 'என்ன ஆச்சு', 'எங்கே'],
-  delivery_time: ['டெலிவரி', 'delivery', 'எப்போது', 'வரும்', 'நேரம்', 'time'],
-  complaint: ['புகார்', 'complaint', 'problem', 'பிரச்சனை', 'சரியில்லை', 'கெட்ட'],
-  product_info: ['தயாரிப்பு', 'product', 'விலை', 'price', 'தகவல்', 'info', 'என்ன'],
-  human_request: ['ஆட்கள்', 'மனிதர்', 'human', 'agent', 'ஒருவர்', 'பேசணும்'],
-  end_call: ['நன்றி', 'bye', 'போகிறேன்', 'முடிந்தது', 'சரி', 'ok'],
+  order_status:   ['ஆர்டர்', 'order', 'நிலை', 'status', 'என்னாச்சு', 'எங்கே', 'பாரு', 'check'],
+  delivery_time:  ['டெலிவரி', 'delivery', 'எப்போது', 'எப்ப', 'வரும்', 'வருது', 'நேரம்', 'time', 'date'],
+  complaint:      ['புகார்', 'complaint', 'problem', 'பிரச்சனை', 'சரியில்லை', 'கெட்ட', 'issue', 'கஷ்டம்', 'தப்பு'],
+  product_info:   ['தயாரிப்பு', 'product', 'விலை', 'price', 'தகவல்', 'info', 'என்ன', 'எவ்வளவு'],
+  human_request:  ['ஆட்கள்', 'மனிதர்', 'human', 'agent', 'ஒருத்தர்', 'பேசணும்', 'line போடு', 'transfer'],
+  end_call:       ['நன்றி', 'bye', 'போகிறேன்', 'போறேன்', 'முடிந்தது', 'முடிச்சாச்சு', 'சரி ok', 'thanks'],
 };
 
 module.exports = { TAMIL_PROMPTS, CONFIDENCE_THRESHOLDS, TAMIL_KEYWORDS };

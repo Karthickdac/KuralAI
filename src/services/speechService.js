@@ -169,25 +169,50 @@ async function synthesizeSpeech(text, outputPath = null) {
 }
 
 /**
- * Build SSML markup for natural Tamil speech
- * Handles prosody, pauses, and pronunciation hints
+ * Build rich SSML markup for natural, colloquial Tamil speech.
+ * – Uses Azure "customerservice" style for a warm, helpful tone
+ * – Code-switches English words into en-IN pronunciation automatically
+ * – Adds micro-pauses after commas/sentence endings for human-like rhythm
+ * – Slightly reduced rate (0.92) so Tamil phonemes are crisp on the phone
  */
 function buildTamilSSML(text) {
-  // Escape XML special characters
-  const escaped = text
+  const voiceName = process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural';
+
+  // 1. Escape XML special characters
+  let escaped = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  return `
-<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="ta-IN">
-  <voice name="${process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural'}">
-    <prosody rate="0.95" pitch="+0Hz" volume="loud">
-      ${escaped}
-    </prosody>
+  // 2. Wrap standalone English words/numbers in en-IN lang tags so Azure
+  //    pronounces them naturally (e.g. "order", "delivery", "24 hours")
+  //    Matches: sequences of ASCII letters/digits that are not inside existing XML tags
+  escaped = escaped.replace(/\b([A-Za-z0-9][A-Za-z0-9\s\-]*[A-Za-z0-9]|[A-Za-z0-9])\b/g, (match) => {
+    // Skip if it's a pure number — Tamil TTS reads digits fine
+    if (/^\d+$/.test(match.trim())) return match;
+    return `<lang xml:lang="en-IN">${match}</lang>`;
+  });
+
+  // 3. Add short breaks after sentence-ending punctuation and ellipses
+  escaped = escaped
+    .replace(/\.\s+/g, '.<break time="400ms"/> ')
+    .replace(/\?\s+/g, '?<break time="350ms"/> ')
+    .replace(/!\s+/g, '!<break time="350ms"/> ')
+    .replace(/\.\.\./g, '<break time="300ms"/>');
+
+  // 4. Add slight pauses at commas for natural cadence
+  escaped = escaped.replace(/,\s*/g, ',<break time="150ms"/> ');
+
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ta-IN">
+  <voice name="${voiceName}">
+    <mstts:express-as style="customerservice" styledegree="1.5">
+      <prosody rate="0.92" pitch="+1Hz" volume="loud">
+        ${escaped}
+      </prosody>
+    </mstts:express-as>
   </voice>
-</speak>`.trim();
+</speak>`;
 }
 
 /**
@@ -218,4 +243,5 @@ module.exports = {
   transcribeFromUrl,
   synthesizeSpeech,
   synthesizeSpeechFallback,
+  buildTamilSSML,
 };
