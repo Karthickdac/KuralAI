@@ -53,10 +53,9 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // ─── Body Parsers ──────────────────────────────────────────────────────────────
-// Exotel sends form-urlencoded; parse as text first for flexibility
-app.use('/webhook', express.raw({ type: 'application/x-www-form-urlencoded' }));
-app.use(express.json({ limit: '10mb' }));
+// Exotel webhooks send application/x-www-form-urlencoded — parse before JSON
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
 
 // ─── Request Logging ───────────────────────────────────────────────────────────
 app.use(morgan('combined', {
@@ -86,6 +85,18 @@ app.use('/api/tts', ttsRoutes);
 
 // Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);
+
+// ─── Local Audio File Serving (fallback when S3 not configured) ────────────────
+const _localAudioDir = require('path').join('/tmp', 'kuralai-audio');
+if (!require('fs').existsSync(_localAudioDir)) require('fs').mkdirSync(_localAudioDir, { recursive: true });
+app.get('/audio/:filename', (req, res) => {
+  const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '');
+  const filePath = require('path').join(_localAudioDir, filename);
+  if (!require('fs').existsSync(filePath)) return res.status(404).json({ error: 'Audio file not found' });
+  res.setHeader('Content-Type', 'audio/mpeg');
+  res.setHeader('Cache-Control', 'no-store');
+  require('fs').createReadStream(filePath).pipe(res);
+});
 
 // ─── Global Error Handler ──────────────────────────────────────────────────────
 app.use((err, req, res, next) => {

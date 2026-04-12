@@ -13,6 +13,40 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const { uploadAudioToS3, getSignedUrl } = require('./s3Service');
 
+// ─── Local audio temp dir (fallback when S3 not configured) ───────────────────
+const LOCAL_AUDIO_DIR = path.join('/tmp', 'kuralai-audio');
+if (!fs.existsSync(LOCAL_AUDIO_DIR)) fs.mkdirSync(LOCAL_AUDIO_DIR, { recursive: true });
+
+function isS3Configured() {
+  try {
+    const sf = path.join(__dirname, '../../config/app-settings.json');
+    if (fs.existsSync(sf)) {
+      const s = JSON.parse(fs.readFileSync(sf, 'utf-8'));
+      if (s.awsAccessKeyId && s.awsSecretAccessKey && s.s3BucketName) return true;
+    }
+  } catch {}
+  return !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.S3_BUCKET_NAME);
+}
+
+async function storeAudioLocally(audioBuffer, filename) {
+  const filePath = path.join(LOCAL_AUDIO_DIR, filename);
+  fs.writeFileSync(filePath, audioBuffer);
+  // Schedule cleanup after 2 hours
+  setTimeout(() => fs.unlink(filePath, () => {}), 2 * 60 * 60 * 1000);
+
+  let appUrl = process.env.APP_URL || '';
+  try {
+    const sf = path.join(__dirname, '../../config/app-settings.json');
+    if (fs.existsSync(sf)) {
+      const s = JSON.parse(fs.readFileSync(sf, 'utf-8'));
+      if (s.appUrl) appUrl = s.appUrl;
+    }
+  } catch {}
+  appUrl = appUrl.replace(/\/$/, '');
+  const playableUrl = `${appUrl}/audio/${filename}`;
+  return { localPath: filePath, playableUrl };
+}
+
 let _openai = null;
 function getOpenAI() {
   if (!_openai) {
@@ -152,15 +186,24 @@ async function synthesizeSpeech(text, outputPath = null) {
 
           logger.info(`TTS completed in ${processingTime}ms for ${text.length} chars`);
 
-          // Upload to S3 for serving via Twilio
-          const s3Key = `${process.env.S3_TTS_PREFIX || 'tts-cache/'}${uuidv4()}.mp3`;
-          const s3Url = await uploadAudioToS3(audioBuffer, s3Key, 'audio/mpeg');
-          const signedUrl = await getSignedUrl(s3Key, 3600); // 1 hour expiry
+          // Upload to S3 if configured, otherwise serve locally
+          let s3Url = null;
+          let playableUrl = null;
+          const audioFilename = `${uuidv4()}.mp3`;
+          if (isS3Configured()) {
+            const s3Key = `${process.env.S3_TTS_PREFIX || 'tts-cache/'}${audioFilename}`;
+            s3Url = await uploadAudioToS3(audioBuffer, s3Key, 'audio/mpeg');
+            playableUrl = await getSignedUrl(s3Key, 3600);
+          } else {
+            const local = await storeAudioLocally(audioBuffer, audioFilename);
+            playableUrl = local.playableUrl;
+            logger.debug(`Audio served locally: ${playableUrl}`);
+          }
 
           resolve({
             audioBuffer,
             s3Url,
-            playableUrl: signedUrl, // Pre-signed URL for Twilio to play
+            playableUrl,
             duration: result.audioDuration / 10000000, // Convert to seconds
             processingTimeMs: processingTime,
           });
@@ -239,9 +282,17 @@ async function synthesizeSpeechFallback(text) {
   });
 
   const audioBuffer = Buffer.from(await response.arrayBuffer());
-  const s3Key = `${process.env.S3_TTS_PREFIX || 'tts-cache/'}fallback_${uuidv4()}.mp3`;
-  const s3Url = await uploadAudioToS3(audioBuffer, s3Key, 'audio/mpeg');
-  const playableUrl = await getSignedUrl(s3Key, 3600);
+  const audioFilename = `fallback_${uuidv4()}.mp3`;
+  let s3Url = null;
+  let playableUrl = null;
+  if (isS3Configured()) {
+    const s3Key = `${process.env.S3_TTS_PREFIX || 'tts-cache/'}${audioFilename}`;
+    s3Url = await uploadAudioToS3(audioBuffer, s3Key, 'audio/mpeg');
+    playableUrl = await getSignedUrl(s3Key, 3600);
+  } else {
+    const local = await storeAudioLocally(audioBuffer, audioFilename);
+    playableUrl = local.playableUrl;
+  }
 
   return { audioBuffer, s3Url, playableUrl };
 }

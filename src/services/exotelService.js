@@ -4,24 +4,33 @@
  * Docs: https://developer.exotel.com/api/
  */
 
+const fs   = require('fs');
+const path = require('path');
 const axios = require('axios');
 const logger = require('../utils/logger');
 const { TAMIL_PROMPTS } = require('../config/tamilPrompts');
 
+const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+function getStoredSettings() {
+  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
+}
+
 // ── Exotel REST Client ─────────────────────────────────────────────────────────
 
 function getExotelBase() {
-  const sid = process.env.EXOTEL_SID;
-  const apiKey = process.env.EXOTEL_API_KEY;
-  const apiToken = process.env.EXOTEL_API_TOKEN;
+  const s = getStoredSettings();
+  const sid      = s.exotelSid      || process.env.EXOTEL_SID;
+  const apiKey   = s.exotelApiKey   || process.env.EXOTEL_API_KEY;
+  const apiToken = s.exotelApiToken || process.env.EXOTEL_API_TOKEN;
 
   if (!sid || !apiKey || !apiToken) {
-    throw new Error('Exotel credentials not configured. Set EXOTEL_SID, EXOTEL_API_KEY and EXOTEL_API_TOKEN.');
+    throw new Error('Exotel credentials not configured. Add them in Settings → Exotel API Credentials.');
   }
 
   return {
     baseUrl: `https://api.exotel.com/v1/Accounts/${sid}`,
     auth: { username: apiKey, password: apiToken },
+    s,
   };
 }
 
@@ -32,17 +41,19 @@ function getExotelBase() {
  * @param {string} callId - Internal DB call ID
  */
 async function initiateCall(toPhone, callId) {
-  const { baseUrl, auth } = getExotelBase();
-  const webhookBase = process.env.APP_URL;
-  const token = process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
+  const { baseUrl, auth, s } = getExotelBase();
+  const webhookBase = s.appUrl || process.env.APP_URL || '';
+  const token       = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const callerId    = s.exotelPhoneNumber  || process.env.EXOTEL_PHONE_NUMBER  || '';
+  const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 
   const params = new URLSearchParams({
     From: toPhone,
-    CallerId: process.env.EXOTEL_PHONE_NUMBER,
-    Url: `${webhookBase}/webhook/call/answer?callId=${callId}&wt=${token}`,
-    StatusCallback: `${webhookBase}/webhook/call/status?callId=${callId}&wt=${token}`,
+    CallerId: callerId,
+    Url: `${webhookBase.replace(/\/$/, '')}/webhook/call/answer?callId=${callId}&wt=${token}`,
+    StatusCallback: `${webhookBase.replace(/\/$/, '')}/webhook/call/status?callId=${callId}&wt=${token}`,
     StatusCallbackContentType: 'application/json',
-    TimeLimit: String(parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300),
+    TimeLimit: String(timeLimit),
     Record: 'false',
   });
 
@@ -78,8 +89,9 @@ function _xml(body) {
  * Plays a short greeting using <Say> then redirects to the conversation loop.
  */
 function generateAnswerExoML(callId) {
-  const webhookBase = process.env.APP_URL;
-  const token = process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
+  const s = getStoredSettings();
+  const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
+  const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
 
   return _xml(`
   <Say language="ta-in">${TAMIL_PROMPTS.RECORDING_CONSENT}</Say>
@@ -94,9 +106,10 @@ function generateAnswerExoML(callId) {
  * @param {number} turn
  */
 function generateConversationExoML(audioUrl, callId, turn) {
-  const webhookBase = process.env.APP_URL;
-  const token = process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
-  const silence = parseInt(process.env.SILENCE_TIMEOUT_SECONDS) || 5;
+  const s = getStoredSettings();
+  const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
+  const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
+  const silence = s.silenceTimeoutSeconds || parseInt(process.env.SILENCE_TIMEOUT_SECONDS) || 5;
 
   return _xml(`
   <Gather input="speech" language="ta-in" timeout="${silence}" speechTimeout="auto"
@@ -127,8 +140,9 @@ function generateEndCallExoML(goodbyeAudioUrl) {
  * ExoML for human escalation — plays message then transfers to agent phone.
  */
 function generateEscalationExoML(escalationAudioUrl) {
-  const escalationPhone = process.env.ESCALATION_PHONE;
-  const callerIdPhone = process.env.EXOTEL_PHONE_NUMBER;
+  const s = getStoredSettings();
+  const escalationPhone = s.escalationPhone || process.env.ESCALATION_PHONE;
+  const callerIdPhone = s.exotelPhoneNumber || process.env.EXOTEL_PHONE_NUMBER;
 
   let dialBlock = '';
   if (escalationPhone) {

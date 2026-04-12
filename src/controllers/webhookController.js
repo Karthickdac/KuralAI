@@ -11,12 +11,35 @@
  *   From/To        = From/To (same)
  */
 
+const fs   = require('fs');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Call = require('../models/Call');
 const { processCallAnswer, processSpeechInput } = require('../services/conversationEngine');
 const { generateAnswerExoML } = require('../services/exotelService');
 const { notifyDashboard } = require('../websocket/wsServer');
 const logger = require('../utils/logger');
+
+const SETTINGS_FILE   = path.join(__dirname, '../../config/app-settings.json');
+const WORKFLOWS_FILE  = path.join(__dirname, '../../config/workflows.json');
+
+function getSettings() {
+  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
+}
+
+function getWorkflow(id) {
+  try {
+    const wfs = JSON.parse(fs.readFileSync(WORKFLOWS_FILE, 'utf-8'));
+    return wfs.find(w => w.id === id) || null;
+  } catch { return null; }
+}
+
+function getActiveWorkflow() {
+  try {
+    const wfs = JSON.parse(fs.readFileSync(WORKFLOWS_FILE, 'utf-8'));
+    return wfs.find(w => w.status === 'active' && w.scriptFlow?.enabled && w.scriptFlow?.steps?.length > 0) || null;
+  } catch { return null; }
+}
 
 // ── Outbound Call Webhooks ─────────────────────────────────────────────────────
 
@@ -171,23 +194,42 @@ async function handleRecordingStatus(req, res) {
  */
 async function handleIncomingCall(req, res) {
   const { CallSid, From, To } = req.body;
-  logger.info(`Inbound call from ${From}, sid=${CallSid}`);
+  logger.info(`Inbound call from ${From} to ${To}, sid=${CallSid}`);
 
   try {
+    // Load the configured inbound workflow (or auto-detect the first active one)
+    const settings = getSettings();
+    let workflow = null;
+    if (settings.inboundWorkflowId) {
+      workflow = getWorkflow(settings.inboundWorkflowId);
+    }
+    if (!workflow) {
+      workflow = getActiveWorkflow();
+    }
+
+    const metadata = {};
+    if (workflow) {
+      metadata.workflowId = workflow.id;
+      metadata.workflowName = workflow.name;
+      logger.info(`Inbound call will use workflow: ${workflow.name} (${workflow.id})`);
+    } else {
+      logger.info('Inbound call: no workflow configured — using free-form AI mode');
+    }
+
     const call = await Call.create({
       id: uuidv4(),
       callSid: CallSid,
       toPhone: From,        // caller's number
-      fromPhone: To,        // our ExoPhone
+      fromPhone: To || settings.exotelPhoneNumber || '', // our ExoPhone
       status: 'answered',
       direction: 'inbound',
       startedAt: new Date(),
       maxRetries: 0,
-      consentRecording: false,
+      metadata,
     });
 
-    logger.info(`Inbound call record: ${call.id}`);
-    await notifyDashboard({ type: 'INBOUND_CALL_RECEIVED', callId: call.id, from: From });
+    logger.info(`Inbound call record created: ${call.id}`);
+    await notifyDashboard({ type: 'INBOUND_CALL_RECEIVED', callId: call.id, from: From, workflowId: workflow?.id });
 
     const exoml = await processCallAnswer(call.id);
     res.type('text/xml').send(exoml);

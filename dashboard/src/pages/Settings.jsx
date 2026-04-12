@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { settingsApi } from '../api/client';
+import { settingsApi, workflowsApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './Settings.module.css';
 
@@ -133,22 +133,24 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [workflows, setWorkflows] = useState([]);
 
   useEffect(() => {
-    settingsApi.get()
-      .then(r => {
-        const s = { ...r.data.settings };
+    Promise.all([
+      settingsApi.get(),
+      workflowsApi.list().catch(() => ({ data: { workflows: [] } })),
+    ]).then(([settingsRes, workflowsRes]) => {
+        const s = { ...settingsRes.data.settings };
         const alreadySaved = new Set();
-        // Detect which credential fields are already stored on the server
-        // The API returns '••••••••' for any field that has a value
         for (const key of CREDENTIAL_KEYS) {
           if (s[key] && /^•+$/.test(s[key])) {
             alreadySaved.add(key);
-            s[key] = ''; // Always start as empty so users can't accidentally prepend bullets
+            s[key] = '';
           }
         }
         setSavedCreds(alreadySaved);
         setSettings(s);
+        setWorkflows(workflowsRes.data.workflows || []);
       })
       .catch(() => setError('Failed to load settings'))
       .finally(() => setLoading(false));
@@ -399,6 +401,62 @@ export default function Settings() {
                 <input className={styles.input} value={settings.escalationWebhookUrl || ''} onChange={e => handleChange('escalationWebhookUrl', e.target.value)} placeholder="https://your-crm.com/webhook/escalate" />
               </Field>
             </div>
+          </Section>
+
+          {/* ── Inbound Calls ─────────────────────────────────────────── */}
+          <Section
+            title="Inbound Calls"
+            badge="Auto-trigger"
+            description="When a customer calls your Exotel number, the system automatically runs the selected workflow. Configure the incoming webhook URL in Exotel Console."
+          >
+            <div className={styles.grid}>
+              <Field
+                label="Inbound Workflow"
+                hint="The Q&A script flow that runs when a customer dials your Exotel number"
+                wide
+              >
+                <select
+                  className={styles.input}
+                  value={settings.inboundWorkflowId || ''}
+                  onChange={e => handleChange('inboundWorkflowId', e.target.value)}
+                >
+                  <option value="">Auto-detect (first active workflow with Q&A script)</option>
+                  {workflows.map(wf => (
+                    <option key={wf.id} value={wf.id}>
+                      {wf.name}
+                      {wf.scriptFlow?.enabled ? ` — Q&A (${wf.scriptFlow.steps?.length || 0} steps)` : ' — Free-form AI'}
+                      {wf.status === 'active' ? ' ✓ Active' : ` · ${wf.status}`}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+
+            {/* Inbound webhook URL display */}
+            {settings.appUrl && (
+              <div className={styles.webhookBox} style={{ marginTop: 12 }}>
+                <div className={styles.webhookTitle}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  Paste this URL in Exotel Console → ExoPhones → Your Number → Incoming Webhook
+                </div>
+                <div className={styles.webhookRow}>
+                  <span className={styles.webhookLabel}>Incoming</span>
+                  <code className={styles.webhookUrl}>
+                    {`${settings.appUrl.replace(/\/$/, '')}/webhook/call/incoming${settings.exotelWebhookToken ? `?wt=${settings.exotelWebhookToken}` : ''}`}
+                  </code>
+                  <button
+                    type="button"
+                    className={styles.copyBtn}
+                    onClick={() => navigator.clipboard.writeText(`${settings.appUrl.replace(/\/$/, '')}/webhook/call/incoming${settings.exotelWebhookToken ? `?wt=${settings.exotelWebhookToken}` : ''}`)}
+                    title="Copy"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
           </Section>
 
           <div className={styles.footer}>

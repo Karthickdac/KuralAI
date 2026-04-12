@@ -45,6 +45,8 @@ const DEFAULTS = {
   // Escalation
   escalationPhone:         process.env.ESCALATION_PHONE || '',
   escalationWebhookUrl:    process.env.ESCALATION_WEBHOOK_URL || '',
+  // Inbound call routing
+  inboundWorkflowId:       process.env.INBOUND_WORKFLOW_ID || '',
 };
 
 function readSettings() {
@@ -133,6 +135,7 @@ router.put('/', requireAdmin, (req, res) => {
       silenceTimeoutSeconds:   'SILENCE_TIMEOUT_SECONDS',
       escalationPhone:         'ESCALATION_PHONE',
       escalationWebhookUrl:    'ESCALATION_WEBHOOK_URL',
+      inboundWorkflowId:       'INBOUND_WORKFLOW_ID',
     };
 
     for (const [key, envKey] of Object.entries(envMap)) {

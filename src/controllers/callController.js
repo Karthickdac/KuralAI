@@ -3,10 +3,17 @@
  * Handles call initiation, status, retry logic — using Exotel
  */
 
+const fs   = require('fs');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Call = require('../models/Call');
 const { initiateCall } = require('../services/exotelService');
 const logger = require('../utils/logger');
+
+const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+function getSettings() {
+  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
+}
 
 /**
  * POST /api/calls/initiate
@@ -17,10 +24,13 @@ async function initiateCallController(req, res) {
 
   try {
     // Create call record in DB first
+    const s = getSettings();
+    const fromPhone = s.exotelPhoneNumber || process.env.EXOTEL_PHONE_NUMBER || '';
+
     const call = await Call.create({
       id: uuidv4(),
       toPhone,
-      fromPhone: process.env.EXOTEL_PHONE_NUMBER,
+      fromPhone,
       status: 'initiated',
       direction: 'outbound',
       maxRetries: maxRetries || parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
