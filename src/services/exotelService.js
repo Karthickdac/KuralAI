@@ -100,10 +100,16 @@ function generateAnswerExoML(callId) {
 }
 
 /**
- * Escape XML special characters for safe embedding inside <Say> text.
+ * Escape XML special characters and sanitize text for safe embedding inside <Say>.
+ * - Collapses newlines/tabs to a single space (Exotel TTS rejects multi-line Say content)
+ * - Removes control characters
+ * - Escapes XML entities
  */
 function _escapeXml(text) {
   return String(text)
+    .replace(/[\r\n\t]+/g, ' ')   // collapse newlines & tabs → single space
+    .replace(/[ ]{2,}/g, ' ')     // collapse multiple spaces
+    .trim()
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
