@@ -19,10 +19,10 @@ const {
   shouldEscalate,
 } = require('./aiService');
 const {
-  generateConversationTwiML,
-  generateEndCallTwiML,
-  generateEscalationTwiML,
-} = require('./twilioService');
+  generateConversationExoML,
+  generateEndCallExoML,
+  generateEscalationExoML,
+} = require('./exotelService');
 const { TAMIL_PROMPTS, CONFIDENCE_THRESHOLDS } = require('../config/tamilPrompts');
 const { notifyDashboard } = require('../websocket/wsServer');
 const { triggerEscalationWebhook } = require('./escalationService');
@@ -49,7 +49,7 @@ async function processCallAnswer(callId) {
 
   await notifyDashboard({ type: 'CALL_STARTED', callId });
 
-  return generateConversationTwiML(tts.playableUrl, callId, 0);
+  return generateConversationExoML(tts.playableUrl, callId, 0);
 }
 
 /**
@@ -67,11 +67,12 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     let userText = speechResultText;
 
     if (!userText && speechResultUrl) {
-      // Transcribe via Whisper (better Tamil accuracy than Twilio STT)
+      // Transcribe via Whisper (better Tamil accuracy than STT from provider)
+      // Exotel recordings are accessible with EXOTEL_API_KEY:EXOTEL_API_TOKEN Basic Auth
       const sttResult = await transcribeFromUrl(
         speechResultUrl,
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN
+        process.env.EXOTEL_API_KEY,
+        process.env.EXOTEL_API_TOKEN
       );
       userText = sttResult.text;
 
@@ -157,10 +158,10 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       Date.now() - startTime
     );
 
-    // ── Step 6: Return TwiML to play audio & continue ─────────────────────
+    // ── Step 6: Return ExoML to play audio & continue ────────────────────
     await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent });
 
-    return generateConversationTwiML(tts.playableUrl, callId, turn + 1);
+    return generateConversationExoML(tts.playableUrl, callId, turn + 1);
 
   } catch (error) {
     logger.error(`Conversation processing error for call ${callId}:`, error);
@@ -168,7 +169,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
 
     // Play error fallback and continue
     const fallbackTts = await synthesizeSpeech(TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE);
-    return generateConversationTwiML(fallbackTts.playableUrl, callId, turn + 1);
+    return generateConversationExoML(fallbackTts.playableUrl, callId, turn + 1);
   }
 }
 
@@ -189,7 +190,7 @@ async function handleSilence(callId, turn) {
   const tts = await synthesizeSpeech(TAMIL_PROMPTS.FALLBACK_SILENCE);
   await saveTranscript(callId, turn, 'ai', TAMIL_PROMPTS.FALLBACK_SILENCE, null, 'silence_handler', 1.0);
 
-  return generateConversationTwiML(tts.playableUrl, callId, turn);
+  return generateConversationExoML(tts.playableUrl, callId, turn);
 }
 
 /**
@@ -203,7 +204,7 @@ async function handleEndCall(callId, turn) {
 
   clearConversationContext(callId);
 
-  return generateEndCallTwiML(tts.playableUrl);
+  return generateEndCallExoML(tts.playableUrl);
 }
 
 /**
@@ -227,7 +228,7 @@ async function handleEscalation(callId, turn, reason) {
 
   clearConversationContext(callId);
 
-  return generateEscalationTwiML(tts.playableUrl);
+  return generateEscalationExoML(tts.playableUrl);
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

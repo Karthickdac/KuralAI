@@ -1,16 +1,16 @@
 /**
  * Call Controller
- * Handles call initiation, status, retry logic
+ * Handles call initiation, status, retry logic — using Exotel
  */
 
 const { v4: uuidv4 } = require('uuid');
 const Call = require('../models/Call');
-const { initiateCall } = require('../services/twilioService');
+const { initiateCall } = require('../services/exotelService');
 const logger = require('../utils/logger');
 
 /**
  * POST /api/calls/initiate
- * Start a new outgoing call
+ * Start a new outgoing call via Exotel
  */
 async function initiateCallController(req, res) {
   const { toPhone, metadata = {}, maxRetries } = req.body;
@@ -20,7 +20,7 @@ async function initiateCallController(req, res) {
     const call = await Call.create({
       id: uuidv4(),
       toPhone,
-      fromPhone: process.env.TWILIO_PHONE_NUMBER,
+      fromPhone: process.env.EXOTEL_PHONE_NUMBER,
       status: 'initiated',
       direction: 'outbound',
       maxRetries: maxRetries || parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
@@ -29,19 +29,19 @@ async function initiateCallController(req, res) {
 
     logger.info(`Call initiated: ${call.id} -> ${toPhone}`);
 
-    // Trigger Twilio call
-    const twilioCall = await initiateCall(toPhone, call.id, metadata);
+    // Trigger Exotel call
+    const exotelCall = await initiateCall(toPhone, call.id, metadata);
 
-    // Update with Twilio SID
+    // Update with Exotel SID
     await call.update({
-      callSid: twilioCall.sid,
+      callSid: exotelCall.sid,
       status: 'queued',
     });
 
     res.status(201).json({
       success: true,
       callId: call.id,
-      callSid: twilioCall.sid,
+      callSid: exotelCall.sid,
       status: 'queued',
       toPhone,
     });
@@ -73,13 +73,14 @@ async function getCallStatus(req, res) {
  */
 async function listCalls(req, res) {
   const { page = 1, limit = 20, status, fromDate, toDate } = req.query;
+  const { Op } = require('sequelize');
 
   const where = {};
   if (status) where.status = status;
   if (fromDate || toDate) {
     where.createdAt = {};
-    if (fromDate) where.createdAt['$gte'] = new Date(fromDate);
-    if (toDate) where.createdAt['$lte'] = new Date(toDate);
+    if (fromDate) where.createdAt[Op.gte] = new Date(fromDate);
+    if (toDate) where.createdAt[Op.lte] = new Date(toDate);
   }
 
   const { count, rows } = await Call.findAndCountAll({
@@ -115,10 +116,10 @@ async function retryCall(req, res) {
   }
 
   try {
-    const twilioCall = await initiateCall(call.toPhone, call.id, call.metadata);
+    const exotelCall = await initiateCall(call.toPhone, call.id, call.metadata);
 
     await call.update({
-      callSid: twilioCall.sid,
+      callSid: exotelCall.sid,
       status: 'queued',
       retryCount: call.retryCount + 1,
       nextRetryAt: null,

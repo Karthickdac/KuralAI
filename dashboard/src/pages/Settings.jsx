@@ -111,12 +111,12 @@ export default function Settings() {
                   placeholder="https://your-domain.com"
                 />
               </Field>
-              <Field label="Twilio Phone Number" hint="Your Twilio number in E.164 format">
+              <Field label="Exotel ExoPhone Number" hint="Your Exotel virtual number in E.164 format">
                 <input
                   className={styles.input}
-                  value={settings.twilioPhoneNumber || ''}
-                  onChange={e => handleChange('twilioPhoneNumber', e.target.value)}
-                  placeholder="+1XXXXXXXXXX"
+                  value={settings.exotelPhoneNumber || ''}
+                  onChange={e => handleChange('exotelPhoneNumber', e.target.value)}
+                  placeholder="+918XXXXXXXXX"
                 />
               </Field>
               <Field label="Max Call Duration (seconds)" hint="Maximum length of a single call">

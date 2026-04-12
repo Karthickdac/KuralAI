@@ -21,7 +21,7 @@ const DEFAULTS = {
   azureSpeechVoice: process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural',
   openaiModel: process.env.OPENAI_MODEL || 'gpt-4o',
   appUrl: process.env.APP_URL || '',
-  twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
+  exotelPhoneNumber: process.env.EXOTEL_PHONE_NUMBER || '',
 };
 
 function readSettings() {
@@ -53,7 +53,7 @@ router.put('/', requireAdmin, (req, res) => {
     const allowed = [
       'escalationPhone', 'escalationWebhookUrl', 'maxCallDurationSeconds',
       'callRetryAttempts', 'callRetryDelaySeconds', 'silenceTimeoutSeconds',
-      'azureSpeechVoice', 'openaiModel', 'appUrl', 'twilioPhoneNumber',
+      'azureSpeechVoice', 'openaiModel', 'appUrl', 'exotelPhoneNumber',
     ];
     const updated = { ...current };
     for (const key of allowed) {
@@ -71,7 +71,7 @@ router.put('/', requireAdmin, (req, res) => {
     process.env.AZURE_SPEECH_VOICE = updated.azureSpeechVoice;
     process.env.OPENAI_MODEL = updated.openaiModel;
     process.env.APP_URL = updated.appUrl;
-    process.env.TWILIO_PHONE_NUMBER = updated.twilioPhoneNumber;
+    process.env.EXOTEL_PHONE_NUMBER = updated.exotelPhoneNumber;
 
     res.json({ success: true, settings: updated });
   } catch (err) {
