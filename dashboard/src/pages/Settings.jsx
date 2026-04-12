@@ -14,6 +14,12 @@ const MODEL_OPTIONS = [
   { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
 ];
 
+// Fields returned as '••••••••' from the API when they have a value
+const CREDENTIAL_KEYS = [
+  'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
+  'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
+];
+
 /* ─── Reusable section wrapper ─── */
 function Section({ title, description, badge, children }) {
   return (
@@ -44,9 +50,10 @@ function Field({ label, hint, children, wide }) {
 }
 
 /* ─── Secret input (masked, show/hide toggle) ─── */
-function SecretInput({ value, onChange, placeholder, name }) {
+function SecretInput({ value, onChange, placeholder, name, alreadySaved }) {
   const [show, setShow] = useState(false);
-  const isSet = value && !value.includes('•');
+  const showSavedBadge = alreadySaved && !value; // saved on server, field currently empty
+  const showNewBadge   = !alreadySaved && value;  // newly typed
   return (
     <div className={styles.secretWrap}>
       <input
@@ -55,9 +62,9 @@ function SecretInput({ value, onChange, placeholder, name }) {
         name={name}
         value={value}
         onChange={onChange}
-        placeholder={placeholder || '••••••••••••••••'}
+        placeholder={alreadySaved ? 'Leave blank to keep existing value' : (placeholder || 'Enter value')}
         autoComplete="new-password"
-        style={{ paddingRight: 40 }}
+        style={{ paddingRight: showSavedBadge ? 74 : 36 }}
       />
       <button
         type="button"
@@ -78,7 +85,7 @@ function SecretInput({ value, onChange, placeholder, name }) {
           </svg>
         )}
       </button>
-      {isSet && <span className={styles.secretSet}>✓ Set</span>}
+      {showSavedBadge && <span className={styles.secretSet}>✓ Saved</span>}
     </div>
   );
 }
@@ -121,6 +128,7 @@ function WebhookUrls({ appUrl, webhookToken }) {
 /* ─── Main component ─── */
 export default function Settings() {
   const [settings, setSettings] = useState(null);
+  const [savedCreds, setSavedCreds] = useState(new Set()); // keys that already have a value on server
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -128,7 +136,20 @@ export default function Settings() {
 
   useEffect(() => {
     settingsApi.get()
-      .then(r => setSettings(r.data.settings))
+      .then(r => {
+        const s = { ...r.data.settings };
+        const alreadySaved = new Set();
+        // Detect which credential fields are already stored on the server
+        // The API returns '••••••••' for any field that has a value
+        for (const key of CREDENTIAL_KEYS) {
+          if (s[key] && /^•+$/.test(s[key])) {
+            alreadySaved.add(key);
+            s[key] = ''; // Always start as empty so users can't accidentally prepend bullets
+          }
+        }
+        setSavedCreds(alreadySaved);
+        setSettings(s);
+      })
       .catch(() => setError('Failed to load settings'))
       .finally(() => setLoading(false));
   }, []);
@@ -200,6 +221,7 @@ export default function Settings() {
                   value={settings.exotelSid || ''}
                   onChange={e => handleChange('exotelSid', e.target.value)}
                   placeholder="Enter your Exotel Account SID"
+                  alreadySaved={savedCreds.has('exotelSid')}
                 />
               </Field>
               <Field label="ExoPhone Number" hint="Your virtual number in E.164 format">
@@ -216,6 +238,7 @@ export default function Settings() {
                   value={settings.exotelApiKey || ''}
                   onChange={e => handleChange('exotelApiKey', e.target.value)}
                   placeholder="Enter your Exotel API Key"
+                  alreadySaved={savedCreds.has('exotelApiKey')}
                 />
               </Field>
               <Field label="API Token" hint="From Exotel Dashboard → API Keys">
@@ -224,6 +247,7 @@ export default function Settings() {
                   value={settings.exotelApiToken || ''}
                   onChange={e => handleChange('exotelApiToken', e.target.value)}
                   placeholder="Enter your Exotel API Token"
+                  alreadySaved={savedCreds.has('exotelApiToken')}
                 />
               </Field>
               <Field label="App URL" hint="Public URL of this server — used to build webhook URLs below" wide>
@@ -240,6 +264,7 @@ export default function Settings() {
                   value={settings.exotelWebhookToken || ''}
                   onChange={e => handleChange('exotelWebhookToken', e.target.value)}
                   placeholder="e.g. kural-wh-secret-abc123xyz"
+                  alreadySaved={savedCreds.has('exotelWebhookToken')}
                 />
               </Field>
             </div>
@@ -258,7 +283,8 @@ export default function Settings() {
                   name="openaiApiKey"
                   value={settings.openaiApiKey || ''}
                   onChange={e => handleChange('openaiApiKey', e.target.value)}
-                  placeholder="sk-••••••••••••••••••"
+                  placeholder="sk-..."
+                  alreadySaved={savedCreds.has('openaiApiKey')}
                 />
               </Field>
               <Field label="Model" hint="Language model used for Tamil conversation">
@@ -282,6 +308,7 @@ export default function Settings() {
                   value={settings.azureSpeechKey || ''}
                   onChange={e => handleChange('azureSpeechKey', e.target.value)}
                   placeholder="Enter your Azure Speech subscription key"
+                  alreadySaved={savedCreds.has('azureSpeechKey')}
                 />
               </Field>
               <Field label="Azure Region" hint="e.g. eastus, southeastasia, centralindia">
@@ -312,7 +339,8 @@ export default function Settings() {
                   name="awsAccessKeyId"
                   value={settings.awsAccessKeyId || ''}
                   onChange={e => handleChange('awsAccessKeyId', e.target.value)}
-                  placeholder="AKIA••••••••••••••••"
+                  placeholder="AKIA..."
+                  alreadySaved={savedCreds.has('awsAccessKeyId')}
                 />
               </Field>
               <Field label="AWS Secret Access Key">
@@ -321,6 +349,7 @@ export default function Settings() {
                   value={settings.awsSecretAccessKey || ''}
                   onChange={e => handleChange('awsSecretAccessKey', e.target.value)}
                   placeholder="Enter AWS secret access key"
+                  alreadySaved={savedCreds.has('awsSecretAccessKey')}
                 />
               </Field>
               <Field label="S3 Bucket Name" hint="Name of the S3 bucket for audio storage">

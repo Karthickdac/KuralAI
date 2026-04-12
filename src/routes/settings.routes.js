@@ -91,12 +91,20 @@ router.put('/', requireAdmin, (req, res) => {
       const val = req.body[key];
       if (val === undefined) continue;
 
-      // For credential fields: skip if value is empty or masked (all bullets)
+      // For credential fields: skip if value is empty or purely bullets (masked display value)
       if (CREDENTIAL_FIELDS.includes(key)) {
-        if (!val || /^•+$/.test(val)) continue; // keep existing
-        updated[key] = val;
+        if (!val || /^•+$/.test(val)) continue; // keep existing — user left field blank
+        // Strip any leading bullet characters that might have been accidentally prepended
+        updated[key] = String(val).replace(/^•+/, '');
       } else {
         updated[key] = val;
+      }
+    }
+
+    // Also clean up any existing stored values that start with bullets (fix corrupted saves)
+    for (const key of CREDENTIAL_FIELDS) {
+      if (updated[key] && /^•/.test(updated[key])) {
+        updated[key] = updated[key].replace(/^•+/, '');
       }
     }
 
