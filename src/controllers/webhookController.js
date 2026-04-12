@@ -272,12 +272,12 @@ async function handleIncomingCall(req, res) {
     // rejected by Exotel AppConnect before any verb executes.
     // Return bare <Say><Hangup> so we can confirm <Say> itself works.
     // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 2: Test English Say (no language attr) to confirm Exotel can speak at all.
-    // If user hears English but not Tamil, Tamil TTS is not enabled on this account.
-    // If user hears nothing at all, ExoML is not being executed / call isn't bridged yet.
-    logger.info(`DIAG: returning English+Tamil Say test for call ${call.id}`);
+    // DIAG STEP 3: Test if Exotel executes ExoML at all by returning only a Pause.
+    // If the call stays alive for ~30 seconds → ExoML IS executed but Say audio doesn't reach caller.
+    // If the call still drops in < 5 seconds → Exotel is NOT executing our ExoML.
+    logger.info(`DIAG: returning Pause-only test for call ${call.id}`);
     res.type('text/xml').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say>Hello. KuralAI is connected. Testing one two three.</Say>\n  <Pause length="1"/>\n  <Say language="ta-in">வணக்கம்</Say>\n  <Hangup/>\n</Response>`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Pause length="30"/>\n  <Hangup/>\n</Response>`
     );
     return;
   } catch (error) {
