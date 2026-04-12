@@ -93,8 +93,10 @@ async function handleConversationStart(req, res) {
  * Exotel posts SpeechResult (text) and optionally RecordingUrl.
  */
 async function handleSpeechInput(req, res) {
-  const { callId, turn } = req.query;
-  const { SpeechResult, RecordingUrl } = req.body;
+  const params = { ...req.body, ...req.query };
+  const { callId, turn } = params;
+  const SpeechResult = params.SpeechResult || params.speechResult || null;
+  const RecordingUrl = params.RecordingUrl || params.recordingUrl || null;
   logger.info(`Speech input: callId=${callId}, turn=${turn}, text="${SpeechResult}"`);
 
   try {
@@ -232,25 +234,43 @@ async function handleIncomingCall(req, res) {
       logger.info('Inbound call: no workflow configured — using free-form AI mode');
     }
 
-    const call = await Call.create({
-      id: uuidv4(),
-      callSid: CallSid,
-      toPhone: From,        // caller's number
-      fromPhone: To || settings.exotelPhoneNumber || '', // our ExoPhone
-      status: 'answered',
-      direction: 'inbound',
-      startedAt: new Date(),
-      maxRetries: 0,
-      metadata,
-    });
+    let call;
+    let isRetry = false;
 
-    logger.info(`Inbound call record created: ${call.id}`);
-    await notifyDashboard({ type: 'INBOUND_CALL_RECEIVED', callId: call.id, from: From, workflowId: workflow?.id });
+    try {
+      call = await Call.create({
+        id: uuidv4(),
+        callSid: CallSid,
+        toPhone: From,
+        fromPhone: To || settings.exotelPhoneNumber || '',
+        status: 'answered',
+        direction: 'inbound',
+        startedAt: new Date(),
+        maxRetries: 0,
+        metadata,
+      });
+      logger.info(`Inbound call record created: ${call.id}`);
+      await notifyDashboard({ type: 'INBOUND_CALL_RECEIVED', callId: call.id, from: From, workflowId: workflow?.id });
+    } catch (dbError) {
+      // Exotel retries the passthru webhook when <Gather> times out or <Redirect> is ignored.
+      // Re-use the existing call record instead of crashing.
+      if (dbError.name === 'SequelizeUniqueConstraintError') {
+        call = await Call.findOne({ where: { callSid: CallSid } });
+        if (call) {
+          isRetry = true;
+          logger.info(`Exotel retry for sid=${CallSid} — continuing existing call ${call.id}`);
+        } else {
+          throw dbError;
+        }
+      } else {
+        throw dbError;
+      }
+    }
 
     // Return full conversation ExoML with TTS audio in one shot.
     // Exotel's call-attempt event does NOT follow <Redirect>, so we must return
     // the complete <Gather><Play> response here without any redirect.
-    logger.info(`Generating AI greeting for inbound call ${call.id}`);
+    logger.info(`${isRetry ? 'Re-generating' : 'Generating'} AI greeting for inbound call ${call.id}`);
     const exoml = await processCallAnswer(call.id);
     logger.info(`Sending full ExoML to Exotel for call ${call.id}`);
     res.type('text/xml').send(exoml);

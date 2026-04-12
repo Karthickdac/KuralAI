@@ -111,8 +111,9 @@ function generateConversationExoML(audioUrl, callId, turn) {
   const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
   const silence = s.silenceTimeoutSeconds || parseInt(process.env.SILENCE_TIMEOUT_SECONDS) || 5;
 
+  const listenTimeout = Math.max(silence * 2, 10); // at least 10s to start speaking
   return _xml(`
-  <Gather input="speech" language="ta-in" timeout="${silence}" speechTimeout="auto"
+  <Gather input="speech" language="ta-in" timeout="${listenTimeout}" speechTimeout="3"
           action="${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}"
           method="POST">
     <Play>${audioUrl}</Play>
