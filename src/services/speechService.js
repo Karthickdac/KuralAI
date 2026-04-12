@@ -180,53 +180,29 @@ async function synthesizeSpeech(text, outputPath = null) {
 }
 
 /**
- * Build rich SSML markup for natural, colloquial Tamil speech.
- * – Uses Azure "customerservice" style for a warm, helpful tone
- * – Code-switches English words into en-IN pronunciation automatically
- * – Adds micro-pauses after commas/sentence endings for human-like rhythm
- * – Slightly reduced rate (0.92) so Tamil phonemes are crisp on the phone
+ * Build SSML for natural Tamil speech.
+ * Keeps markup minimal — Tamil neural voices sound best with clean prosody only.
+ * mstts:express-as styles are NOT supported by ta-IN voices and degrade quality.
  * @param {string} text
  * @param {string} [voiceName] — explicit voice; falls back to env / default
  */
 function buildTamilSSML(text, voiceName) {
   voiceName = voiceName || process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural';
 
-  // 1. Escape XML special characters
-  let escaped = text
+  // Escape XML special characters in the raw text only
+  const escaped = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  // 2. Wrap standalone English words/numbers in en-IN lang tags so Azure
-  //    pronounces them naturally (e.g. "order", "delivery", "24 hours")
-  //    Matches: sequences of ASCII letters/digits that are not inside existing XML tags
-  escaped = escaped.replace(/\b([A-Za-z0-9][A-Za-z0-9\s\-]*[A-Za-z0-9]|[A-Za-z0-9])\b/g, (match) => {
-    // Skip if it's a pure number — Tamil TTS reads digits fine
-    if (/^\d+$/.test(match.trim())) return match;
-    return `<lang xml:lang="en-IN">${match}</lang>`;
-  });
-
-  // 3. Add short breaks after sentence-ending punctuation and ellipses
-  escaped = escaped
-    .replace(/\.\s+/g, '.<break time="400ms"/> ')
-    .replace(/\?\s+/g, '?<break time="350ms"/> ')
-    .replace(/!\s+/g, '!<break time="350ms"/> ')
-    .replace(/\.\.\./g, '<break time="300ms"/>');
-
-  // 4. Add slight pauses at commas for natural cadence
-  escaped = escaped.replace(/,\s*/g, ',<break time="150ms"/> ');
-
-  // Detect male voices (Valluvar) to avoid pitch adjustments that sound unnatural
-  const isMale = /valluvar/i.test(voiceName);
-
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ta-IN">
+  // Tamil neural voices handle English loan words natively — no lang switching needed.
+  // Keep prosody minimal: slight rate reduction only. No pitch changes.
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="ta-IN">
   <voice name="${voiceName}">
-    <mstts:express-as style="customerservice" styledegree="1.8">
-      <prosody rate="${isMale ? '0.90' : '0.92'}" pitch="${isMale ? '-1Hz' : '+1Hz'}" volume="loud">
-        ${escaped}
-      </prosody>
-    </mstts:express-as>
+    <prosody rate="0.95">
+      ${escaped}
+    </prosody>
   </voice>
 </speak>`;
 }
