@@ -1,0 +1,15 @@
+# ── terraform.tfvars.example ───────────────────────────────────────────────────
+# Copy to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars to version control.
+
+aws_region          = "ap-south-1"
+environment         = "production"
+app_url             = "https://kuralai.yourdomain.com"
+db_password         = "YourStrongDbPassword123!"
+s3_bucket_name      = "kuralai-audio-storage-prod"
+acm_certificate_arn = "arn:aws:acm:ap-south-1:123456789012:certificate/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+db_instance_class   = "db.t3.small"
+fargate_cpu         = "512"
+fargate_memory      = "1024"
+ecs_desired_count   = 2
+azure_speech_region = "eastus"

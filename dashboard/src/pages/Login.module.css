@@ -1,0 +1,86 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f4f0;
+  padding: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.logoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #3C3489;
+  color: #EEEDFE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.appName { font-size: 20px; font-weight: 600; color: #2C2C2A; }
+.appSub { font-size: 12px; color: #888780; margin-top: 2px; }
+
+.heading {
+  font-size: 18px;
+  font-weight: 500;
+  color: #2C2C2A;
+  margin-bottom: 24px;
+}
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.label { font-size: 13px; font-weight: 500; color: #5F5E5A; }
+
+.input {
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #2C2C2A;
+  background: #fff;
+  transition: border-color 0.15s;
+  outline: none;
+}
+.input:focus { border-color: #534AB7; box-shadow: 0 0 0 3px rgba(83,74,183,0.12); }
+
+.error {
+  font-size: 13px;
+  color: #A32D2D;
+  background: #FCEBEB;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.btn {
+  padding: 11px;
+  background: #3C3489;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+.btn:hover:not(:disabled) { background: #534AB7; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
