@@ -196,19 +196,28 @@ function buildTamilSSML(text, voiceName) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  // Per-gender prosody tuning for Madurai mass style:
-  //   Male  (Valluvar) — slower, slightly deeper: confident Madurai male cadence
-  //   Female (Pallavi) — near-natural speed, slight warmth: professional Madurai female tone
-  // Tamil neural voices handle English loan words natively — no lang/break tags needed.
-  // mstts:express-as is NOT supported by ta-IN voices; plain prosody sounds best.
-  const isMale = /valluvar/i.test(voiceName);
-  const rate   = isMale ? '0.88' : '0.95';
-  const pitch  = isMale ? '-2Hz' : '+1Hz';
+  // Split on sentence endings and insert 300ms breaks — matches the user's SSML style.
+  // Keeps sentences clearly separated for the Madurai cadence feel.
+  const withBreaks = escaped
+    .replace(/([!?।])\s+/g, '$1\n')
+    .replace(/\.\s+(?=[^\d])/g, '.\n')   // period break, but not inside numbers
+    .split('\n')
+    .map(s => s.trim())
+    .filter(s => s.length > 0)
+    .join('\n      <break time="300ms"/>\n      ');
 
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="ta-IN">
+  // Per-gender prosody tuning (Madurai mass style).
+  // Male  (Valluvar): rate=0.95, pitch=+2% — bold, confident, clear Madurai cadence
+  // Female (Pallavi): rate=0.97, pitch=+5% — warm, professional, slightly brighter tone
+  // mstts:express-as is NOT supported by ta-IN voices — plain prosody only.
+  const isMale = /valluvar/i.test(voiceName);
+  const rate   = isMale ? '0.95' : '0.97';
+  const pitch  = isMale ? '+2%'  : '+5%';
+
+  return `<speak version="1.0" xml:lang="ta-IN" xmlns="http://www.w3.org/2001/10/synthesis">
   <voice name="${voiceName}">
     <prosody rate="${rate}" pitch="${pitch}">
-      ${escaped}
+      ${withBreaks}
     </prosody>
   </voice>
 </speak>`;
