@@ -12,6 +12,28 @@
     "callsFailed": 0,
     "callsTotal": 0,
     "createdAt": "2026-04-12T11:40:52.077Z",
-    "updatedAt": "2026-04-12T11:40:54.712Z"
+    "updatedAt": "2026-04-12T13:07:26.033Z",
+    "scriptFlow": {
+      "enabled": true,
+      "startStep": "id_1775999130639_2oq7",
+      "steps": [
+        {
+          "id": "id_1775999130639_2oq7",
+          "agentMessage": "வணக்கம் சார், ஜெயநாதன்ல இருந்து மஹாலக்ஷ்மி பேசுறேன் சார்  ,\nரமேஷ்  சார்ங்களா ,\nஅடுத்த மாசம் 7ம் தேதி உங்களுக்கு 5லட்சம் சீட் இருக்கு சார் \n3வது due , due அமௌன்ட் 18750 ,குலுக்கல்ல கலந்துகிறதுக்கு விருப்பம் இருக்கா சார் ",
+          "branches": [
+            {
+              "id": "id_1775999130639_i21m",
+              "label": "",
+              "expectedPhrases": [],
+              "agentResponse": "",
+              "nextStep": "",
+              "action": "continue"
+            }
+          ],
+          "fallbackMessage": "மறுபடியும் சொல்லுங்களா மாப்ளா?",
+          "maxRetries": 2
+        }
+      ]
+    }
   }
 ]

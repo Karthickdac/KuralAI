@@ -80,7 +80,7 @@ async function processCallAnswer(callId) {
   const tts = await synthesizeSpeech(greetingText);
   await saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0);
 
-  return generateConversationExoML(tts.playableUrl, callId, 0);
+  return generateConversationExoML(tts.playableUrl, callId, 0, greetingText);
 }
 
 /**
@@ -212,7 +212,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     // ── Step 6: Return ExoML to play audio & continue ────────────────────
     await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent });
 
-    return generateConversationExoML(tts.playableUrl, callId, turn + 1);
+    return generateConversationExoML(tts.playableUrl, callId, turn + 1, aiResult.response);
 
   } catch (error) {
     logger.error(`Conversation processing error for call ${callId}:`, error);
@@ -220,7 +220,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
 
     // Play error fallback and continue
     const fallbackTts = await synthesizeSpeech(TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE);
-    return generateConversationExoML(fallbackTts.playableUrl, callId, turn + 1);
+    return generateConversationExoML(fallbackTts.playableUrl, callId, turn + 1, TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE);
   }
 }
 
@@ -242,7 +242,7 @@ async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTim
       const tts = await synthesizeSpeech(result.response);
       await saveTranscript(callId, turn + 1, 'ai', result.response, null, 'script_escalation', 1.0, tts.s3Url, Date.now() - startTime);
       // Play response then escalate
-      return generateConversationExoML(tts.playableUrl, callId, turn + 1);
+      return generateConversationExoML(tts.playableUrl, callId, turn + 1, result.response);
     }
     return handleEscalation(callId, turn, 'script_no_match');
   }
@@ -252,14 +252,14 @@ async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTim
     const tts = await synthesizeSpeech(goodbyeText);
     await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'script_complete', 1.0, tts.s3Url, Date.now() - startTime);
     scriptEngine.clearFlow(callId);
-    return generateEndCallExoML(tts.playableUrl);
+    return generateEndCallExoML(null, goodbyeText);
   }
 
   const tts = await synthesizeSpeech(result.response);
   await saveTranscript(callId, turn + 1, 'ai', result.response, null, 'script_response', 1.0, tts.s3Url, Date.now() - startTime);
 
   await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent: 'script_flow' });
-  return generateConversationExoML(tts.playableUrl, callId, turn + 1);
+  return generateConversationExoML(tts.playableUrl, callId, turn + 1, result.response);
 }
 
 /**
@@ -279,7 +279,7 @@ async function handleSilence(callId, turn) {
   const tts = await synthesizeSpeech(TAMIL_PROMPTS.FALLBACK_SILENCE);
   await saveTranscript(callId, turn, 'ai', TAMIL_PROMPTS.FALLBACK_SILENCE, null, 'silence_handler', 1.0);
 
-  return generateConversationExoML(tts.playableUrl, callId, turn);
+  return generateConversationExoML(tts.playableUrl, callId, turn, TAMIL_PROMPTS.FALLBACK_SILENCE);
 }
 
 /**
@@ -318,7 +318,7 @@ async function handleEscalation(callId, turn, reason) {
 
   clearConversationContext(callId);
 
-  return generateEscalationExoML(tts.playableUrl);
+  return generateEscalationExoML(tts.playableUrl, TAMIL_PROMPTS.ESCALATION_MESSAGE);
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

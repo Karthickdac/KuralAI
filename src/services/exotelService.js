@@ -100,15 +100,32 @@ function generateAnswerExoML(callId) {
 }
 
 /**
- * ExoML for a conversation turn: play AI audio inside <Gather> and listen for speech.
- * <Gather input="speech"> is used because <Record> causes immediate disconnection on
- * this Exotel account. The <Gather> action URL receives either SpeechResult (if ASR works)
- * or an empty body (timeout), and the conversation engine handles both cases.
- * @param {string} audioUrl - Public URL of pre-generated TTS audio (S3/CDN)
+ * Escape XML special characters for safe embedding inside <Say> text.
+ */
+function _escapeXml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * ExoML for a conversation turn: speak AI response inside <Gather> and listen for speech.
+ *
+ * Exotel does NOT fetch <Play> audio URLs inside <Gather> (confirmed: zero audio-fetch
+ * requests from Exotel IPs despite URL being publicly reachable). We therefore use
+ * <Say> (Exotel's own TTS) to speak the response — no external audio URL required.
+ *
+ * <Record> causes immediate disconnection on this account, so we keep <Gather input="speech">.
+ *
+ * @param {string} audioUrl   - Pre-generated TTS URL (kept for DB/S3 logging; NOT sent to Exotel)
  * @param {string} callId
  * @param {number} turn
+ * @param {string} [sayText]  - Tamil text for <Say>; falls back to generic prompt when omitted
  */
-function generateConversationExoML(audioUrl, callId, turn) {
+function generateConversationExoML(audioUrl, callId, turn, sayText) {
   const s = getStoredSettings();
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
   const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
@@ -116,37 +133,40 @@ function generateConversationExoML(audioUrl, callId, turn) {
   const speechUrl  = `${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
   const silenceUrl = `${webhookBase}/webhook/call/silence?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
 
-  // timeout="20" — seconds to wait for caller to start speaking after audio ends
-  // speechTimeout="3" — seconds of silence to detect end of speech
+  // Use <Say> with Exotel's Tamil TTS — this is what Exotel actually executes.
+  const spokenText = sayText || 'கேள்வி கேளுங்கள்.';
+  const sayVerb = `<Say language="ta-in">${_escapeXml(spokenText)}</Say>`;
+
+  // timeout="20" — seconds to wait for caller to start speaking after Say finishes
+  // speechTimeout="3" — seconds of end-of-speech silence
   return _xml(`
   <Gather input="speech" language="ta-in" timeout="20" speechTimeout="3"
           action="${speechUrl}"
           method="POST">
-    <Play>${audioUrl}</Play>
+    ${sayVerb}
   </Gather>
   <Redirect method="POST">${silenceUrl}</Redirect>`);
 }
 
 /**
  * ExoML to play a goodbye message and hang up.
+ * @param {string|null} goodbyeAudioUrl - Ignored (kept for signature compat); Exotel uses <Say>
+ * @param {string} [sayText] - Tamil text; falls back to GOODBYE prompt
  */
-function generateEndCallExoML(goodbyeAudioUrl) {
-  if (goodbyeAudioUrl) {
-    return _xml(`
-  <Play>${goodbyeAudioUrl}</Play>
-  <Pause length="1"/>
-  <Hangup/>`);
-  }
+function generateEndCallExoML(goodbyeAudioUrl, sayText) {
+  const text = sayText || TAMIL_PROMPTS.GOODBYE;
   return _xml(`
-  <Say language="ta-in">${TAMIL_PROMPTS.GOODBYE}</Say>
+  <Say language="ta-in">${_escapeXml(text)}</Say>
   <Pause length="1"/>
   <Hangup/>`);
 }
 
 /**
  * ExoML for human escalation — plays message then transfers to agent phone.
+ * @param {string|null} escalationAudioUrl - Ignored; Exotel uses <Say>
+ * @param {string} [sayText] - Tamil text; falls back to ESCALATION_MESSAGE prompt
  */
-function generateEscalationExoML(escalationAudioUrl) {
+function generateEscalationExoML(escalationAudioUrl, sayText) {
   const s = getStoredSettings();
   const escalationPhone = s.escalationPhone || process.env.ESCALATION_PHONE;
   const callerIdPhone = s.exotelPhoneNumber || process.env.EXOTEL_PHONE_NUMBER;
@@ -158,10 +178,8 @@ function generateEscalationExoML(escalationAudioUrl) {
     dialBlock = `\n  <Say language="ta-in">மன்னிக்கவும், இப்போது எந்த ஒரு ஆதரவாளரும் கிடைக்கவில்லை.</Say>\n  <Hangup/>`;
   }
 
-  if (escalationAudioUrl) {
-    return _xml(`\n  <Play>${escalationAudioUrl}</Play>\n  <Pause length="1"/>${dialBlock}`);
-  }
-  return _xml(`\n  <Say language="ta-in">${TAMIL_PROMPTS.ESCALATION_MESSAGE}</Say>${dialBlock}`);
+  const text = sayText || TAMIL_PROMPTS.ESCALATION_MESSAGE;
+  return _xml(`\n  <Say language="ta-in">${_escapeXml(text)}</Say>\n  <Pause length="1"/>${dialBlock}`);
 }
 
 /**
