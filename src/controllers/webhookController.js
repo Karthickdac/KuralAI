@@ -267,13 +267,17 @@ async function handleIncomingCall(req, res) {
       }
     }
 
-    // Return full conversation ExoML with TTS audio in one shot.
-    // Exotel's call-attempt event does NOT follow <Redirect>, so we must return
-    // the complete <Gather><Play> response here without any redirect.
-    logger.info(`${isRetry ? 'Re-generating' : 'Generating'} AI greeting for inbound call ${call.id}`);
-    const exoml = await processCallAnswer(call.id);
-    logger.info(`Sending full ExoML to Exotel for call ${call.id}`);
-    res.type('text/xml').send(exoml);
+    // ── DIAGNOSTIC: test if <Say> works at all without <Gather> ──────────
+    // Immediate disconnect (1-2 s) confirmed → <Gather input="speech"> is being
+    // rejected by Exotel AppConnect before any verb executes.
+    // Return bare <Say><Hangup> so we can confirm <Say> itself works.
+    // TODO: restore full conversation flow once Say is confirmed working.
+    logger.info(`DIAG: returning simple Say+Hangup for call ${call.id}`);
+    const diagText = settings.diagGreeting || 'வணக்கம். குரல் AI அமைப்பு சோதனை.';
+    res.type('text/xml').send(
+      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Say language="ta-in">${diagText}</Say>\n  <Pause length="1"/>\n  <Hangup/>\n</Response>`
+    );
+    return;
   } catch (error) {
     logger.error('handleIncomingCall error:', error);
     res.type('text/xml').send(_errorExoML());
