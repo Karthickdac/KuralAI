@@ -1,0 +1,23 @@
+{
+  "exotelSid": "kyro3602",
+  "exotelApiKey": "acbb96a876b5f77649272f3cadda84ab85a1298e1ef1ceed",
+  "exotelApiToken": "70f6c0c7ce0d5b45ac1ee31df49ba89160f16415611a413e",
+  "exotelPhoneNumber": "+918047280398",
+  "exotelWebhookToken": "",
+  "appUrl": "https://4a462e41-c4c8-4417-bda9-98ab57e6f947-00-1gevc4nee66uj.pike.replit.dev/",
+  "openaiApiKey": "",
+  "openaiModel": "gpt-4o",
+  "azureSpeechKey": "",
+  "azureSpeechRegion": "eastus",
+  "azureSpeechVoice": "ta-IN-PallaviNeural",
+  "awsAccessKeyId": "",
+  "awsSecretAccessKey": "",
+  "s3BucketName": "",
+  "awsRegion": "ap-south-1",
+  "maxCallDurationSeconds": 300,
+  "callRetryAttempts": 3,
+  "callRetryDelaySeconds": 60,
+  "silenceTimeoutSeconds": 5,
+  "escalationPhone": "",
+  "escalationWebhookUrl": ""
+}
