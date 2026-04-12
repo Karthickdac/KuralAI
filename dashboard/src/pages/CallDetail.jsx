@@ -59,12 +59,32 @@ export default function CallDetail() {
   const statusBg = (s) => STATUS_COLORS[s] || STATUS_COLORS.default;
   const statusColor = (s) => STATUS_TEXT[s] || STATUS_TEXT.default;
 
+  function handleExport() {
+    if (!transcript.length) return;
+    const lines = transcript.map(t =>
+      `[${t.speaker.toUpperCase()}]${t.intent ? ` (${t.intent})` : ''}: ${t.text}`
+    ).join('\n');
+    const meta = `Call ID: ${callId}\nPhone: ${call.toPhone}\nStatus: ${call.status}\nDuration: ${fmtDuration(call.duration)}\nDate: ${fmtDate(call.createdAt)}\n\n`;
+    const blob = new Blob([meta + lines], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transcript-${callId}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (loading) return <div className={styles.loading}>Loading call details...</div>;
   if (!call) return <div className={styles.loading}>Call not found.</div>;
 
   return (
     <div className={styles.page}>
-      <button className={styles.backBtn} onClick={() => navigate(-1)}>← Back</button>
+      <div className={styles.topBar}>
+        <button className={styles.backBtn} onClick={() => navigate(-1)}>← Back</button>
+        {transcript.length > 0 && (
+          <button className={styles.exportBtn} onClick={handleExport}>↓ Export Transcript</button>
+        )}
+      </div>
 
       <div className={styles.header}>
         <div>
@@ -86,6 +106,14 @@ export default function CallDetail() {
         <div className={styles.metaItem}><span>Direction</span><strong>{call.direction || 'outbound'}</strong></div>
         <div className={styles.metaItem}><span>Escalated</span><strong>{call.escalated ? 'Yes' : 'No'}</strong></div>
       </div>
+
+      {/* Recording player */}
+      {call.recordingUrl && (
+        <div className={styles.recordingCard}>
+          <div className={styles.recordingLabel}>Call Recording</div>
+          <audio controls src={call.recordingUrl} className={styles.audioPlayer} />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className={styles.tabs}>

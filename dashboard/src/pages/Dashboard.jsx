@@ -117,6 +117,8 @@ export default function Dashboard() {
         <nav className={styles.nav}>
           <button className={`${styles.navItem} ${styles.active}`}>Dashboard</button>
           <button className={styles.navItem} onClick={() => navigate('/calls')}>All Calls</button>
+          <button className={styles.navItem} onClick={() => navigate('/users')}>Users</button>
+          <button className={styles.navItem} onClick={() => navigate('/settings')}>Settings</button>
         </nav>
 
         <div className={styles.sidebarBottom}>

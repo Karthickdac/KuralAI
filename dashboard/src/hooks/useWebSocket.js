@@ -15,8 +15,9 @@ export function useWebSocket(onMessage) {
     const token = localStorage.getItem('kuralai_token');
     if (!token || !mountedRef.current) return;
 
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-    const wsUrl = baseUrl.replace(/^http/, 'ws') + `/ws?token=${token}`;
+    // Use the current page's host — works behind any proxy (Replit, prod, etc.)
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

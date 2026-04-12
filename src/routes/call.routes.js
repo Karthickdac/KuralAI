@@ -39,6 +39,49 @@ router.get('/',
   listCalls
 );
 
+// GET /api/calls/export — CSV export (must come before /:callId/status)
+router.get('/export', async (req, res) => {
+  const { status, fromDate, toDate } = req.query;
+  const { Op } = require('sequelize');
+  const Call = require('../models/Call');
+
+  const where = {};
+  if (status) where.status = status;
+  if (fromDate || toDate) {
+    where.createdAt = {};
+    if (fromDate) where.createdAt[Op.gte] = new Date(fromDate);
+    if (toDate) where.createdAt[Op.lte] = new Date(toDate);
+  }
+
+  const calls = await Call.findAll({
+    where,
+    order: [['createdAt', 'DESC']],
+    limit: 5000,
+  });
+
+  const rows = calls.map(c => [
+    c.id,
+    c.toPhone,
+    c.direction || 'outbound',
+    c.status,
+    c.duration || 0,
+    c.retryCount || 0,
+    c.escalated ? 'Yes' : 'No',
+    c.escalationReason || '',
+    c.callSid || '',
+    new Date(c.createdAt).toISOString(),
+    c.startedAt ? new Date(c.startedAt).toISOString() : '',
+    c.endedAt ? new Date(c.endedAt).toISOString() : '',
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+  const header = '"ID","Phone","Direction","Status","Duration(s)","Retries","Escalated","Escalation Reason","Twilio SID","Created","Started","Ended"';
+  const csv = [header, ...rows].join('\n');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="kuralai-calls-${Date.now()}.csv"`);
+  res.send(csv);
+});
+
 // GET /api/calls/:callId/status
 router.get('/:callId/status',
   [param('callId').isUUID()],

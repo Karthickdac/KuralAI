@@ -35,11 +35,31 @@ Single workflow `Start application` runs `bash start.sh` which:
 - `start.sh` - Combined startup script
 - `scripts/seed.js` - Seeds admin user into DB
 
+## Frontend Pages
+- `/` — Dashboard (stats, charts, recent calls, live WebSocket feed)
+- `/calls` — Calls list (paginated, filterable by status/date, CSV export)
+- `/calls/:id` — Call detail (transcript, logs, recording player, transcript export)
+- `/users` — User management (create/edit/deactivate/delete; admin only)
+- `/settings` — App settings form (call behaviour, retries, AI/voice, escalation)
+
+## API Routes
+- `POST /api/auth/login` / `GET /api/auth/me`
+- `GET/POST /api/calls/initiate`, `GET /api/calls`, `GET /api/calls/export` (CSV)
+- `GET /api/calls/:id/status`, `GET /api/calls/:id/transcripts`, `GET /api/logs/:callId`
+- `GET /api/dashboard/stats|intents|calls/timeline|recent-calls`
+- `GET/POST/PUT/DELETE /api/users` (admin only)
+- `GET/PUT /api/settings` — config stored in `config/app-settings.json`
+- `POST /webhook/voice|status|recording`
+- `WS /ws?token=<jwt>` — real-time call events
+
 ## Notable Changes from Original
 - Replaced `@azure/cognitiveservices-speech-sdk` with `microsoft-cognitiveservices-speech-sdk` (correct npm package name)
 - Made Twilio and OpenAI clients lazy-initialized to allow startup without credentials
 - Database sync changed from `alter: true` to `force: false` to avoid PostgreSQL multi-statement alter errors
 - Database config updated to fall back to Replit's PGHOST/PGDATABASE/etc env vars
+- WebSocket URL uses `window.location.host` dynamically (works behind Replit proxy)
+- `dashboard/src/setupProxy.js` proxies `/api`, `/webhook`, `/health`, `/ws` to port 3000
+- Settings persisted to `config/app-settings.json` and synced to `process.env` on update
 
 ## Environment Variables
 Set in Replit Secrets/Env Vars:

@@ -23,6 +23,8 @@ const logRoutes = require('./routes/log.routes');
 const webhookRoutes = require('./routes/webhook.routes');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const userRoutes = require('./routes/user.routes');
+const settingsRoutes = require('./routes/settings.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -73,6 +75,8 @@ app.use('/api/calls', callRoutes);
 app.use('/api/transcripts', transcriptRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Twilio webhooks (no auth - validated by Twilio signature)
 app.use('/webhook', webhookRoutes);

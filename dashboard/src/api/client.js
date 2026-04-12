@@ -63,4 +63,24 @@ export const dashboardApi = {
   recentCalls: (limit = 10) => api.get('/api/dashboard/recent-calls', { params: { limit } }),
 };
 
+// ── Users ───────────────────────────────────────────────────────────────────────
+export const usersApi = {
+  list: () => api.get('/api/users'),
+  create: (data) => api.post('/api/users', data),
+  update: (id, data) => api.put(`/api/users/${id}`, data),
+  remove: (id) => api.delete(`/api/users/${id}`),
+};
+
+// ── Settings ────────────────────────────────────────────────────────────────────
+export const settingsApi = {
+  get: () => api.get('/api/settings'),
+  update: (data) => api.put('/api/settings', data),
+};
+
+// ── Calls (extended) ────────────────────────────────────────────────────────────
+export const callsListApi = {
+  list: (params) => api.get('/api/calls', { params }),
+  exportCsv: (params) => api.get('/api/calls/export', { params, responseType: 'blob' }),
+};
+
 export default api;
