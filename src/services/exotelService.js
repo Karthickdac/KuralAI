@@ -100,9 +100,10 @@ function generateAnswerExoML(callId) {
 }
 
 /**
- * ExoML for a conversation turn: play AI audio then record caller's response.
- * Uses <Record> instead of <Gather input="speech"> so it works on all Exotel plans
- * without needing Exotel ASR. Our Whisper STT handles transcription.
+ * ExoML for a conversation turn: play AI audio inside <Gather> and listen for speech.
+ * <Gather input="speech"> is used because <Record> causes immediate disconnection on
+ * this Exotel account. The <Gather> action URL receives either SpeechResult (if ASR works)
+ * or an empty body (timeout), and the conversation engine handles both cases.
  * @param {string} audioUrl - Public URL of pre-generated TTS audio (S3/CDN)
  * @param {string} callId
  * @param {number} turn
@@ -111,17 +112,19 @@ function generateConversationExoML(audioUrl, callId, turn) {
   const s = getStoredSettings();
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
   const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
-  const silence = s.silenceTimeoutSeconds || parseInt(process.env.SILENCE_TIMEOUT_SECONDS) || 5;
 
-  const speechUrl = `${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
+  const speechUrl  = `${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
+  const silenceUrl = `${webhookBase}/webhook/call/silence?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
 
+  // timeout="20" — seconds to wait for caller to start speaking after audio ends
+  // speechTimeout="3" — seconds of silence to detect end of speech
   return _xml(`
-  <Play>${audioUrl}</Play>
-  <Record action="${speechUrl}"
-          maxLength="30"
-          timeout="${silence}"
-          playBeep="false"
-          method="POST" />`);
+  <Gather input="speech" language="ta-in" timeout="20" speechTimeout="3"
+          action="${speechUrl}"
+          method="POST">
+    <Play>${audioUrl}</Play>
+  </Gather>
+  <Redirect method="POST">${silenceUrl}</Redirect>`);
 }
 
 /**

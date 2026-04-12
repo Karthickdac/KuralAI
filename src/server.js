@@ -94,7 +94,11 @@ app.get('/audio/:filename', (req, res) => {
   const _path = require('path');
   const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '');
   const filePath = _path.join(_localAudioDir, filename);
-  if (!_fs.existsSync(filePath)) return res.status(404).json({ error: 'Audio file not found' });
+  logger.info(`AUDIO FETCH: ${filename} from ip=${req.ip} ua="${req.headers['user-agent'] || 'none'}"`);
+  if (!_fs.existsSync(filePath)) {
+    logger.warn(`AUDIO NOT FOUND: ${filename}`);
+    return res.status(404).json({ error: 'Audio file not found' });
+  }
   const stat = _fs.statSync(filePath);
   res.setHeader('Content-Type', 'audio/mpeg');
   res.setHeader('Content-Length', stat.size);
