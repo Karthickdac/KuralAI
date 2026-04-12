@@ -247,9 +247,13 @@ async function handleIncomingCall(req, res) {
     logger.info(`Inbound call record created: ${call.id}`);
     await notifyDashboard({ type: 'INBOUND_CALL_RECEIVED', callId: call.id, from: From, workflowId: workflow?.id });
 
-    // Return ExoML immediately using <Say> so Exotel answers the call without waiting
-    // for Azure TTS. The full AI greeting is generated in the conversation turn below.
-    res.type('text/xml').send(generateAnswerExoML(call.id));
+    // Return full conversation ExoML with TTS audio in one shot.
+    // Exotel's call-attempt event does NOT follow <Redirect>, so we must return
+    // the complete <Gather><Play> response here without any redirect.
+    logger.info(`Generating AI greeting for inbound call ${call.id}`);
+    const exoml = await processCallAnswer(call.id);
+    logger.info(`Sending full ExoML to Exotel for call ${call.id}`);
+    res.type('text/xml').send(exoml);
   } catch (error) {
     logger.error('handleIncomingCall error:', error);
     res.type('text/xml').send(_errorExoML());

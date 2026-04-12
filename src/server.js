@@ -90,12 +90,17 @@ app.use('/webhook', webhookRoutes);
 const _localAudioDir = require('path').join('/tmp', 'kuralai-audio');
 if (!require('fs').existsSync(_localAudioDir)) require('fs').mkdirSync(_localAudioDir, { recursive: true });
 app.get('/audio/:filename', (req, res) => {
+  const _fs = require('fs');
+  const _path = require('path');
   const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '');
-  const filePath = require('path').join(_localAudioDir, filename);
-  if (!require('fs').existsSync(filePath)) return res.status(404).json({ error: 'Audio file not found' });
+  const filePath = _path.join(_localAudioDir, filename);
+  if (!_fs.existsSync(filePath)) return res.status(404).json({ error: 'Audio file not found' });
+  const stat = _fs.statSync(filePath);
   res.setHeader('Content-Type', 'audio/mpeg');
-  res.setHeader('Cache-Control', 'no-store');
-  require('fs').createReadStream(filePath).pipe(res);
+  res.setHeader('Content-Length', stat.size);
+  res.setHeader('Accept-Ranges', 'bytes');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(filePath);
 });
 
 // ─── Global Error Handler ──────────────────────────────────────────────────────

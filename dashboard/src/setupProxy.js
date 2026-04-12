@@ -11,6 +11,7 @@ module.exports = function (app) {
 
   app.use('/api', createProxyMiddleware(opts));
   app.use('/webhook', createProxyMiddleware(opts));
+  app.use('/audio', createProxyMiddleware(opts));
   app.use('/health', createProxyMiddleware(opts));
   app.use('/ws', createProxyMiddleware({ ...opts, ws: true }));
 };
