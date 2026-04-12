@@ -1,25 +1,23 @@
-# KuralAI - Tamil AI Voice Calling System
+# KuralAI — Enterprise Tamil AI Voice Calling System
 
 ## Overview
-KuralAI is a real-time AI voice calling system designed to speak and understand Tamil naturally. It integrates AI services (LLMs, STT, TTS) with the Twilio telephony provider.
+KuralAI is a real-time AI voice calling platform that speaks and understands Tamil naturally. Built for enterprise outbound call campaigns with GPT-4o, Azure Neural TTS, Exotel telephony, and a full analytics dashboard.
 
 ## Architecture
-- **Frontend**: React (CRA) dashboard on port 5000
+- **Frontend**: React (CRA) enterprise dashboard on port 5000
 - **Backend**: Node.js/Express API on port 3000
 - **Database**: PostgreSQL (Replit built-in)
 - **Real-time**: WebSockets (ws)
 - **Auth**: JWT with bcryptjs
 
 ## External Services Required
-- **OpenAI**: GPT-4o (LLM) + Whisper (STT) - set `OPENAI_API_KEY`
-- **Azure Cognitive Services**: Tamil Neural TTS - set `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`
-- **Exotel**: Outbound/inbound calling + webhooks (replaces Twilio)
-  - `EXOTEL_SID` — Account SID from Exotel Dashboard
-  - `EXOTEL_API_KEY` — API Key from Exotel Dashboard
-  - `EXOTEL_API_TOKEN` — API Token from Exotel Dashboard
-  - `EXOTEL_PHONE_NUMBER` — Your ExoPhone in E.164 format (e.g. +918XXXXXXXXX)
-  - `EXOTEL_WEBHOOK_TOKEN` — A long random secret appended to all webhook URLs for security
-- **AWS S3**: Audio file storage - set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
+- **OpenAI**: GPT-4o (LLM) + Whisper (STT) — set `OPENAI_API_KEY`
+- **Azure Cognitive Services**: Tamil Neural TTS — set `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`
+- **Exotel**: Outbound/inbound calling + webhooks
+  - `EXOTEL_SID`, `EXOTEL_API_KEY`, `EXOTEL_API_TOKEN`
+  - `EXOTEL_PHONE_NUMBER` — ExoPhone in E.164 format (e.g. +918XXXXXXXXX)
+  - `EXOTEL_WEBHOOK_TOKEN` — long random secret appended to all webhook URLs
+- **AWS S3**: Audio file storage — `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
 
 ## Startup
 Single workflow `Start application` runs `bash start.sh` which:
@@ -30,48 +28,62 @@ Single workflow `Start application` runs `bash start.sh` which:
 - Email: admin@automystic.com
 - Password: ChangeMe@123
 
-## Key Files
-- `src/server.js` - Backend entry point
-- `src/config/database.js` - PostgreSQL config (uses PGHOST/PGDATABASE/etc from Replit secrets)
-- `src/services/twilioService.js` - Twilio integration (lazy-initialized)
-- `src/services/aiService.js` - OpenAI GPT-4o integration (lazy-initialized)
-- `src/services/speechService.js` - Whisper STT + Azure TTS (lazy-initialized)
-- `dashboard/src/api/client.js` - Axios API client (proxied to port 3000)
-- `start.sh` - Combined startup script
-- `scripts/seed.js` - Seeds admin user into DB
+## Design System
+CSS variables defined in `dashboard/src/global.css`:
+- Sidebar: `--sidebar-bg: #0F172A` (dark navy), `--sidebar-width: 240px`
+- Primary: `--primary: #4F46E5` (indigo)
+- Page background: `--page-bg: #F1F5F9`
+- Full token set: text, border, shadow, radius, status colours (success/warning/danger/info/purple)
 
-## Frontend Pages
-- `/` — Dashboard (stats, charts, recent calls, live WebSocket feed)
-- `/calls` — Calls list (paginated, filterable by status/date, CSV export)
-- `/calls/:id` — Call detail (transcript, logs, recording player, transcript export)
-- `/users` — User management (create/edit/deactivate/delete; admin only)
-- `/settings` — App settings form (call behaviour, retries, AI/voice, escalation)
+## Frontend Pages & Components
+- **Shared**: `Sidebar.jsx` + `Sidebar.module.css` — shared across all pages (uses `useWebSocket` for live dot)
+- `/login` — `Login.jsx` — enterprise split-panel (dark navy left, form right)
+- `/` — `Dashboard.jsx` — 5 KPI cards, area chart, donut chart, intent bar, live WS activity, recent calls table
+- `/calls` — `Calls.jsx` — paginated table, status/date filters, CSV export
+- `/calls/:id` — `CallDetail.jsx` — transcript bubbles, event logs, recording player, export
+- `/workflows` — `Workflows.jsx` — call campaign management (create/edit/start/pause/delete, AI script, schedule)
+- `/reports` — `Reports.jsx` — period tabs (7/14/30/90d), 5 KPI cards, volume chart, outcome pie, intent bar, summary table, CSV export
+- `/users` — `Users.jsx` — CRUD user management with modal
+- `/settings` — `Settings.jsx` — grouped settings sections (call behaviour, retry, AI/voice, escalation)
 
 ## API Routes
 - `POST /api/auth/login` / `GET /api/auth/me`
-- `GET/POST /api/calls/initiate`, `GET /api/calls`, `GET /api/calls/export` (CSV)
-- `GET /api/calls/:id/status`, `GET /api/calls/:id/transcripts`, `GET /api/logs/:callId`
+- `POST /api/calls/initiate`, `GET /api/calls`, `GET /api/calls/export` (CSV)
+- `GET /api/calls/:id/status`, `GET /api/transcripts/:callId`, `GET /api/logs/:callId`
 - `GET /api/dashboard/stats|intents|calls/timeline|recent-calls`
 - `GET/POST/PUT/DELETE /api/users` (admin only)
-- `GET/PUT /api/settings` — config stored in `config/app-settings.json`
+- `GET/PUT /api/settings` — stored in `config/app-settings.json`
+- `GET/POST/PUT/DELETE /api/workflows` — stored in `config/workflows.json`
 - `POST /webhook/voice|status|recording`
 - `WS /ws?token=<jwt>` — real-time call events
 
-## Notable Changes from Original
-- Replaced `@azure/cognitiveservices-speech-sdk` with `microsoft-cognitiveservices-speech-sdk` (correct npm package name)
-- Made Twilio and OpenAI clients lazy-initialized to allow startup without credentials
-- Database sync changed from `alter: true` to `force: false` to avoid PostgreSQL multi-statement alter errors
-- Database config updated to fall back to Replit's PGHOST/PGDATABASE/etc env vars
-- WebSocket URL uses `window.location.host` dynamically (works behind Replit proxy)
-- `dashboard/src/setupProxy.js` proxies `/api`, `/webhook`, `/health`, `/ws` to port 3000
-- Settings persisted to `config/app-settings.json` and synced to `process.env` on update
-- **Twilio fully replaced by Exotel** — `exotelService.js` handles outbound calls + ExoML, `exotelValidation.js` handles webhook token validation
-- Exotel webhook URLs include `?wt=<EXOTEL_WEBHOOK_TOKEN>` for security; set EXOTEL_WEBHOOK_TOKEN to a long random string in production
-- Exotel ExoML is XML-based (like TwiML); uses `<Gather input="speech" language="ta-in">` for Tamil speech recognition
+## Key Files
+- `src/server.js` — Backend entry point
+- `src/config/database.js` — PostgreSQL config
+- `src/services/exotelService.js` — Exotel outbound calling + ExoML
+- `src/services/aiService.js` — OpenAI GPT-4o integration
+- `src/services/speechService.js` — Whisper STT + Azure TTS
+- `src/routes/workflow.routes.js` — Workflow CRUD routes
+- `dashboard/src/api/client.js` — Axios API client (proxied to port 3000)
+- `dashboard/src/global.css` — CSS design token system
+- `dashboard/src/components/Sidebar.jsx` — Shared navigation component
+- `start.sh` — Combined startup script
+- `scripts/seed.js` — Seeds admin user into DB
+
+## Proxy Configuration
+`dashboard/src/setupProxy.js` proxies `/api`, `/webhook`, `/health`, `/ws` (ws:true) to port 3000.
 
 ## Environment Variables
-Set in Replit Secrets/Env Vars:
+Set in Replit Secrets:
 - `PORT=3000` (backend)
 - `JWT_SECRET` (authentication)
 - `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` (auto-set by Replit DB)
-- External API keys must be added by user (OPENAI_API_KEY, AZURE_SPEECH_KEY, etc.)
+- External API keys added by user
+
+## Notable Technical Decisions
+- Exotel replaces Twilio — ExoML XML-based, `<Gather input="speech" language="ta-in">` for Tamil STT
+- Webhook URLs include `?wt=<EXOTEL_WEBHOOK_TOKEN>` for security
+- Services are lazy-initialized to allow startup without API credentials
+- WebSocket URL uses `window.location.host` dynamically (works behind Replit proxy)
+- Settings and workflows stored in `config/*.json` (file-based, no extra DB tables needed)
+- `express trust proxy` should be set to `true` to suppress rate-limiter X-Forwarded-For warning

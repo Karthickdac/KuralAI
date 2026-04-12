@@ -1,10 +1,6 @@
-/**
- * Users Page — Admin user management
- */
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { usersApi } from '../api/client';
+import Sidebar from '../components/Sidebar';
 import styles from './Users.module.css';
 
 function UserModal({ onClose, onSaved, editUser }) {
@@ -38,32 +34,39 @@ function UserModal({ onClose, onSaved, editUser }) {
   }
 
   return (
-    <div className={styles.modalOverlay}>
+    <div className={styles.overlay}>
       <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <h2 className={styles.modalTitle}>{editUser ? 'Edit User' : 'Add User'}</h2>
-          <button className={styles.modalClose} onClick={onClose}>✕</button>
+        <div className={styles.modalHead}>
+          <div>
+            <h2 className={styles.modalTitle}>{editUser ? 'Edit User' : 'Add New User'}</h2>
+            <p className={styles.modalSub}>{editUser ? `Editing ${editUser.email}` : 'Create a new dashboard user'}</p>
+          </div>
+          <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && <div className={styles.error}>{error}</div>}
-          <label className={styles.label}>Full Name
-            <input className={styles.input} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-          </label>
-          <label className={styles.label}>Email
-            <input className={styles.input} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required disabled={!!editUser} />
-          </label>
-          <label className={styles.label}>Role
+          <div className={styles.field}>
+            <label className={styles.label}>Full Name</label>
+            <input className={styles.input} value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required placeholder="Enter full name" />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Email</label>
+            <input className={styles.input} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required disabled={!!editUser} placeholder="user@example.com" />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Role</label>
             <select className={styles.input} value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-              <option value="viewer">Viewer</option>
-              <option value="admin">Admin</option>
+              <option value="viewer">Viewer — read-only access</option>
+              <option value="admin">Admin — full access</option>
             </select>
-          </label>
-          <label className={styles.label}>{editUser ? 'New Password (leave blank to keep)' : 'Password'}
-            <input className={styles.input} type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} minLength={8} required={!editUser} />
-          </label>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>{editUser ? 'New Password (leave blank to keep)' : 'Password'}</label>
+            <input className={styles.input} type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} minLength={8} required={!editUser} placeholder="Min 8 characters" />
+          </div>
           <div className={styles.modalActions}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-            <button type="submit" className={styles.saveBtn} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+            <button type="submit" className={styles.saveBtn} disabled={saving}>{saving ? 'Saving...' : editUser ? 'Save Changes' : 'Create User'}</button>
           </div>
         </form>
       </div>
@@ -72,7 +75,6 @@ function UserModal({ onClose, onSaved, editUser }) {
 }
 
 export default function Users() {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -97,9 +99,7 @@ export default function Users() {
     try {
       await usersApi.update(user.id, { isActive: !user.isActive });
       fetchUsers();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); }
   }
 
   async function handleDelete(user) {
@@ -117,80 +117,82 @@ export default function Users() {
 
   return (
     <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarLogo}>
-          <div className={styles.logoIcon}>
-            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-            </svg>
-          </div>
-          <div>
-            <div className={styles.logoName}>KuralAI</div>
-            <div className={styles.logoBy}>by Automystic</div>
-          </div>
-        </div>
-        <nav className={styles.nav}>
-          <button className={styles.navItem} onClick={() => navigate('/')}>Dashboard</button>
-          <button className={styles.navItem} onClick={() => navigate('/calls')}>All Calls</button>
-          <button className={`${styles.navItem} ${styles.active}`}>Users</button>
-          <button className={styles.navItem} onClick={() => navigate('/settings')}>Settings</button>
-        </nav>
-      </aside>
-
+      <Sidebar />
       <main className={styles.main}>
         <div className={styles.header}>
           <div>
             <h1 className={styles.pageTitle}>User Management</h1>
-            <p className={styles.pageSub}>{users.length} user{users.length !== 1 ? 's' : ''}</p>
+            <p className={styles.pageSub}>{users.length} user{users.length !== 1 ? 's' : ''} with dashboard access</p>
           </div>
           <button className={styles.addBtn} onClick={() => { setEditUser(null); setShowModal(true); }}>
-            + Add User
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add User
           </button>
         </div>
 
         <div className={styles.tableCard}>
           {loading ? (
-            <div className={styles.loadingMsg}>Loading users...</div>
+            <div className={styles.loadingState}>
+              <div className={styles.spinner} />
+              <p>Loading users...</p>
+            </div>
+          ) : users.length === 0 ? (
+            <div className={styles.emptyState}>
+              <p>No users found.</p>
+            </div>
           ) : (
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
+                  <th style={{ paddingLeft: 20 }}>User</th>
                   <th>Role</th>
                   <th>Status</th>
                   <th>Created</th>
-                  <th></th>
+                  <th style={{ paddingRight: 20 }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(user => (
-                  <tr key={user.id}>
-                    <td className={styles.nameCell}>{user.name}</td>
-                    <td className={styles.emailCell}>{user.email}</td>
+                  <tr key={user.id}
+                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                    onMouseLeave={e => e.currentTarget.style.background = ''}>
+                    <td style={{ paddingLeft: 20 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:34, height:34, borderRadius:'50%', background:'var(--primary)', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, flexShrink:0 }}>
+                          {(user.name || user.email).slice(0,2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight:600, fontSize:13, color:'var(--text-primary)' }}>{user.name || '—'}</div>
+                          <div style={{ fontSize:12, color:'var(--text-muted)' }}>{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       <span className={`${styles.rolePill} ${user.role === 'admin' ? styles.roleAdmin : styles.roleViewer}`}>
-                        {user.role}
+                        {user.role === 'admin' ? 'Admin' : 'Viewer'}
                       </span>
                     </td>
                     <td>
                       <button
-                        className={`${styles.statusToggle} ${user.isActive ? styles.statusActive : styles.statusInactive}`}
+                        className={`${styles.statusBtn} ${user.isActive ? styles.statusActive : styles.statusInactive}`}
                         onClick={() => handleToggleActive(user)}
                       >
+                        <span className={styles.statusDot} />
                         {user.isActive ? 'Active' : 'Inactive'}
                       </button>
                     </td>
-                    <td className={styles.dateCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td className={styles.actions}>
-                      <button className={styles.editBtn} onClick={() => { setEditUser(user); setShowModal(true); }}>Edit</button>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDelete(user)}
-                        disabled={deleting === user.id}
-                      >
-                        {deleting === user.id ? '...' : 'Delete'}
-                      </button>
+                    <td style={{ fontSize:12, color:'var(--text-muted)' }}>
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ paddingRight: 20 }}>
+                      <div className={styles.actions}>
+                        <button className={styles.editBtn} onClick={() => { setEditUser(user); setShowModal(true); }}>
+                          Edit
+                        </button>
+                        <button className={styles.deleteBtn} onClick={() => handleDelete(user)} disabled={deleting === user.id}>
+                          {deleting === user.id ? '...' : 'Delete'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

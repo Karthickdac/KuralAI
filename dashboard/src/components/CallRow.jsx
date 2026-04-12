@@ -1,31 +1,25 @@
-/**
- * CallRow - Table row for a single call record
- */
-
 import React from 'react';
 
 const STATUS_STYLES = {
-  completed:   { bg: '#EAF3DE', color: '#3B6D11' },
-  failed:      { bg: '#FCEBEB', color: '#A32D2D' },
-  'no-answer': { bg: '#FAEEDA', color: '#854F0B' },
-  busy:        { bg: '#FAEEDA', color: '#854F0B' },
-  'in-progress':{ bg: '#E6F1FB', color: '#185FA5' },
-  answered:    { bg: '#E6F1FB', color: '#185FA5' },
-  queued:      { bg: '#EEEDFE', color: '#534AB7' },
-  default:     { bg: '#F1EFE8', color: '#5F5E5A' },
+  completed:    { bg: 'var(--success-bg)', color: 'var(--success-text)' },
+  failed:       { bg: 'var(--danger-bg)',  color: 'var(--danger-text)' },
+  'no-answer':  { bg: 'var(--warning-bg)', color: 'var(--warning-text)' },
+  busy:         { bg: 'var(--warning-bg)', color: 'var(--warning-text)' },
+  'in-progress':{ bg: 'var(--info-bg)',    color: 'var(--info-text)' },
+  answered:     { bg: 'var(--info-bg)',    color: 'var(--info-text)' },
+  queued:       { bg: 'var(--purple-bg)',  color: 'var(--purple-text)' },
+  ringing:      { bg: 'var(--info-bg)',    color: 'var(--info-text)' },
+  default:      { bg: '#F1F5F9',           color: '#64748B' },
 };
 
 function StatusPill({ status }) {
   const s = STATUS_STYLES[status] || STATUS_STYLES.default;
   return (
     <span style={{
-      display: 'inline-block',
-      fontSize: 11,
-      fontWeight: 500,
-      padding: '3px 9px',
-      borderRadius: 12,
-      background: s.bg,
-      color: s.color,
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontSize: 11, fontWeight: 600, padding: '3px 9px',
+      borderRadius: 999, background: s.bg, color: s.color,
+      textTransform: 'capitalize', letterSpacing: '0.01em',
     }}>
       {status}
     </span>
@@ -34,7 +28,9 @@ function StatusPill({ status }) {
 
 function fmtDuration(s) {
   if (!s) return '—';
-  return `${Math.floor(s / 60)}m ${s % 60}s`;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
 }
 
 function timeAgo(dateStr) {
@@ -47,25 +43,39 @@ function timeAgo(dateStr) {
 
 export default function CallRow({ call, onView }) {
   return (
-    <tr>
-      <td style={{ fontFamily: 'monospace', fontSize: 12 }}>
-        {call.toPhone?.replace(/(\d{5})(\d{5})$/, '$1*****')}
+    <tr style={{ transition: 'background 0.1s' }}
+      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+      onMouseLeave={e => e.currentTarget.style.background = ''}
+    >
+      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-secondary)', paddingLeft: 16 }}>
+        {call.toPhone?.replace(/(\d{5})(\d{5})$/, '$1 •••••')}
       </td>
-      <td style={{ fontSize: 12, color: '#888780' }}>
-        {call.direction || 'outbound'}
+      <td>
+        <span style={{
+          fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
+          background: call.direction === 'inbound' ? '#EFF6FF' : '#F5F3FF',
+          color: call.direction === 'inbound' ? '#1D4ED8' : '#6D28D9',
+        }}>
+          {call.direction === 'inbound' ? '↓ Inbound' : '↑ Outbound'}
+        </span>
       </td>
       <td><StatusPill status={call.status} /></td>
-      <td>{fmtDuration(call.duration)}</td>
+      <td style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{fmtDuration(call.duration)}</td>
       <td>
         {call.escalated
-          ? <span style={{ fontSize: 11, color: '#A32D2D', fontWeight: 500 }}>Yes</span>
-          : <span style={{ fontSize: 11, color: '#888780' }}>No</span>}
+          ? <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--danger-text)', background: 'var(--danger-bg)', padding: '2px 8px', borderRadius: 4 }}>Escalated</span>
+          : <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>—</span>}
       </td>
-      <td style={{ fontSize: 12, color: '#888780' }}>{timeAgo(call.createdAt)}</td>
-      <td>
+      <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(call.createdAt)}</td>
+      <td style={{ paddingRight: 16 }}>
         <button
           onClick={onView}
-          style={{ fontSize: 12, color: '#534AB7', background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{
+            fontSize: 12, fontWeight: 500, color: 'var(--primary)',
+            background: 'var(--primary-light)', border: 'none',
+            padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
+            transition: 'background 0.12s',
+          }}
         >
           View →
         </button>

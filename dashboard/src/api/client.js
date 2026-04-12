@@ -1,6 +1,5 @@
 /**
- * API Client
- * Axios instance with JWT auth, base URL, and error handling.
+ * API Client — Axios instance with JWT auth
  */
 
 import axios from 'axios';
@@ -11,14 +10,12 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT token to every request
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('kuralai_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Redirect to login on 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -31,31 +28,32 @@ api.interceptors.response.use(
   }
 );
 
-// ── Auth ───────────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (email, password) => api.post('/api/auth/login', { email, password }),
 };
 
-// ── Calls ──────────────────────────────────────────────────────────────────────
 export const callsApi = {
   list: (params) => api.get('/api/calls', { params }),
   getStatus: (callId) => api.get(`/api/calls/${callId}/status`),
   initiate: (toPhone, metadata, maxRetries) =>
     api.post('/api/calls/initiate', { toPhone, metadata, maxRetries }),
   retry: (callId) => api.post(`/api/calls/${callId}/retry`),
+  recentCalls: (limit) => api.get('/api/dashboard/recent-calls', { params: { limit } }),
 };
 
-// ── Transcripts ────────────────────────────────────────────────────────────────
+export const callsListApi = {
+  list: (params) => api.get('/api/calls', { params }),
+  exportCsv: (params) => api.get('/api/calls/export', { params, responseType: 'blob' }),
+};
+
 export const transcriptsApi = {
   get: (callId) => api.get(`/api/transcripts/${callId}`),
 };
 
-// ── Logs ───────────────────────────────────────────────────────────────────────
 export const logsApi = {
   get: (callId) => api.get(`/api/logs/${callId}`),
 };
 
-// ── Dashboard ──────────────────────────────────────────────────────────────────
 export const dashboardApi = {
   stats: (days = 7) => api.get('/api/dashboard/stats', { params: { days } }),
   intents: (days = 7) => api.get('/api/dashboard/intents', { params: { days } }),
@@ -63,7 +61,6 @@ export const dashboardApi = {
   recentCalls: (limit = 10) => api.get('/api/dashboard/recent-calls', { params: { limit } }),
 };
 
-// ── Users ───────────────────────────────────────────────────────────────────────
 export const usersApi = {
   list: () => api.get('/api/users'),
   create: (data) => api.post('/api/users', data),
@@ -71,16 +68,16 @@ export const usersApi = {
   remove: (id) => api.delete(`/api/users/${id}`),
 };
 
-// ── Settings ────────────────────────────────────────────────────────────────────
 export const settingsApi = {
   get: () => api.get('/api/settings'),
   update: (data) => api.put('/api/settings', data),
 };
 
-// ── Calls (extended) ────────────────────────────────────────────────────────────
-export const callsListApi = {
-  list: (params) => api.get('/api/calls', { params }),
-  exportCsv: (params) => api.get('/api/calls/export', { params, responseType: 'blob' }),
+export const workflowsApi = {
+  list: () => api.get('/api/workflows'),
+  create: (data) => api.post('/api/workflows', data),
+  update: (id, data) => api.put(`/api/workflows/${id}`, data),
+  remove: (id) => api.delete(`/api/workflows/${id}`),
 };
 
 export default api;

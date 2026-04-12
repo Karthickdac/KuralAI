@@ -25,9 +25,12 @@ const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const userRoutes = require('./routes/user.routes');
 const settingsRoutes = require('./routes/settings.routes');
+const workflowRoutes = require('./routes/workflow.routes');
 
 const app = express();
 const server = http.createServer(app);
+
+app.set('trust proxy', 1); // Trust Replit proxy for correct IP in rate-limiter
 
 // ─── Security Middleware ───────────────────────────────────────────────────────
 app.use(helmet({
@@ -77,6 +80,7 @@ app.use('/api/logs', logRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/workflows', workflowRoutes);
 
 // Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);

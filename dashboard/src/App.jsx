@@ -1,7 +1,3 @@
-/**
- * App.jsx - Root with routing + auth guard
- */
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
@@ -11,6 +7,8 @@ import CallDetail from './pages/CallDetail';
 import Calls from './pages/Calls';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import Workflows from './pages/Workflows';
+import Reports from './pages/Reports';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -25,6 +23,8 @@ export default function App() {
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/calls" element={<ProtectedRoute><Calls /></ProtectedRoute>} />
         <Route path="/calls/:callId" element={<ProtectedRoute><CallDetail /></ProtectedRoute>} />
+        <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
