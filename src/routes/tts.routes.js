@@ -52,14 +52,11 @@ router.post('/preview', authenticateToken, async (req, res) => {
     });
   }
 
-  // Allow per-request voice override; fall back to stored setting
-  if (voice) process.env.AZURE_SPEECH_VOICE = voice;
+  // Resolve final voice: per-request override → saved setting → default
+  const selectedVoice = voice || cfg.voice;
 
-  // Build rich SSML with slang-aware prosody, en-IN code-switching, and pauses
-  const ssml = buildTamilSSML(text);
-
-  // Restore env if we overrode it
-  if (voice) process.env.AZURE_SPEECH_VOICE = cfg.voice;
+  // Build rich SSML — pass voice name explicitly so env vars don't interfere
+  const ssml = buildTamilSSML(text, selectedVoice);
 
   const endpoint = `https://${cfg.region}.tts.speech.microsoft.com/cognitiveservices/v1`;
 

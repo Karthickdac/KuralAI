@@ -138,8 +138,8 @@ async function synthesizeSpeech(text, outputPath = null) {
 
     const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
 
-    // Use SSML for better Tamil pronunciation control
-    const ssml = buildTamilSSML(text);
+    // Use SSML for better Tamil pronunciation control — pass voice explicitly
+    const ssml = buildTamilSSML(text, _azureVoice || 'ta-IN-PallaviNeural');
 
     synthesizer.speakSsmlAsync(
       ssml,
@@ -185,9 +185,11 @@ async function synthesizeSpeech(text, outputPath = null) {
  * – Code-switches English words into en-IN pronunciation automatically
  * – Adds micro-pauses after commas/sentence endings for human-like rhythm
  * – Slightly reduced rate (0.92) so Tamil phonemes are crisp on the phone
+ * @param {string} text
+ * @param {string} [voiceName] — explicit voice; falls back to env / default
  */
-function buildTamilSSML(text) {
-  const voiceName = process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural';
+function buildTamilSSML(text, voiceName) {
+  voiceName = voiceName || process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural';
 
   // 1. Escape XML special characters
   let escaped = text
@@ -215,10 +217,13 @@ function buildTamilSSML(text) {
   // 4. Add slight pauses at commas for natural cadence
   escaped = escaped.replace(/,\s*/g, ',<break time="150ms"/> ');
 
+  // Detect male voices (Valluvar) to avoid pitch adjustments that sound unnatural
+  const isMale = /valluvar/i.test(voiceName);
+
   return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ta-IN">
   <voice name="${voiceName}">
-    <mstts:express-as style="customerservice" styledegree="1.5">
-      <prosody rate="0.92" pitch="+1Hz" volume="loud">
+    <mstts:express-as style="customerservice" styledegree="1.8">
+      <prosody rate="${isMale ? '0.90' : '0.92'}" pitch="${isMale ? '-1Hz' : '+1Hz'}" volume="loud">
         ${escaped}
       </prosody>
     </mstts:express-as>
