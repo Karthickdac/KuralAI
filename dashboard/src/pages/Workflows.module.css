@@ -177,29 +177,15 @@
   letter-spacing: 0.05em;
 }
 
-.voiceSelect {
-  font-size: 10.5px;
-  color: var(--text-secondary);
+.previewBadge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
   background: var(--page-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 3px 6px;
-  outline: none;
-  cursor: pointer;
-  max-width: 130px;
-  text-overflow: ellipsis;
-}
-
-.voiceWarning {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 10.5px;
-  color: var(--warning-text);
-  background: var(--warning-bg);
-  padding: 7px 10px;
-  border-bottom: 1px solid rgba(217,119,6,0.15);
-  line-height: 1.4;
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  white-space: nowrap;
 }
 
 .previewBody {

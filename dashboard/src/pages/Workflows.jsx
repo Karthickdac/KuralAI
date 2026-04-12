@@ -17,27 +17,23 @@ const STATUS_CONFIG = {
 /* ─── Script Preview Hook ──────────────────────────────────────────────── */
 function useScriptPreview() {
   const [playing, setPlaying] = useState(false);
-  const [voices, setVoices] = useState([]);
-  const [selectedVoice, setSelectedVoice] = useState(null);
-  const [progress, setProgress] = useState(0); // 0-1
-  const utterRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const bestVoice = useRef(null);
   const progressTimer = useRef(null);
   const startTime = useRef(0);
   const duration = useRef(0);
 
-  // Load voices (may be async on Chrome)
+  // Pick best available voice — prefer Tamil, fall back to anything
   useEffect(() => {
-    function loadVoices() {
+    function pickVoice() {
       const all = window.speechSynthesis?.getVoices() || [];
-      const tamil = all.filter(v => v.lang.startsWith('ta'));
-      const available = tamil.length > 0 ? tamil : all.slice(0, 5);
-      setVoices(available);
-      if (!selectedVoice && available.length > 0) setSelectedVoice(available[0]);
+      const tamil = all.find(v => v.lang.startsWith('ta'));
+      bestVoice.current = tamil || all[0] || null;
     }
-    loadVoices();
-    window.speechSynthesis?.addEventListener('voiceschanged', loadVoices);
-    return () => window.speechSynthesis?.removeEventListener('voiceschanged', loadVoices);
-  }, []); // eslint-disable-line
+    pickVoice();
+    window.speechSynthesis?.addEventListener('voiceschanged', pickVoice);
+    return () => window.speechSynthesis?.removeEventListener('voiceschanged', pickVoice);
+  }, []);
 
   const stop = useCallback(() => {
     window.speechSynthesis?.cancel();
@@ -53,15 +49,14 @@ function useScriptPreview() {
     window.speechSynthesis.cancel();
 
     const utter = new SpeechSynthesisUtterance(text);
-    if (selectedVoice) utter.voice = selectedVoice;
+    if (bestVoice.current) utter.voice = bestVoice.current;
     utter.lang = 'ta-IN';
     utter.rate = 0.88;
     utter.pitch = 1.05;
-    utterRef.current = utter;
 
-    // Estimate duration by word count (~120wpm for TTS)
+    // Estimate duration by word count (~120 wpm for TTS)
     const words = text.trim().split(/\s+/).length;
-    duration.current = (words / 120) * 60 * 1000; // ms
+    duration.current = (words / 120) * 60 * 1000;
 
     utter.onstart = () => {
       setPlaying(true);
@@ -83,12 +78,11 @@ function useScriptPreview() {
     utter.onerror = finish;
 
     window.speechSynthesis.speak(utter);
-  }, [playing, selectedVoice, stop]);
+  }, [playing, stop]);
 
-  // Cleanup on unmount
   useEffect(() => () => stop(), [stop]);
 
-  return { playing, voices, selectedVoice, setSelectedVoice, progress, play, stop };
+  return { playing, progress, play, stop };
 }
 
 /* ─── Waveform Animation ───────────────────────────────────────────────── */
@@ -113,8 +107,7 @@ function Waveform({ playing }) {
 
 /* ─── Script Preview Panel ─────────────────────────────────────────────── */
 function ScriptPreview({ script }) {
-  const { playing, voices, selectedVoice, setSelectedVoice, progress, play, stop } = useScriptPreview();
-  const hasTamilVoice = voices.some(v => v.lang.startsWith('ta'));
+  const { playing, progress, play, stop } = useScriptPreview();
   const isEmpty = !script?.trim();
 
   return (
@@ -127,47 +120,20 @@ function ScriptPreview({ script }) {
           </svg>
           Script Preview
         </div>
-        {voices.length > 0 && (
-          <select
-            className={styles.voiceSelect}
-            value={selectedVoice?.name || ''}
-            onChange={e => {
-              const v = voices.find(v => v.name === e.target.value);
-              setSelectedVoice(v || null);
-            }}
-          >
-            {voices.map(v => (
-              <option key={v.name} value={v.name}>
-                {v.name} {v.lang.startsWith('ta') ? '🇮🇳' : ''}
-              </option>
-            ))}
-          </select>
-        )}
+        <span className={styles.previewBadge}>Device TTS · Azure in production</span>
       </div>
 
-      {!hasTamilVoice && (
-        <div className={styles.voiceWarning}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          No Tamil voice found on this device — using system default. Production calls use Azure Neural TTS (ta-IN).
-        </div>
-      )}
-
       <div className={styles.previewBody}>
-        {/* Script text preview */}
         <div className={`${styles.scriptPreviewText} ${isEmpty ? styles.scriptEmpty : ''}`}>
-          {isEmpty
-            ? 'Type your AI script above to preview it…'
-            : script}
+          {isEmpty ? 'Type your AI script above to preview it…' : script}
         </div>
 
-        {/* Progress bar */}
         {playing && (
           <div className={styles.progressBar}>
             <div className={styles.progressFill} style={{ width: `${progress * 100}%` }} />
           </div>
         )}
 
-        {/* Controls */}
         <div className={styles.previewControls}>
           <Waveform playing={playing} />
           <div className={styles.previewBtns}>

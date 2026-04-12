@@ -67,10 +67,8 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [activity, setActivity] = useState([]);
 
-  const activityCounter = React.useRef(0);
   const handleWsMessage = useCallback((event) => {
-    activityCounter.current += 1;
-    setActivity(prev => [{ ...event, _key: activityCounter.current }, ...prev.slice(0, 24)]);
+    setActivity(prev => [{ ...event, _key: `${Date.now()}-${Math.random()}` }, ...prev.slice(0, 24)]);
     if (['CALL_COMPLETED', 'INBOUND_CALL_RECEIVED', 'CALL_ESCALATED'].includes(event.type)) {
       callsApi.recentCalls(10).then(r => setRecentCalls(r.data.calls)).catch(() => {});
     }
