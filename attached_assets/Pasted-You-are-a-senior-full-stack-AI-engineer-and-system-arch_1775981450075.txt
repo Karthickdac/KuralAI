@@ -1,0 +1,198 @@
+You are a senior full-stack AI engineer and system architect.
+
+Build a complete production-ready backend system for an AI-powered Tamil voice calling application named **KuralAI by Automystic**.
+
+## 🎯 Objective
+
+Create a real-time AI voice calling system (non-IVR) that can:
+
+* Call users (outgoing calls)
+* Speak in Tamil naturally
+* Understand user speech in Tamil
+* Respond intelligently to predefined queries
+* Handle conversational variations
+
+---
+
+## 🧩 Core Features
+
+### 1. Call Handling
+
+* Integrate with Twilio (or Exotel alternative)
+* Support outgoing calls (mandatory)
+* Incoming calls (optional but design-ready)
+* Call states:
+
+  * Initiated
+  * Answered
+  * In-progress
+  * Completed
+* Retry mechanism (if not answered or dropped)
+* Configurable max call duration
+* Call recording support
+
+---
+
+### 2. Speech Processing (Tamil)
+
+#### Speech-to-Text (STT)
+
+* Use OpenAI Whisper or Google STT
+* Must support Tamil accurately
+* Stream audio in real-time (if possible)
+
+#### Text-to-Speech (TTS)
+
+* Use Azure Neural TTS or equivalent
+* Natural Tamil voice output
+* Return audio stream playable in calls
+
+---
+
+### 3. AI Conversation Engine
+
+* Use LLM (OpenAI / Claude API)
+
+* Handle 5 predefined intents:
+
+  1. Order status
+  2. Delivery time
+  3. Complaint registration
+  4. Product information
+  5. General greeting/help
+
+* Requirements:
+
+  * Handle variations in Tamil phrasing
+  * Maintain short conversational context (memory)
+  * If confidence is low → escalate to human
+  * If user asks for human → transfer/escalate
+
+* Design prompt templates for Tamil conversations:
+  Example:
+  AI: "வணக்கம்! உங்களுக்கு எப்படி உதவலாம்?"
+
+---
+
+### 4. Conversation Flow Engine
+
+Design a loop:
+
+* Play greeting
+* Listen to user
+* Convert speech → text
+* Detect intent
+* Generate response
+* Convert text → speech
+* Play response
+* Repeat until end condition
+
+Include:
+
+* Interrupt handling (user speaks while AI speaks)
+* Silence timeout handling
+
+---
+
+### 5. Backend Architecture
+
+Use:
+
+* Node.js (Express) OR Python (FastAPI)
+
+Modules:
+
+* Call Controller
+* AI Service
+* Speech Service (STT + TTS)
+* Conversation Manager
+* Logging Service
+
+Use REST + WebSocket (if needed)
+
+---
+
+### 6. Data Storage
+
+* PostgreSQL (structured data)
+* S3 (audio storage)
+
+Store:
+
+* Call logs (time, duration, status)
+* Transcripts
+* Recordings (optional)
+* User interaction history
+
+---
+
+### 7. API Design
+
+Create APIs for:
+
+* Initiate call
+* Get call status
+* Fetch logs
+* Fetch transcripts
+
+---
+
+### 8. Dashboard (Basic)
+
+* Simple web dashboard (React optional)
+* Show:
+
+  * Total calls
+  * Success rate
+  * Common queries
+  * Call logs
+
+---
+
+### 9. Security & Compliance
+
+* Secure API endpoints
+* Encrypt sensitive data
+* Consent for recording
+
+---
+
+### 10. Deployment
+
+* Make it deployable on AWS
+* Use environment variables
+* Provide Docker support
+
+---
+
+## 📦 Deliverables Required
+
+1. Full backend code (modular, clean)
+2. Folder structure
+3. Setup instructions
+4. Environment variables file (.env example)
+5. Twilio integration steps
+6. Sample Tamil prompts for AI
+7. Example API requests (Postman/cURL)
+
+---
+
+## ⚡ Important Constraints
+
+* Keep system scalable
+* Avoid overengineering (no Kafka initially)
+* Code must be clean and production-ready
+* Use comments to explain logic
+* Optimize for real-time performance
+
+---
+
+## 🎯 Bonus (if possible)
+
+* Add confidence scoring for intent detection
+* Add fallback responses in Tamil
+* Add human escalation webhook
+
+---
+
+Now generate the complete system step-by-step with code.
