@@ -1,0 +1,70 @@
+modules = ["nodejs-18", "web"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+NODE_ENV = "development"
+PORT = "3000"
+JWT_SECRET = "kuralai_dev_secret_key_min_32_chars_padded"
+JWT_EXPIRES_IN = "24h"
+DB_SSL = "false"
+LOG_LEVEL = "info"
+LOG_FILE = "logs/kuralai.log"
+MAX_CALL_DURATION_SECONDS = "300"
+CALL_RETRY_ATTEMPTS = "3"
+CALL_RETRY_DELAY_SECONDS = "60"
+SILENCE_TIMEOUT_SECONDS = "5"
+SPEECH_TIMEOUT_SECONDS = "15"
+RATE_LIMIT_WINDOW_MS = "900000"
+RATE_LIMIT_MAX_REQUESTS = "100"
+ALLOWED_ORIGINS = "*"
+OPENAI_MODEL = "gpt-4o"
+OPENAI_WHISPER_MODEL = "whisper-1"
+AZURE_SPEECH_REGION = "eastus"
+AZURE_SPEECH_VOICE = "ta-IN-PallaviNeural"
+AWS_REGION = "ap-south-1"
+S3_RECORDING_PREFIX = "recordings/"
+S3_TTS_PREFIX = "tts-cache/"
+APP_NAME = "KuralAI"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start.sh"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 3000
+externalPort = 3001
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "start.sh"]
+build = ["bash", "-c", "cd dashboard && npm install && npm run build"]

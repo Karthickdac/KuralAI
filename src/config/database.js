@@ -17,11 +17,11 @@ const sequelize = isTest
     })
   : new Sequelize({
       dialect: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 5432,
-      database: process.env.DB_NAME || 'kuralai',
-      username: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD,
+      host: process.env.DB_HOST || process.env.PGHOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || process.env.PGPORT) || 5432,
+      database: process.env.DB_NAME || process.env.PGDATABASE || 'kuralai',
+      username: process.env.DB_USER || process.env.PGUSER || 'postgres',
+      password: process.env.DB_PASSWORD || process.env.PGPASSWORD,
       logging: (msg) => logger.debug(msg),
       pool: { max: 10, min: 2, acquire: 30000, idle: 10000 },
       dialectOptions: process.env.DB_SSL === 'true' ? {
@@ -38,8 +38,8 @@ async function initDatabase() {
   require('../models/CallLog');
   require('../models/User');
 
-  // Sync schema (use migrations in production)
-  await sequelize.sync({ alter: !isTest && process.env.NODE_ENV !== 'production' });
+  // Sync schema (create tables if they don't exist)
+  await sequelize.sync({ force: false });
 }
 
 module.exports = { sequelize, initDatabase };

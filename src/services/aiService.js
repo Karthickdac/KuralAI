@@ -12,7 +12,14 @@ const {
   TAMIL_KEYWORDS
 } = require('../config/tamilPrompts');
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _openai = null;
+function getOpenAI() {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'placeholder' });
+  }
+  return _openai;
+}
+const openai = new Proxy({}, { get(_, prop) { return getOpenAI()[prop]; } });
 
 // ─── Intent Detection ──────────────────────────────────────────────────────────
 

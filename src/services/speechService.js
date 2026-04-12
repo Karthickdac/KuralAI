@@ -13,7 +13,14 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const { uploadAudioToS3, getSignedUrl } = require('./s3Service');
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _openai = null;
+function getOpenAI() {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'placeholder' });
+  }
+  return _openai;
+}
+const openai = new Proxy({}, { get(_, prop) { return getOpenAI()[prop]; } });
 
 // ─── Speech-to-Text (STT) ──────────────────────────────────────────────────────
 

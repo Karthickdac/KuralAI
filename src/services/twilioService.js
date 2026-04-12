@@ -8,10 +8,21 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
 const logger = require('../utils/logger');
 const { TAMIL_PROMPTS } = require('../config/tamilPrompts');
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+let _client = null;
+function getClient() {
+  if (!_client) {
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+      throw new Error('Twilio credentials not configured. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.');
+    }
+    _client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  }
+  return _client;
+}
+const client = new Proxy({}, {
+  get(_, prop) {
+    return getClient()[prop];
+  },
+});
 
 /**
  * Initiate an outgoing call to a phone number
