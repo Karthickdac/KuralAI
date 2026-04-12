@@ -272,13 +272,13 @@ async function handleIncomingCall(req, res) {
     // rejected by Exotel AppConnect before any verb executes.
     // Return bare <Say><Hangup> so we can confirm <Say> itself works.
     // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 4: Test <Gather> with NO inner content (no Say, no Play).
-    // Call 1 with <Gather> lasted 46 seconds → Gather answers/holds the call.
-    // If this call lasts > 20 seconds (the timeout) → Gather works, Say is the problem.
-    // If still < 5 seconds → something else is wrong.
-    logger.info(`DIAG: returning bare Gather test for call ${call.id}`);
+    // DIAG STEP 5: Remove language="ta-in" from Gather — maybe that attr is invalid
+    // and causes silent failure (falls through to Hangup immediately).
+    // Also use action URL so Exotel has somewhere to POST after gather completes.
+    const baseUrl = (settings.appUrl || `https://${process.env.REPLIT_DEV_DOMAIN}`).replace(/\/$/, '');
+    logger.info(`DIAG: returning Gather-no-language test for call ${call.id}, baseUrl=${baseUrl}`);
     res.type('text/xml').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" language="ta-in" timeout="30"/>\n  <Hangup/>\n</Response>`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" timeout="30" action="${baseUrl}/call/gather" method="GET"/>\n  <Hangup/>\n</Response>`
     );
     return;
   } catch (error) {
