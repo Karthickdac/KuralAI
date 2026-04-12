@@ -272,12 +272,12 @@ async function handleIncomingCall(req, res) {
     // rejected by Exotel AppConnect before any verb executes.
     // Return bare <Say><Hangup> so we can confirm <Say> itself works.
     // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 7: <Play> OUTSIDE <Gather> with a public MP3 URL.
-    // <Say> inside Gather breaks it. Testing if <Play> outside works.
-    // If caller hears audio → Play works, we can use Play+Gather pattern.
+    // DIAG STEP 8: <Play> with OUR OWN SERVER audio URL (test.wav - 1s silent WAV).
+    // External URLs (soundhelix.com) fail - Exotel may block them.
+    // Our server is reachable (webhook hits confirmed). Testing if Play from our domain works.
     const baseUrl = (settings.appUrl || `https://${process.env.REPLIT_DEV_DOMAIN}`).replace(/\/$/, '');
-    const testAudioUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-    logger.info(`DIAG: returning Play(public)+Gather for call ${call.id}`);
+    const testAudioUrl = `${baseUrl}/audio/test.wav`;
+    logger.info(`DIAG: returning Play(our server ${testAudioUrl})+Gather for call ${call.id}`);
     res.type('text/xml').send(
       `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Play>${testAudioUrl}</Play>\n  <Gather input="speech" timeout="20" action="${baseUrl}/call/gather" method="GET"/>\n  <Hangup/>\n</Response>`
     );

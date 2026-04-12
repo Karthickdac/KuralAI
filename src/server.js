@@ -100,7 +100,9 @@ app.get('/audio/:filename', (req, res) => {
     return res.status(404).json({ error: 'Audio file not found' });
   }
   const stat = _fs.statSync(filePath);
-  res.setHeader('Content-Type', 'audio/mpeg');
+  const ext = _path.extname(filename).toLowerCase();
+  const contentType = ext === '.wav' ? 'audio/wav' : 'audio/mpeg';
+  res.setHeader('Content-Type', contentType);
   res.setHeader('Content-Length', stat.size);
   res.setHeader('Accept-Ranges', 'bytes');
   res.setHeader('Cache-Control', 'public, max-age=3600');
