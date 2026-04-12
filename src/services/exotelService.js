@@ -94,7 +94,7 @@ function generateAnswerExoML(callId) {
   const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
 
   return _xml(`
-  <Say language="ta-in">${TAMIL_PROMPTS.RECORDING_CONSENT}</Say>
+  <Say language="ta-IN">${TAMIL_PROMPTS.RECORDING_CONSENT}</Say>
   <Pause length="1"/>
   <Redirect method="POST">${webhookBase}/webhook/call/conversation?callId=${callId}&amp;turn=0&amp;wt=${token}</Redirect>`);
 }
@@ -139,14 +139,16 @@ function generateConversationExoML(audioUrl, callId, turn, sayText) {
   const speechUrl  = `${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
   const silenceUrl = `${webhookBase}/webhook/call/silence?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
 
-  // Use <Say> with Exotel's Tamil TTS — this is what Exotel actually executes.
+  // Use <Say language="ta-IN"> for Exotel's Tamil TTS.
+  // IMPORTANT: Do NOT add language= attribute to <Gather> — confirmed to cause silent failure.
+  // language= on <Say> (not Gather) is the correct placement.
   const spokenText = sayText || 'கேள்வி கேளுங்கள்.';
-  const sayVerb = `<Say language="ta-in">${_escapeXml(spokenText)}</Say>`;
+  const sayVerb = `<Say language="ta-IN">${_escapeXml(spokenText)}</Say>`;
 
   // timeout="20" — seconds to wait for caller to start speaking after Say finishes
   // speechTimeout="3" — seconds of end-of-speech silence
   return _xml(`
-  <Gather input="speech" language="ta-in" timeout="20" speechTimeout="3"
+  <Gather input="speech" timeout="20" speechTimeout="3"
           action="${speechUrl}"
           method="POST">
     ${sayVerb}
@@ -162,7 +164,7 @@ function generateConversationExoML(audioUrl, callId, turn, sayText) {
 function generateEndCallExoML(goodbyeAudioUrl, sayText) {
   const text = sayText || TAMIL_PROMPTS.GOODBYE;
   return _xml(`
-  <Say language="ta-in">${_escapeXml(text)}</Say>
+  <Say language="ta-IN">${_escapeXml(text)}</Say>
   <Pause length="1"/>
   <Hangup/>`);
 }
@@ -181,11 +183,11 @@ function generateEscalationExoML(escalationAudioUrl, sayText) {
   if (escalationPhone) {
     dialBlock = `\n  <Dial callerId="${callerIdPhone}" timeout="30"><Number>${escalationPhone}</Number></Dial>`;
   } else {
-    dialBlock = `\n  <Say language="ta-in">மன்னிக்கவும், இப்போது எந்த ஒரு ஆதரவாளரும் கிடைக்கவில்லை.</Say>\n  <Hangup/>`;
+    dialBlock = `\n  <Say language="ta-IN">மன்னிக்கவும், இப்போது எந்த ஒரு ஆதரவாளரும் கிடைக்கவில்லை.</Say>\n  <Hangup/>`;
   }
 
   const text = sayText || TAMIL_PROMPTS.ESCALATION_MESSAGE;
-  return _xml(`\n  <Say language="ta-in">${_escapeXml(text)}</Say>\n  <Pause length="1"/>${dialBlock}`);
+  return _xml(`\n  <Say language="ta-IN">${_escapeXml(text)}</Say>\n  <Pause length="1"/>${dialBlock}`);
 }
 
 /**

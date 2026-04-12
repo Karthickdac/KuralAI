@@ -81,9 +81,35 @@ Set in Replit Secrets:
 - External API keys added by user
 
 ## Notable Technical Decisions
-- Exotel replaces Twilio — ExoML XML-based, `<Gather input="speech" language="ta-in">` for Tamil STT
+- Exotel replaces Twilio — ExoML XML-based, `<Gather input="speech">` for speech input
+- **`<Gather>` must NOT have a `language=` attribute** — confirmed to cause silent call failure on this account
+- **`<Say language="ta-IN">` (capital IN) is the correct TTS tag** — `ta-in` (lowercase) was a regression
 - Webhook URLs include `?wt=<EXOTEL_WEBHOOK_TOKEN>` for security
 - Services are lazy-initialized to allow startup without API credentials
 - WebSocket URL uses `window.location.host` dynamically (works behind Replit proxy)
 - Settings and workflows stored in `config/*.json` (file-based, no extra DB tables needed)
 - `express trust proxy` should be set to `true` to suppress rate-limiter X-Forwarded-For warning
+
+## Exotel Account Status & Required Actions
+
+**CRITICAL — The Exotel account is a Trial account with KYC not started:**
+- Account SID: `kyro3602`
+- Type: `Trial` (created 2026-04-12)
+- KYC Status: `notstarted`
+
+**Why calls connect but produce no audio:**
+1. `<Say>` TTS is disabled on Trial Exotel accounts — TTS requires a paid plan
+2. `<Play>` with external audio URLs is blocked/restricted on Trial accounts
+3. `<Gather>` alone works (call stays connected, listens for speech)
+
+**To fully activate the system:**
+1. Log in to the Exotel dashboard at https://my.exotel.com
+2. Complete KYC verification (required by Indian telecom regulations)
+3. Upgrade to a paid plan (Talk or Enterprise)
+4. Contact Exotel support to confirm Tamil TTS (`<Say language="ta-IN">`) is enabled
+5. Once upgraded, all audio (greeting, conversation responses, goodbye) will work automatically
+
+**Audio files pre-generated and ready:**
+- Azure TTS (ta-IN-PallaviNeural) generates Tamil audio on-demand via `speechService.js`
+- Local audio served from `/tmp/kuralai-audio/` via `/audio/:filename` route
+- For production: configure AWS S3 (set `s3Bucket`, `awsAccessKeyId`, `awsSecretAccessKey` in settings)

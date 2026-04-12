@@ -267,21 +267,12 @@ async function handleIncomingCall(req, res) {
       }
     }
 
-    // ── DIAGNOSTIC: test if <Say> works at all without <Gather> ──────────
-    // Immediate disconnect (1-2 s) confirmed → <Gather input="speech"> is being
-    // rejected by Exotel AppConnect before any verb executes.
-    // Return bare <Say><Hangup> so we can confirm <Say> itself works.
-    // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 11: <Play> INSIDE <Gather> with a tmpfiles.org public URL.
-    // Confirmed: Gather alone works (46s call 1). Play inside Gather doesn't abort call.
-    // If URL is reachable by Exotel's media service, audio plays and gather waits.
-    // tmpfiles.org is a known-working public HTTP host (audio/mpeg confirmed).
-    const baseUrl = (settings.appUrl || `https://${process.env.REPLIT_DEV_DOMAIN}`).replace(/\/$/, '');
-    const audioUrl = 'http://tmpfiles.org/dl/33263939/greeting.mp3';
-    logger.info(`DIAG: returning Gather+Play(tmpfiles) for call ${call.id}`);
-    res.type('text/xml').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" timeout="30" action="${baseUrl}/call/gather" method="GET">\n    <Play>${audioUrl}</Play>\n  </Gather>\n  <Hangup/>\n</Response>`
-    );
+    // Return the answer ExoML — plays greeting and redirects to conversation loop.
+    // NOTE: <Say> TTS requires the Exotel account to have TTS enabled (not available on Trial).
+    //       Complete KYC and upgrade to a paid plan for full audio functionality.
+    const exoml = generateAnswerExoML(call.id);
+    logger.info(`Returning answer ExoML for call ${call.id}`);
+    res.type('text/xml').send(exoml);
     return;
   } catch (error) {
     logger.error('handleIncomingCall error:', error);
@@ -292,7 +283,7 @@ async function handleIncomingCall(req, res) {
 // ── Helper ─────────────────────────────────────────────────────────────────────
 
 function _errorExoML() {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<Response><Say language="ta-in">மன்னிக்கவும், ஒரு தொழில்நுட்ப பிரச்சனை ஏற்பட்டது. பின்னர் மீண்டும் முயற்சிக்கவும்.</Say><Hangup/></Response>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<Response><Say language="ta-IN">மன்னிக்கவும், ஒரு தொழில்நுட்ப பிரச்சனை ஏற்பட்டது. பின்னர் மீண்டும் முயற்சிக்கவும்.</Say><Hangup/></Response>`;
 }
 
 module.exports = {
