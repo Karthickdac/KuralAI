@@ -98,12 +98,23 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     let userText = speechResultText;
 
     if (!userText && speechResultUrl) {
-      // Transcribe via Whisper (better Tamil accuracy than STT from provider)
-      // Exotel recordings are accessible with EXOTEL_API_KEY:EXOTEL_API_TOKEN Basic Auth
+      // Transcribe via Whisper — Exotel recordings need Basic Auth
+      // Read credentials from app-settings.json first, fall back to env vars
+      let _exoKey = process.env.EXOTEL_API_KEY;
+      let _exoToken = process.env.EXOTEL_API_TOKEN;
+      try {
+        const _sf = path.join(__dirname, '../../config/app-settings.json');
+        if (fs.existsSync(_sf)) {
+          const _s = JSON.parse(fs.readFileSync(_sf, 'utf-8'));
+          if (_s.exotelApiKey)   _exoKey   = _s.exotelApiKey;
+          if (_s.exotelApiToken) _exoToken = _s.exotelApiToken;
+        }
+      } catch {}
+      logger.info(`Downloading recording for STT: ${speechResultUrl}`);
       const sttResult = await transcribeFromUrl(
         speechResultUrl,
-        process.env.EXOTEL_API_KEY,
-        process.env.EXOTEL_API_TOKEN
+        _exoKey,
+        _exoToken
       );
       userText = sttResult.text;
 

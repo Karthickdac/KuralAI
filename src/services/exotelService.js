@@ -100,7 +100,9 @@ function generateAnswerExoML(callId) {
 }
 
 /**
- * ExoML for a conversation turn: play AI audio and capture user speech.
+ * ExoML for a conversation turn: play AI audio then record caller's response.
+ * Uses <Record> instead of <Gather input="speech"> so it works on all Exotel plans
+ * without needing Exotel ASR. Our Whisper STT handles transcription.
  * @param {string} audioUrl - Public URL of pre-generated TTS audio (S3/CDN)
  * @param {string} callId
  * @param {number} turn
@@ -111,14 +113,15 @@ function generateConversationExoML(audioUrl, callId, turn) {
   const token = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
   const silence = s.silenceTimeoutSeconds || parseInt(process.env.SILENCE_TIMEOUT_SECONDS) || 5;
 
-  const listenTimeout = Math.max(silence * 2, 10); // at least 10s to start speaking
+  const speechUrl = `${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}`;
+
   return _xml(`
-  <Gather input="speech" language="ta-in" timeout="${listenTimeout}" speechTimeout="3"
-          action="${webhookBase}/webhook/call/speech?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}"
-          method="POST">
-    <Play>${audioUrl}</Play>
-  </Gather>
-  <Redirect method="POST">${webhookBase}/webhook/call/silence?callId=${callId}&amp;turn=${turn + 1}&amp;wt=${token}</Redirect>`);
+  <Play>${audioUrl}</Play>
+  <Record action="${speechUrl}"
+          maxLength="30"
+          timeout="${silence}"
+          playBeep="false"
+          method="POST" />`);
 }
 
 /**
