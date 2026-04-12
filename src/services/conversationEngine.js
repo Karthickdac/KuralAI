@@ -4,6 +4,8 @@
  * Play greeting → Listen → STT → Intent → LLM → TTS → Play → Repeat
  */
 
+const fs   = require('fs');
+const path = require('path');
 const Call = require('../models/Call');
 const Transcript = require('../models/Transcript');
 const CallLog = require('../models/CallLog');
@@ -26,7 +28,27 @@ const {
 const { TAMIL_PROMPTS, CONFIDENCE_THRESHOLDS } = require('../config/tamilPrompts');
 const { notifyDashboard } = require('../websocket/wsServer');
 const { triggerEscalationWebhook } = require('./escalationService');
+const scriptEngine = require('./scriptEngine');
 const logger = require('../utils/logger');
+
+const WORKFLOWS_FILE = path.join(__dirname, '../../config/workflows.json');
+
+function loadWorkflow(workflowId) {
+  try {
+    if (!fs.existsSync(WORKFLOWS_FILE)) return null;
+    const wfs = JSON.parse(fs.readFileSync(WORKFLOWS_FILE, 'utf8'));
+    return wfs.find(w => w.id === workflowId) || null;
+  } catch { return null; }
+}
+
+function getScriptFlow(call) {
+  if (call?.metadata?.scriptFlow?.enabled) return call.metadata.scriptFlow;
+  if (call?.metadata?.workflowId) {
+    const wf = loadWorkflow(call.metadata.workflowId);
+    if (wf?.scriptFlow?.enabled) return wf.scriptFlow;
+  }
+  return null;
+}
 
 /**
  * Process the initial call answer - play greeting
@@ -35,19 +57,28 @@ const logger = require('../utils/logger');
 async function processCallAnswer(callId) {
   await logEvent(callId, 'call_answered', 'info', 'User answered the call');
 
-  // Generate greeting audio via TTS
-  const tts = await synthesizeSpeech(TAMIL_PROMPTS.GREETING);
-
-  // Save AI turn to transcript
-  await saveTranscript(callId, 0, 'ai', TAMIL_PROMPTS.GREETING, null, 'greeting', 1.0);
-
-  // Update call status
   await Call.update(
     { status: 'in-progress', startedAt: new Date() },
     { where: { id: callId } }
   );
-
   await notifyDashboard({ type: 'CALL_STARTED', callId });
+
+  const call = await Call.findByPk(callId);
+  const scriptFlow = getScriptFlow(call);
+
+  let greetingText;
+
+  if (scriptFlow) {
+    // Script flow mode — start with the first step's agent message
+    greetingText = scriptEngine.startFlow(callId, scriptFlow);
+    await logEvent(callId, 'script_flow_started', 'info', `Script flow started at step: ${scriptFlow.startStep}`);
+  } else {
+    // Free-form AI mode — use default greeting
+    greetingText = TAMIL_PROMPTS.GREETING;
+  }
+
+  const tts = await synthesizeSpeech(greetingText);
+  await saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0);
 
   return generateConversationExoML(tts.playableUrl, callId, 0);
 }
@@ -86,6 +117,19 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       return handleSilence(callId, turn);
     }
 
+    // Save user speech to transcript
+    await saveTranscript(callId, turn, 'user', userText, userText, 'user_speech', 1.0);
+
+    // ── Check if this call is running a Q&A script flow ───────────────────
+    const call = await Call.findByPk(callId);
+    const scriptFlow = getScriptFlow(call);
+
+    if (scriptFlow && scriptEngine.hasActiveFlow(callId)) {
+      return await handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTime);
+    }
+
+    // ── Free-form AI mode ─────────────────────────────────────────────────
+
     // ── Step 2: Detect intent ─────────────────────────────────────────────
     const { intent, confidence, keywords } = await detectIntent(userText);
 
@@ -94,9 +138,6 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       keywords,
       userText,
     });
-
-    // Save user turn to transcript
-    await saveTranscript(callId, turn, 'user', userText, userText, intent, confidence);
 
     // ── Step 3: Check escalation conditions ───────────────────────────────
     const escalationCheck = shouldEscalate(callId, confidence);
@@ -111,7 +152,6 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
 
     // ── Step 4: Generate AI response ──────────────────────────────────────
     const ctx = getConversationContext(callId);
-    const call = await Call.findByPk(callId);
 
     const aiResult = await generateResponse(
       intent,
@@ -174,6 +214,44 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
 }
 
 /**
+ * Handle a conversation turn using the predefined Q&A script flow.
+ */
+async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTime) {
+  await logEvent(callId, 'script_flow_processing', 'info', `Matching: "${userText}"`);
+
+  const result = await scriptEngine.processStep(callId, userText, scriptFlow);
+
+  await logEvent(callId, 'script_flow_matched', 'info', result.response, {
+    done: result.done,
+    escalate: result.escalate,
+  });
+
+  if (result.escalate) {
+    if (result.response) {
+      const tts = await synthesizeSpeech(result.response);
+      await saveTranscript(callId, turn + 1, 'ai', result.response, null, 'script_escalation', 1.0, tts.s3Url, Date.now() - startTime);
+      // Play response then escalate
+      return generateConversationExoML(tts.playableUrl, callId, turn + 1);
+    }
+    return handleEscalation(callId, turn, 'script_no_match');
+  }
+
+  if (result.done) {
+    const goodbyeText = result.response || TAMIL_PROMPTS.GOODBYE;
+    const tts = await synthesizeSpeech(goodbyeText);
+    await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'script_complete', 1.0, tts.s3Url, Date.now() - startTime);
+    scriptEngine.clearFlow(callId);
+    return generateEndCallExoML(tts.playableUrl);
+  }
+
+  const tts = await synthesizeSpeech(result.response);
+  await saveTranscript(callId, turn + 1, 'ai', result.response, null, 'script_response', 1.0, tts.s3Url, Date.now() - startTime);
+
+  await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent: 'script_flow' });
+  return generateConversationExoML(tts.playableUrl, callId, turn + 1);
+}
+
+/**
  * Handle silence / no input from user
  */
 async function handleSilence(callId, turn) {
@@ -203,6 +281,7 @@ async function handleEndCall(callId, turn) {
   await saveTranscript(callId, turn + 1, 'ai', TAMIL_PROMPTS.GOODBYE, null, 'end_call', 1.0);
 
   clearConversationContext(callId);
+  scriptEngine.clearFlow(callId);
 
   return generateEndCallExoML(tts.playableUrl);
 }
