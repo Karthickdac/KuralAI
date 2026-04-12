@@ -272,14 +272,14 @@ async function handleIncomingCall(req, res) {
     // rejected by Exotel AppConnect before any verb executes.
     // Return bare <Say><Hangup> so we can confirm <Say> itself works.
     // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 8: <Play> with OUR OWN SERVER audio URL (test.wav - 1s silent WAV).
-    // External URLs (soundhelix.com) fail - Exotel may block them.
-    // Our server is reachable (webhook hits confirmed). Testing if Play from our domain works.
+    // DIAG STEP 10: <Say language="ta-IN"> (capital IN) inside <Gather>.
+    // Previous session changed ta-IN → ta-in. That lowercase may be the root bug.
+    // Exotel docs show "ta-IN" as the correct BCP-47 tag.
+    // If call lasts >10 sec and user hears Tamil → this is the fix.
     const baseUrl = (settings.appUrl || `https://${process.env.REPLIT_DEV_DOMAIN}`).replace(/\/$/, '');
-    const testAudioUrl = `${baseUrl}/audio/test.wav`;
-    logger.info(`DIAG: returning Play(our server ${testAudioUrl})+Gather for call ${call.id}`);
+    logger.info(`DIAG: returning Gather+Say language=ta-IN (capital IN) for call ${call.id}`);
     res.type('text/xml').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Play>${testAudioUrl}</Play>\n  <Gather input="speech" timeout="20" action="${baseUrl}/call/gather" method="GET"/>\n  <Hangup/>\n</Response>`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" timeout="30" action="${baseUrl}/call/gather" method="GET">\n    <Say language="ta-IN">வணக்கம். நான் KuralAI. உங்கள் order பற்றி பேசுவோம். தயவுசெய்து பேசுங்கள்.</Say>\n  </Gather>\n  <Hangup/>\n</Response>`
     );
     return;
   } catch (error) {
