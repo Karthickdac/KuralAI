@@ -56,6 +56,77 @@
 }
 .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
 
+/* ─── Section badge ─── */
+.badge {
+  display: inline-flex; align-items: center;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: var(--radius-full);
+  background: var(--primary-light); color: var(--primary-text);
+}
+
+/* ─── Secret input ─── */
+.secretWrap {
+  position: relative; display: flex; align-items: center;
+}
+
+.secretToggle {
+  position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--text-muted);
+  cursor: pointer; padding: 2px; display: flex; align-items: center;
+  transition: color 0.12s;
+}
+.secretToggle:hover { color: var(--primary); }
+
+.secretSet {
+  position: absolute; right: 34px; top: 50%; transform: translateY(-50%);
+  font-size: 10px; font-weight: 700; color: var(--success-text);
+  background: var(--success-bg); padding: 2px 6px; border-radius: var(--radius-full);
+  pointer-events: none;
+}
+
+/* ─── Webhook URL display ─── */
+.webhookBox {
+  margin-top: 16px;
+  background: var(--page-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.webhookTitle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 9px 14px;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+}
+
+.webhookRow {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.webhookRow:last-child { border-bottom: none; }
+
+.webhookLabel {
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  min-width: 64px;
+}
+
+.webhookUrl {
+  flex: 1; font-size: 11px; font-family: var(--font-mono);
+  color: var(--text-secondary); word-break: break-all;
+}
+
+.copyBtn {
+  flex-shrink: 0; background: none; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 4px 6px; cursor: pointer;
+  color: var(--text-muted); display: flex; align-items: center;
+  transition: all 0.12s;
+}
+.copyBtn:hover { border-color: var(--primary); color: var(--primary); }
+
 .footer { display: flex; justify-content: flex-end; padding-bottom: 40px; margin-top: 8px; }
 
 .saveBtn {
