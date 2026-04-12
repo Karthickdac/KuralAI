@@ -111,14 +111,25 @@ async function synthesizeSpeech(text, outputPath = null) {
   const startTime = Date.now();
 
   return new Promise((resolve, reject) => {
+    // Read credentials — settings file takes priority over env vars
+    let _azureKey = process.env.AZURE_SPEECH_KEY;
+    let _azureRegion = process.env.AZURE_SPEECH_REGION;
+    let _azureVoice = process.env.AZURE_SPEECH_VOICE;
+    try {
+      const _sf = path.join(__dirname, '../../config/app-settings.json');
+      if (fs.existsSync(_sf)) {
+        const _s = JSON.parse(fs.readFileSync(_sf, 'utf-8'));
+        if (_s.azureSpeechKey)    _azureKey    = _s.azureSpeechKey;
+        if (_s.azureSpeechRegion) _azureRegion = _s.azureSpeechRegion;
+        if (_s.azureSpeechVoice)  _azureVoice  = _s.azureSpeechVoice;
+      }
+    } catch {}
+
     // Azure Speech SDK configuration
-    const speechConfig = sdk.SpeechConfig.fromSubscription(
-      process.env.AZURE_SPEECH_KEY,
-      process.env.AZURE_SPEECH_REGION
-    );
+    const speechConfig = sdk.SpeechConfig.fromSubscription(_azureKey, _azureRegion);
 
     // Tamil Neural Voice - Natural sounding
-    speechConfig.speechSynthesisVoiceName = process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural';
+    speechConfig.speechSynthesisVoiceName = _azureVoice || 'ta-IN-PallaviNeural';
     speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
 
     // Use push stream to get audio in memory

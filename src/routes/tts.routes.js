@@ -25,10 +25,12 @@ function readSettings() {
 
 function getAzureConfig() {
   const stored = readSettings();
+  // User-saved settings (via the Settings UI) always take priority over env vars.
+  // This prevents stale/mismatched environment variables from overriding the dashboard config.
   return {
-    key:    process.env.AZURE_SPEECH_KEY    || stored.azureSpeechKey    || '',
-    region: process.env.AZURE_SPEECH_REGION || stored.azureSpeechRegion || '',
-    voice:  process.env.AZURE_SPEECH_VOICE  || stored.azureSpeechVoice  || 'ta-IN-PallaviNeural',
+    key:    stored.azureSpeechKey    || process.env.AZURE_SPEECH_KEY    || '',
+    region: stored.azureSpeechRegion || process.env.AZURE_SPEECH_REGION || '',
+    voice:  stored.azureSpeechVoice  || process.env.AZURE_SPEECH_VOICE  || 'ta-IN-PallaviNeural',
   };
 }
 
@@ -85,7 +87,7 @@ router.post('/preview', authenticateToken, async (req, res) => {
       ? 'Azure Speech key is invalid or expired.'
       : status === 403
       ? 'Azure Speech key does not have permission for this region.'
-      : `Azure TTS request failed: ${err.message}`;
+      : `Azure TTS request failed (${status}): ${err.message}`;
     res.status(502).json({ error: msg });
   }
 });
