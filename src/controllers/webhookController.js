@@ -272,13 +272,14 @@ async function handleIncomingCall(req, res) {
     // rejected by Exotel AppConnect before any verb executes.
     // Return bare <Say><Hangup> so we can confirm <Say> itself works.
     // TODO: restore full conversation flow once Say is confirmed working.
-    // DIAG STEP 6: Gather (no language attr) + Say English inside to test audio.
-    // Confirmed: language="ta-in" on Gather breaks it silently.
-    // Now check: can the caller hear English Say inside Gather?
+    // DIAG STEP 7: <Play> OUTSIDE <Gather> with a public MP3 URL.
+    // <Say> inside Gather breaks it. Testing if <Play> outside works.
+    // If caller hears audio → Play works, we can use Play+Gather pattern.
     const baseUrl = (settings.appUrl || `https://${process.env.REPLIT_DEV_DOMAIN}`).replace(/\/$/, '');
-    logger.info(`DIAG: returning Gather+Say English for call ${call.id}`);
+    const testAudioUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+    logger.info(`DIAG: returning Play(public)+Gather for call ${call.id}`);
     res.type('text/xml').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Gather input="speech" timeout="30" action="${baseUrl}/call/gather" method="GET">\n    <Say>Hello. This is KuralAI. Please say something after the beep.</Say>\n  </Gather>\n  <Hangup/>\n</Response>`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Play>${testAudioUrl}</Play>\n  <Gather input="speech" timeout="20" action="${baseUrl}/call/gather" method="GET"/>\n  <Hangup/>\n</Response>`
     );
     return;
   } catch (error) {
