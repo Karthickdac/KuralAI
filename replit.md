@@ -12,8 +12,13 @@ KuralAI is a real-time AI voice calling system designed to speak and understand 
 
 ## External Services Required
 - **OpenAI**: GPT-4o (LLM) + Whisper (STT) - set `OPENAI_API_KEY`
-- **Azure Cognitive Services**: Tamil Neural TTS - set `AZURE_SPEECH_KEY`
-- **Twilio**: Call initiation/webhooks - set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+- **Azure Cognitive Services**: Tamil Neural TTS - set `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`
+- **Exotel**: Outbound/inbound calling + webhooks (replaces Twilio)
+  - `EXOTEL_SID` — Account SID from Exotel Dashboard
+  - `EXOTEL_API_KEY` — API Key from Exotel Dashboard
+  - `EXOTEL_API_TOKEN` — API Token from Exotel Dashboard
+  - `EXOTEL_PHONE_NUMBER` — Your ExoPhone in E.164 format (e.g. +918XXXXXXXXX)
+  - `EXOTEL_WEBHOOK_TOKEN` — A long random secret appended to all webhook URLs for security
 - **AWS S3**: Audio file storage - set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
 
 ## Startup
@@ -60,6 +65,9 @@ Single workflow `Start application` runs `bash start.sh` which:
 - WebSocket URL uses `window.location.host` dynamically (works behind Replit proxy)
 - `dashboard/src/setupProxy.js` proxies `/api`, `/webhook`, `/health`, `/ws` to port 3000
 - Settings persisted to `config/app-settings.json` and synced to `process.env` on update
+- **Twilio fully replaced by Exotel** — `exotelService.js` handles outbound calls + ExoML, `exotelValidation.js` handles webhook token validation
+- Exotel webhook URLs include `?wt=<EXOTEL_WEBHOOK_TOKEN>` for security; set EXOTEL_WEBHOOK_TOKEN to a long random string in production
+- Exotel ExoML is XML-based (like TwiML); uses `<Gather input="speech" language="ta-in">` for Tamil speech recognition
 
 ## Environment Variables
 Set in Replit Secrets/Env Vars:

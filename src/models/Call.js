@@ -14,8 +14,8 @@ const Call = sequelize.define('Call', {
   callSid: {
     type: DataTypes.STRING(64),
     unique: true,
-    allowNull: true, // Populated after Twilio creates the call
-    comment: 'Twilio Call SID',
+    allowNull: true, // Populated after Exotel creates the call
+    comment: 'Exotel Call SID',
   },
   toPhone: {
     type: DataTypes.STRING(20),
@@ -25,12 +25,12 @@ const Call = sequelize.define('Call', {
   fromPhone: {
     type: DataTypes.STRING(20),
     allowNull: false,
-    defaultValue: process.env.TWILIO_PHONE_NUMBER,
+    defaultValue: process.env.EXOTEL_PHONE_NUMBER,
   },
   status: {
     type: DataTypes.ENUM(
       'initiated',    // Call created in DB
-      'queued',       // Twilio accepted the call
+      'queued',       // Exotel accepted the call
       'ringing',      // Phone is ringing
       'answered',     // User picked up
       'in-progress',  // Conversation happening

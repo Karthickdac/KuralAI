@@ -31,7 +31,7 @@ const server = http.createServer(app);
 
 // ─── Security Middleware ───────────────────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: false, // Disabled for Twilio webhook compatibility
+  contentSecurityPolicy: false, // Disabled for webhook compatibility
 }));
 
 app.use(cors({
@@ -44,12 +44,12 @@ const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   message: { error: 'Too many requests, please try again later.' },
-  skip: (req) => req.path.startsWith('/webhook'), // Twilio webhooks exempt
+  skip: (req) => req.path.startsWith('/webhook'), // Exotel webhooks exempt
 });
 app.use('/api/', limiter);
 
 // ─── Body Parsers ──────────────────────────────────────────────────────────────
-// Raw body for Twilio webhook signature verification
+// Exotel sends form-urlencoded; parse as text first for flexibility
 app.use('/webhook', express.raw({ type: 'application/x-www-form-urlencoded' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -78,7 +78,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 
-// Twilio webhooks (no auth - validated by Twilio signature)
+// Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);
 
 // ─── Global Error Handler ──────────────────────────────────────────────────────

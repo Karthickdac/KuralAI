@@ -6,7 +6,7 @@
 const cron = require('node-cron');
 const { Op } = require('sequelize');
 const Call = require('../models/Call');
-const { initiateCall } = require('./twilioService');
+const { initiateCall } = require('./exotelService');
 const logger = require('../utils/logger');
 
 function startRetryScheduler() {
@@ -29,10 +29,10 @@ function startRetryScheduler() {
         try {
           logger.info(`Retrying call ${call.id} (attempt ${call.retryCount + 1})`);
 
-          const twilioCall = await initiateCall(call.toPhone, call.id, call.metadata);
+          const exotelCall = await initiateCall(call.toPhone, call.id, call.metadata);
 
           await call.update({
-            callSid: twilioCall.sid,
+            callSid: exotelCall.sid,
             status: 'queued',
             retryCount: call.retryCount + 1,
             nextRetryAt: null,

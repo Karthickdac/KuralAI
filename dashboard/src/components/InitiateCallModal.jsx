@@ -72,7 +72,7 @@ export default function InitiateCallModal({ onClose, onSuccess }) {
             <div style={{ background: '#EAF3DE', border: '1px solid rgba(15,110,86,0.2)', borderRadius: 10, padding: 16, marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 500, color: '#0F6E56', marginBottom: 6 }}>✓ Call queued successfully</div>
               <div style={{ fontSize: 12, color: '#5F5E5A' }}>Call ID: <code>{result.callId}</code></div>
-              <div style={{ fontSize: 12, color: '#5F5E5A', marginTop: 4 }}>Twilio SID: <code>{result.callSid}</code></div>
+              <div style={{ fontSize: 12, color: '#5F5E5A', marginTop: 4 }}>Exotel SID: <code>{result.callSid}</code></div>
             </div>
             <button onClick={onSuccess} style={{ width: '100%', padding: 10, background: '#3C3489', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
               Done
