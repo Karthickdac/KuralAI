@@ -143,6 +143,93 @@ async function getCallStatus(req, res) {
 }
 
 /**
+ * POST /api/calls/bulk
+ * Initiate calls to multiple customers (sequential, with delay).
+ * Body: { phones: ['+91...'], metadata: { callType: '...' }, delayMs: 2000 }
+ */
+async function bulkCallController(req, res) {
+  const { phones = [], customerIds = [], metadata = {}, delayMs = 2500 } = req.body;
+
+  if (!phones.length && !customerIds.length) {
+    return res.status(400).json({ success: false, error: 'phones or customerIds array required' });
+  }
+
+  const targets = phones.length ? phones : [];
+
+  // Resolve customerIds to phones if provided
+  if (customerIds.length) {
+    const customers = await Customer.findAll({ where: { id: customerIds } });
+    customers.forEach(c => { if (c.phone && !targets.includes(c.phone)) targets.push(c.phone); });
+  }
+
+  if (!targets.length) {
+    return res.status(400).json({ success: false, error: 'No valid phone numbers found' });
+  }
+
+  // Return immediately — calls fire in background
+  res.json({
+    success: true,
+    queued: targets.length,
+    message: `Queued ${targets.length} call(s). They will start within a few seconds.`,
+  });
+
+  // Fire calls sequentially in background with delay
+  setImmediate(async () => {
+    const s = getSettings();
+    const provider   = (s.telephonyProvider || 'twilio').toLowerCase();
+    const fromPhone  = provider === 'twilio'
+      ? (s.twilioPhoneNumber  || process.env.TWILIO_PHONE_NUMBER  || '')
+      : (s.exotelPhoneNumber  || process.env.EXOTEL_PHONE_NUMBER  || '');
+
+    for (let i = 0; i < targets.length; i++) {
+      const toPhone = targets[i];
+      try {
+        const customerMeta = await resolveCustomerMeta(toPhone);
+        const enrichedMeta = { ...customerMeta, ...metadata };
+
+        const call = await Call.create({
+          id: uuidv4(), toPhone, fromPhone,
+          status: 'initiated', direction: 'outbound',
+          maxRetries: parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
+          metadata: enrichedMeta,
+        });
+
+        const exotelCall = await initiateCall(toPhone, call.id, enrichedMeta);
+        await call.update({ callSid: exotelCall.sid, status: 'queued' });
+        logger.info(`Bulk call ${i + 1}/${targets.length}: ${call.id} -> ${toPhone}`);
+
+        // Pre-warm TTS in background
+        const _meta = { ...enrichedMeta };
+        (async () => {
+          try {
+            const { synthesizeSpeech } = require('../services/speechService');
+            const { getPromptText }    = require('../services/aiService');
+            const { applyTemplate }    = require('../utils/templateEngine');
+            const QaTemplate           = require('../models/QaTemplate');
+            const greetingText = await getPromptText('GREETING', _meta);
+            await synthesizeSpeech(greetingText).catch(() => {});
+            const qaRows = await QaTemplate.findAll({ where: { isActive: true }, raw: true });
+            const texts = [];
+            qaRows.forEach(r => (r.responses || []).forEach(t => texts.push(applyTemplate(t, _meta))));
+            for (let j = 0; j < texts.length; j += 5) {
+              await Promise.all(texts.slice(j, j + 5).map(t => synthesizeSpeech(t).catch(() => {})));
+            }
+          } catch {}
+        })();
+
+        if (i < targets.length - 1) {
+          await new Promise(r => setTimeout(r, delayMs));
+        }
+      } catch (e) {
+        logger.error(`Bulk call failed for ${toPhone}:`, e.message);
+        if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    logger.info(`Bulk call batch complete: ${targets.length} calls initiated`);
+  });
+}
+
+/**
  * GET /api/calls
  * List calls with pagination and filtering
  */
@@ -207,4 +294,4 @@ async function retryCall(req, res) {
   }
 }
 
-module.exports = { initiateCallController, getCallStatus, listCalls, retryCall };
+module.exports = { initiateCallController, bulkCallController, getCallStatus, listCalls, retryCall };

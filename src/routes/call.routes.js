@@ -9,6 +9,7 @@ const { authenticateToken } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const {
   initiateCallController,
+  bulkCallController,
   getCallStatus,
   listCalls,
   retryCall,
@@ -26,6 +27,18 @@ router.post('/initiate',
   ],
   validate,
   initiateCallController
+);
+
+// POST /api/calls/bulk
+router.post('/bulk',
+  [
+    body('phones').optional().isArray(),
+    body('customerIds').optional().isArray(),
+    body('metadata').optional().isObject(),
+    body('delayMs').optional().isInt({ min: 500, max: 10000 }),
+  ],
+  validate,
+  bulkCallController
 );
 
 // GET /api/calls

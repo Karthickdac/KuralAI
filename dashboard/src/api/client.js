@@ -38,6 +38,8 @@ export const callsApi = {
   getStatus: (callId) => api.get(`/api/calls/${callId}/status`),
   initiate: (toPhone, metadata, maxRetries) =>
     api.post('/api/calls/initiate', { toPhone, metadata, maxRetries }),
+  bulk: (phones, metadata, delayMs = 2500) =>
+    api.post('/api/calls/bulk', { phones, metadata, delayMs }),
   retry: (callId) => api.post(`/api/calls/${callId}/retry`),
   recentCalls: (limit) => api.get('/api/dashboard/recent-calls', { params: { limit } }),
 };
