@@ -69,6 +69,6 @@ localPort = 5001
 externalPort = 3000
 
 [deployment]
-deploymentTarget = "vm"
+deploymentTarget = "autoscale"
 run = ["node", "src/server.js"]
-build = ["bash", "-c", "cd dashboard && npm install && npm run build"]
+build = ["npm", "run", "build"]
