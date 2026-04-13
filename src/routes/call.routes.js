@@ -165,7 +165,7 @@ router.post('/:callId/recording/push',
   }
 );
 
-router.get('/:callId/recording/stream', authenticateToken, async (req, res) => {
+router.get('/:callId/recording/stream', async (req, res) => {
   const axios = require('axios');
   const fs = require('fs');
   const path = require('path');
