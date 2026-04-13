@@ -46,9 +46,14 @@ async function updateQaTemplate(req, res) {
     const row = await QaTemplate.findByPk(req.params.id);
     if (!row) return res.status(404).json({ error: 'Not found' });
     const { intent, label, phraseKeywords, tokenKeywords, minScore, responses, action, isActive, sortOrder } = req.body;
-    await row.update({ intent, label, phraseKeywords, tokenKeywords, minScore, responses, action, isActive, sortOrder });
+    // Use static update() to avoid Sequelize JSONB mutation-detection bug on instance.update()
+    await QaTemplate.update(
+      { intent, label, phraseKeywords, tokenKeywords, minScore, responses, action, isActive, sortOrder },
+      { where: { id: req.params.id } }
+    );
+    const updated = await QaTemplate.findByPk(req.params.id);
     invalidateTemplateCache();
-    res.json(row);
+    res.json(updated);
   } catch (err) {
     logger.error('updateQaTemplate error:', err.message);
     res.status(500).json({ error: err.message });
@@ -98,9 +103,13 @@ async function updatePromptTemplate(req, res) {
     const row = await PromptTemplate.findByPk(req.params.id);
     if (!row) return res.status(404).json({ error: 'Not found' });
     const { key, label, text, description, isActive } = req.body;
-    await row.update({ key, label, text, description, isActive });
+    await PromptTemplate.update(
+      { key, label, text, description, isActive },
+      { where: { id: req.params.id } }
+    );
+    const updated = await PromptTemplate.findByPk(req.params.id);
     invalidateTemplateCache();
-    res.json(row);
+    res.json(updated);
   } catch (err) {
     logger.error('updatePromptTemplate error:', err.message);
     res.status(500).json({ error: err.message });
