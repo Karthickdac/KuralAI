@@ -98,7 +98,7 @@ export const simulateApi = {
     form.append('audio', audioBlob, `recording.${ext}`);
     return api.post('/api/simulate/transcribe', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 30000,
+      timeout: 60000,
     });
   },
 };

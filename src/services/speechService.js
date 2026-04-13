@@ -5,9 +5,9 @@
  */
 
 const OpenAI = require('openai');
-const { toFile } = require('openai');
 const sdk = require('microsoft-cognitiveservices-speech-sdk');
 const axios = require('axios');
+const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -87,7 +87,6 @@ async function transcribeAudio(audioData, format = 'wav') {
     // Build a buffer regardless of input type
     const buffer = Buffer.isBuffer(audioData) ? audioData : fs.readFileSync(audioData);
 
-    // Map format to MIME type — required for Whisper multipart upload
     const mimeMap = {
       webm: 'audio/webm',
       mp4:  'audio/mp4',
@@ -98,39 +97,44 @@ async function transcribeAudio(audioData, format = 'wav') {
     };
     const mimeType = mimeMap[format] || 'audio/webm';
 
-    // toFile creates a proper File-like object the SDK can upload via multipart form
-    const file = await toFile(buffer, `recording.${format}`, { type: mimeType });
+    // Use axios + form-data directly — the OpenAI SDK's undici-based fetch
+    // fails for multipart binary uploads in some environments (Connection error).
+    const form = new FormData();
+    form.append('file', buffer, { filename: `recording.${format}`, contentType: mimeType });
+    form.append('model', 'whisper-1');
+    form.append('language', 'ta');
+    form.append('response_format', 'json');
+    form.append('temperature', '0');
+    form.append('prompt', 'வணக்கம். இது தமிழ் உரையாடல்.');
 
-    const response = await getOpenAI().audio.transcriptions.create({
-      file,
-      model: 'whisper-1',
-      language: 'ta',
-      response_format: 'verbose_json',
-      temperature: 0.0,
-      prompt: 'வணக்கம். இது தமிழ் உரையாடல்.',
-    });
+    const apiKey = getOpenAIKey();
+    const response = await axios.post(
+      'https://api.openai.com/v1/audio/transcriptions',
+      form,
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          ...form.getHeaders(),
+        },
+        timeout: 60000,
+      }
+    );
 
     const processingTime = Date.now() - startTime;
-    logger.info(`STT completed in ${processingTime}ms: "${response.text}"`);
-
-    // Whisper verbose_json returns segments with avg_logprob for confidence
-    let confidence = 0.9; // Default
-    if (response.segments && response.segments.length > 0) {
-      // Convert log probability to 0-1 confidence score
-      const avgLogprob = response.segments.reduce((sum, s) => sum + s.avg_logprob, 0) / response.segments.length;
-      confidence = Math.min(1.0, Math.max(0.0, 1 + avgLogprob / 5));
-    }
+    const text = response.data.text?.trim() || '';
+    logger.info(`STT completed in ${processingTime}ms: "${text}"`);
 
     return {
-      text: response.text.trim(),
-      confidence,
-      language: response.language,
+      text,
+      confidence: 0.9,
+      language: 'ta',
       processingTimeMs: processingTime,
     };
 
   } catch (error) {
-    logger.error('STT error:', error.message);
-    throw new Error(`Speech transcription failed: ${error.message}`);
+    const msg = error.response?.data?.error?.message || error.message;
+    logger.error('STT error:', msg);
+    throw new Error(`Speech transcription failed: ${msg}`);
   }
 }
 
