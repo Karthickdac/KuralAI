@@ -84,12 +84,18 @@ router.post('/preview', authenticateToken, async (req, res) => {
       return res.send(Buffer.from(response.data));
     } catch (err) {
       const status = err.response?.status;
-      const detail = err.response?.data ? Buffer.from(err.response.data).toString('utf-8') : err.message;
+      let elMsg = err.message;
+      try {
+        const parsed = JSON.parse(Buffer.from(err.response.data).toString('utf-8'));
+        elMsg = parsed?.detail?.message || elMsg;
+      } catch {}
       const msg = status === 401
         ? 'ElevenLabs API key is invalid or expired.'
+        : status === 402
+        ? `ElevenLabs: ${elMsg} — upgrade your plan or use a cloned voice from your account.`
         : status === 422
-        ? `ElevenLabs rejected the request — check Voice ID. (${detail})`
-        : `ElevenLabs TTS request failed (${status}): ${err.message}`;
+        ? `ElevenLabs rejected the request — check Voice ID. (${elMsg})`
+        : `ElevenLabs TTS request failed (${status}): ${elMsg}`;
       return res.status(502).json({ error: msg });
     }
   }
