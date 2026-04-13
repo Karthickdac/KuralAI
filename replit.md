@@ -99,6 +99,16 @@ Each flow uses the `scriptEngine.js` to branch based on customer responses (keyw
 ## Intent Detection (17 intents)
 seat_due_status, premature_withdrawal, jamin_documents, payment_complaint, reduce_calls, no_office_calls, lottery_participation, lottery_decline, identity_confirm, identity_deny, already_paid, callback_request, payment_date_inquiry, chit_value_inquiry, payment_mode, human_request, end_call
 
+## API Config Module
+- **Page**: `/api-config` — dedicated dashboard page showing all external service integrations
+- **Backend**: `src/routes/apiConfig.routes.js` — `GET /api/api-config/status` + `POST /api/api-config/test/:serviceId`
+- **Frontend**: `dashboard/src/pages/ApiConfig.jsx` + `ApiConfig.module.css`
+- Shows 4 service cards: Telephony (Twilio/Exotel), OpenAI, TTS (ElevenLabs/Azure), AWS S3
+- Each card shows masked credentials, configuration status, and a "Test Connection" button
+- "Test All" button runs connectivity tests for all configured services in parallel
+- Summary bar shows configured/connected/failed/untested counts + external API key status
+- Admin-only access (requireAdmin middleware)
+
 ## API Routes
 - `POST /api/auth/login` / `GET /api/auth/me`
 - `POST /api/calls/initiate`, `GET /api/calls`, `GET /api/calls/export` (CSV)

@@ -20,7 +20,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    if (status === 401 || status === 403) {
+    if (status === 401) {
       localStorage.removeItem('kuralai_token');
       localStorage.removeItem('kuralai_user');
       window.location.href = '/login';
@@ -126,6 +126,11 @@ export const campaignsApi = {
   start: (id) => api.post(`/api/campaigns/${id}/start`),
   pause: (id) => api.post(`/api/campaigns/${id}/pause`),
   resume: (id) => api.post(`/api/campaigns/${id}/resume`),
+};
+
+export const apiConfigApi = {
+  status: () => api.get('/api/api-config/status'),
+  test: (serviceId) => api.post(`/api/api-config/test/${serviceId}`, {}, { timeout: 30000 }),
 };
 
 export const templatesApi = {

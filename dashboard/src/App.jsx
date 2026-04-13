@@ -13,6 +13,7 @@ import Simulate from './pages/Simulate';
 import Templates from './pages/Templates';
 import Customers from './pages/Customers';
 import Campaigns from './pages/Campaigns';
+import ApiConfig from './pages/ApiConfig';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><Simulate /></ProtectedRoute>} />
+        <Route path="/api-config" element={<ProtectedRoute><ApiConfig /></ProtectedRoute>} />
         <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
