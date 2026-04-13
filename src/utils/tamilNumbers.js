@@ -1,0 +1,220 @@
+/**
+ * Tamil Number-to-Words Converter
+ * Converts English numerals and currency in a Tamil sentence to spoken Tamil words.
+ * Applied before ElevenLabs TTS so numbers are pronounced correctly.
+ */
+
+// ── Core number tables ────────────────────────────────────────────────────────
+
+const ONES = [
+  '', 'ஒன்று', 'இரண்டு', 'மூன்று', 'நான்கு', 'ஐந்து',
+  'ஆறு', 'ஏழு', 'எட்டு', 'ஒன்பது',
+];
+
+const TEENS = [
+  'பத்து', 'பதினொன்று', 'பன்னிரண்டு', 'பதின்மூன்று',
+  'பதினான்கு', 'பதினைந்து', 'பதினாறு', 'பதினேழு',
+  'பதினெட்டு', 'பத்தொன்பது',
+];
+
+const TENS = [
+  '', '', 'இருபது', 'முப்பது', 'நாற்பது', 'ஐம்பது',
+  'அறுபது', 'எழுபது', 'எண்பது', 'தொண்ணூறு',
+];
+
+// Hundreds have special Tamil compound forms
+const HUNDREDS = [
+  '', 'நூறு', 'இருநூறு', 'முன்னூறு', 'நானூறு',
+  'ஐந்நூறு', 'அறுநூறு', 'எழுநூறு', 'எண்ணூறு', 'தொள்ளாயிரம்',
+];
+
+// Thousands have special Tamil compound forms when combined
+const THOU_PREFIX = [
+  '', 'ஆயிரம்', 'இரண்டாயிரம்', 'மூவாயிரம்', 'நாலாயிரம்',
+  'ஐயாயிரம்', 'ஆறாயிரம்', 'ஏழாயிரம்', 'எட்டாயிரம்', 'ஒன்பதாயிரம்',
+  'பத்தாயிரம்', 'பதினோராயிரம்', 'பன்னிரண்டாயிரம்', 'பதின்மூவாயிரம்',
+  'பதினான்காயிரம்', 'பதினைந்தாயிரம்', 'பதினாறாயிரம்', 'பதினேழாயிரம்',
+  'பதினெட்டாயிரம்', 'பத்தொன்பதாயிரம்', 'இருபதாயிரம்',
+  'இருபத்தொன்றாயிரம்', 'இருபத்திரண்டாயிரம்', 'இருபத்துமூவாயிரம்',
+  'இருபத்துநான்காயிரம்', 'இருபத்தைந்தாயிரம்', 'இருபத்தாறாயிரம்',
+  'இருபத்தேழாயிரம்', 'இருபத்தெட்டாயிரம்', 'இருபத்தொன்பதாயிரம்',
+  'முப்பதாயிரம்', 'முப்பத்தொன்றாயிரம்', 'முப்பத்திரண்டாயிரம்',
+  'முப்பத்துமூவாயிரம்', 'முப்பத்துநான்காயிரம்', 'முப்பத்தைந்தாயிரம்',
+  'முப்பத்தாறாயிரம்', 'முப்பத்தேழாயிரம்', 'முப்பத்தெட்டாயிரம்',
+  'முப்பத்தொன்பதாயிரம்', 'நாற்பதாயிரம்', 'நாற்பத்தொன்றாயிரம்',
+  'நாற்பத்திரண்டாயிரம்', 'நாற்பத்துமூவாயிரம்', 'நாற்பத்துநான்காயிரம்',
+  'நாற்பத்தைந்தாயிரம்', 'நாற்பத்தாறாயிரம்', 'நாற்பத்தேழாயிரம்',
+  'நாற்பத்தெட்டாயிரம்', 'நாற்பத்தொன்பதாயிரம்', 'ஐம்பதாயிரம்',
+  'ஐம்பத்தொன்றாயிரம்', 'ஐம்பத்திரண்டாயிரம்', 'ஐம்பத்துமூவாயிரம்',
+  'ஐம்பத்துநான்காயிரம்', 'ஐம்பத்தைந்தாயிரம்', 'ஐம்பத்தாறாயிரம்',
+  'ஐம்பத்தேழாயிரம்', 'ஐம்பத்தெட்டாயிரம்', 'ஐம்பத்தொன்பதாயிரம்',
+  'அறுபதாயிரம்', 'அறுபத்தொன்றாயிரம்', 'அறுபத்திரண்டாயிரம்',
+  'அறுபத்துமூவாயிரம்', 'அறுபத்துநான்காயிரம்', 'அறுபத்தைந்தாயிரம்',
+  'அறுபத்தாறாயிரம்', 'அறுபத்தேழாயிரம்', 'அறுபத்தெட்டாயிரம்',
+  'அறுபத்தொன்பதாயிரம்', 'எழுபதாயிரம்', 'எழுபத்தொன்றாயிரம்',
+  'எழுபத்திரண்டாயிரம்', 'எழுபத்துமூவாயிரம்', 'எழுபத்துநான்காயிரம்',
+  'எழுபத்தைந்தாயிரம்', 'எழுபத்தாறாயிரம்', 'எழுபத்தேழாயிரம்',
+  'எழுபத்தெட்டாயிரம்', 'எழுபத்தொன்பதாயிரம்', 'எண்பதாயிரம்',
+  'எண்பத்தொன்றாயிரம்', 'எண்பத்திரண்டாயிரம்', 'எண்பத்துமூவாயிரம்',
+  'எண்பத்துநான்காயிரம்', 'எண்பத்தைந்தாயிரம்', 'எண்பத்தாறாயிரம்',
+  'எண்பத்தேழாயிரம்', 'எண்பத்தெட்டாயிரம்', 'எண்பத்தொன்பதாயிரம்',
+  'தொண்ணூறாயிரம்', 'தொண்ணூத்தொன்றாயிரம்', 'தொண்ணூத்திரண்டாயிரம்',
+  'தொண்ணூத்துமூவாயிரம்', 'தொண்ணூத்துநான்காயிரம்', 'தொண்ணூத்தைந்தாயிரம்',
+  'தொண்ணூத்தாறாயிரம்', 'தொண்ணூத்தேழாயிரம்', 'தொண்ணூத்தெட்டாயிரம்',
+  'தொண்ணூத்தொன்பதாயிரம்',
+];
+
+// Joining form when something follows thousands/hundreds (uses "த்து" suffix)
+function thousandJoin(thou) {
+  if (thou.endsWith('ம்')) return thou.slice(0, -2) + 'த்து';
+  if (thou.endsWith('று')) return thou.slice(0, -2) + 'த்து';
+  return thou + 'த்து';
+}
+
+function hundredJoin(h) {
+  if (h === 'நூறு') return 'நூத்து';
+  if (h.endsWith('று')) return h.slice(0, -2) + 'த்து';
+  if (h.endsWith('டு')) return h.slice(0, -2) + 'த்து';
+  if (h.endsWith('று')) return h.slice(0, -2) + 'த்து';
+  if (h.endsWith('நூறு')) return h.slice(0, -4) + 'நூத்து';
+  return h + 'த்து';
+}
+
+// Convert number < 100 to Tamil words
+function belowHundred(n) {
+  if (n === 0) return '';
+  if (n < 10) return ONES[n];
+  if (n < 20) return TEENS[n - 10];
+  const t = Math.floor(n / 10);
+  const u = n % 10;
+  if (u === 0) return TENS[t];
+  // compound tens: e.g. 21 = இருபத்தொன்று
+  const tenBase = TENS[t].endsWith('து') ? TENS[t].slice(0, -2) + 'த்து' : TENS[t];
+  return tenBase + ONES[u];
+}
+
+/**
+ * Convert an integer (0–99999) to Tamil words.
+ */
+function numberToTamil(n) {
+  n = Math.round(n);
+  if (n === 0) return 'பூஜ்யம்';
+  if (n < 0) return 'மைனஸ் ' + numberToTamil(-n);
+
+  const parts = [];
+
+  // Lakhs (100000+)
+  if (n >= 100000) {
+    const l = Math.floor(n / 100000);
+    n = n % 100000;
+    const lWord = l === 1 ? 'ஒரு லட்சம்' : belowHundred(l) + ' லட்சம்';
+    parts.push(n > 0 ? lWord.replace('லட்சம்', 'லட்சத்து') : lWord);
+  }
+
+  // Thousands (1000–99999)
+  if (n >= 1000) {
+    const th = Math.floor(n / 1000);
+    n = n % 1000;
+    if (th <= THOU_PREFIX.length - 1 && THOU_PREFIX[th]) {
+      const tWord = THOU_PREFIX[th];
+      parts.push(n > 0 ? thousandJoin(tWord) : tWord);
+    } else {
+      parts.push(belowHundred(th) + (n > 0 ? 'ஆயிரத்து' : 'ஆயிரம்'));
+    }
+  }
+
+  // Hundreds (100–999)
+  if (n >= 100) {
+    const h = Math.floor(n / 100);
+    n = n % 100;
+    const hWord = HUNDREDS[h];
+    parts.push(n > 0 ? hundredJoin(hWord) : hWord);
+  }
+
+  // Remainder < 100
+  if (n > 0) {
+    parts.push(belowHundred(n));
+  }
+
+  return parts.join(' ');
+}
+
+// ── Ordinal forms ─────────────────────────────────────────────────────────────
+
+const ORDINAL_DATE = [
+  '', 'முதல்', 'இரண்டாம்', 'மூன்றாம்', 'நான்காம்', 'ஐந்தாம்',
+  'ஆறாம்', 'ஏழாம்', 'எட்டாம்', 'ஒன்பதாம்', 'பத்தாம்',
+  'பதினொன்றாம்', 'பன்னிரண்டாம்', 'பதின்மூன்றாம்', 'பதினான்காம்',
+  'பதினைந்தாம்', 'பதினாறாம்', 'பதினேழாம்', 'பதினெட்டாம்',
+  'பத்தொன்பதாம்', 'இருபதாம்', 'இருபத்தொன்றாம்', 'இருபத்திரண்டாம்',
+  'இருபத்துமூன்றாம்', 'இருபத்துநான்காம்', 'இருபத்தைந்தாம்',
+  'இருபத்தாறாம்', 'இருபத்தேழாம்', 'இருபத்தெட்டாம்', 'இருபத்தொன்பதாம்',
+  'முப்பதாம்', 'முப்பத்தொன்றாம்',
+];
+
+function ordinalDate(n) {
+  if (n >= 1 && n <= ORDINAL_DATE.length - 1) return ORDINAL_DATE[n];
+  return numberToTamil(n) + 'ஆம்';
+}
+
+const ORDINAL_VATU = [
+  '', 'முதல்', 'இரண்டாவது', 'மூன்றாவது', 'நான்காவது', 'ஐந்தாவது',
+  'ஆறாவது', 'ஏழாவது', 'எட்டாவது', 'ஒன்பதாவது', 'பத்தாவது',
+  'பதினொன்றாவது', 'பன்னிரண்டாவது',
+];
+
+function ordinalVatu(n) {
+  if (n >= 1 && n <= ORDINAL_VATU.length - 1) return ORDINAL_VATU[n];
+  return numberToTamil(n) + 'ஆவது';
+}
+
+// ── Main text transformer ─────────────────────────────────────────────────────
+
+/**
+ * Convert all numerals/currency in a Tamil sentence to Tamil spoken words.
+ * Runs BEFORE ElevenLabs TTS so numbers are pronounced correctly.
+ *
+ * Patterns handled:
+ *   ₹2,500   →  இரண்டாயிரத்துஐந்நூறு ரூபாய்
+ *   Rs.5000  →  ஐயாயிரம் ரூபாய்
+ *   7ம் தேதி →  ஏழாம் தேதி
+ *   1வது     →  முதல்
+ *   50,000   →  ஐம்பதாயிரம்
+ */
+function tamilizeText(text) {
+  if (!text) return text;
+  let t = text;
+
+  // 1. Currency with ₹ or Rs. (strip commas, parse, convert)
+  //    e.g. ₹2,500 → இரண்டாயிரத்துஐந்நூறு ரூபாய்
+  t = t.replace(/(?:₹|Rs\.?)\s*([\d,]+)/g, (_, numStr) => {
+    const n = parseInt(numStr.replace(/,/g, ''), 10);
+    return numberToTamil(n) + ' ரூபாய்';
+  });
+
+  // 2. Ordinal date: e.g. "7ம் தேதி" → "ஏழாம் தேதி"
+  t = t.replace(/(\d+)ம்\s*தேதி/g, (_, d) => ordinalDate(parseInt(d, 10)) + ' தேதி');
+
+  // 3. Ordinal "வது": e.g. "1வது" → "முதல்"
+  t = t.replace(/(\d+)வது/g, (_, d) => ordinalVatu(parseInt(d, 10)));
+
+  // 4. Standalone numbers with commas: e.g. "50,000" → "ஐம்பதாயிரம்"
+  //    Only match if surrounded by non-digit chars to avoid partial replacement
+  t = t.replace(/(?<![₹\d])(\d{1,3}(?:,\d{3})+)(?!\d)/g, (_, numStr) => {
+    const n = parseInt(numStr.replace(/,/g, ''), 10);
+    return numberToTamil(n);
+  });
+
+  // 5. Remaining plain numbers ≥ 100 (likely amounts, not phone/dates)
+  //    Avoid converting years, phone numbers (> 6 digits)
+  t = t.replace(/(?<![₹.\d])(\d{3,6})(?!\d)/g, (match, numStr) => {
+    const n = parseInt(numStr, 10);
+    // Skip if it looks like a year (1900-2099)
+    if (n >= 1900 && n <= 2099) return match;
+    return numberToTamil(n);
+  });
+
+  return t;
+}
+
+module.exports = { tamilizeText, numberToTamil, ordinalDate, ordinalVatu };

@@ -187,11 +187,13 @@ async function transcribeFromUrl(audioUrl, authUser, authPass) {
  * @returns {Object} { audioBuffer, duration, s3Url, playableUrl }
  */
 async function synthesizeSpeech(text, outputPath = null) {
+  const { tamilizeText } = require('../utils/tamilNumbers');
+  const spokenText = tamilizeText(text);
   const provider = getTtsProvider();
   if (provider === 'elevenlabs') {
-    return synthesizeSpeechElevenLabs(text);
+    return synthesizeSpeechElevenLabs(spokenText);
   }
-  return synthesizeSpeechAzure(text, outputPath);
+  return synthesizeSpeechAzure(spokenText, outputPath);
 }
 
 async function synthesizeSpeechAzure(text, outputPath = null) {
