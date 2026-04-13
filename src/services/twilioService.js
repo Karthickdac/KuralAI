@@ -49,16 +49,18 @@ async function initiateCall(toPhone, callId) {
   const callerId    = s.twilioPhoneNumber || process.env.TWILIO_PHONE_NUMBER || '';
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 
-  const params = new URLSearchParams({
-    To:                    toPhone,
-    From:                  callerId,
-    Url:                   `${webhookBase}/webhook/call/answer?callId=${callId}&wt=${token}`,
-    StatusCallback:        `${webhookBase}/webhook/call/status?callId=${callId}&wt=${token}`,
-    StatusCallbackMethod:  'POST',
-    StatusCallbackEvent:   'completed initiated ringing answered',
-    TimeLimit:             String(timeLimit),
-    Record:                'false',
-  });
+  const params = new URLSearchParams();
+  params.append('To',                   toPhone);
+  params.append('From',                 callerId);
+  params.append('Url',                  `${webhookBase}/webhook/call/answer?callId=${callId}&wt=${token}`);
+  params.append('StatusCallback',       `${webhookBase}/webhook/call/status?callId=${callId}&wt=${token}`);
+  params.append('StatusCallbackMethod', 'POST');
+  params.append('StatusCallbackEvent',  'initiated');
+  params.append('StatusCallbackEvent',  'ringing');
+  params.append('StatusCallbackEvent',  'answered');
+  params.append('StatusCallbackEvent',  'completed');
+  params.append('TimeLimit',            String(timeLimit));
+  params.append('Record',               'false');
 
   const response = await axios.post(
     `${baseUrl}/Calls.json`,

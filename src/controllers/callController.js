@@ -25,7 +25,10 @@ async function initiateCallController(req, res) {
   try {
     // Create call record in DB first
     const s = getSettings();
-    const fromPhone = s.exotelPhoneNumber || process.env.EXOTEL_PHONE_NUMBER || '';
+    const provider   = (s.telephonyProvider || 'twilio').toLowerCase();
+    const fromPhone  = provider === 'twilio'
+      ? (s.twilioPhoneNumber  || process.env.TWILIO_PHONE_NUMBER  || '')
+      : (s.exotelPhoneNumber  || process.env.EXOTEL_PHONE_NUMBER  || '');
 
     const call = await Call.create({
       id: uuidv4(),
