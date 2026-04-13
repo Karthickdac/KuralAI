@@ -300,8 +300,9 @@ function tamilizeText(text) {
     return ordinalDate(day) + ' தேதி';
   });
 
-  // 3. Ordinal "வது": e.g. "1வது" → "முதல்"
-  t = t.replace(/(\d+)வது/g, (_, d) => ordinalVatu(parseInt(d, 10)));
+  // 3. Ordinal "வது": e.g. "1வது" or "1 வது" → "முதல்"
+  //    Allow optional whitespace between number and வது
+  t = t.replace(/(\d+)\s*வது/g, (_, d) => ordinalVatu(parseInt(d, 10)));
 
   // ── Number / currency conversions ─────────────────────────────────────────
 
@@ -311,7 +312,21 @@ function tamilizeText(text) {
     return numberToTamil(n) + ' ரூபாய்';
   });
 
-  // 5. Standalone numbers with commas: "50,000" → "ஐம்பதாயிரம்"
+  // 4b. "ரூபாய்" word used as suffix before OR prefix then number
+  //     e.g. "ரூபாய் 18,750" — number already handled by rules 5/6/7,
+  //     but Indian lakh format "5,00,000 ரூபாய்" needs stripping first.
+  //     Indian lakh format: N,NN,NNN  (e.g. 5,00,000 / 15,50,000 / 1,00,00,000)
+  t = t.replace(/(?<![₹\d])(\d{1,2},\d{2},\d{3})(?!\d)/g, (_, numStr) => {
+    const n = parseInt(numStr.replace(/,/g, ''), 10);
+    return numberToTamil(n);
+  });
+  // Crore-level Indian format: N,NN,NN,NNN
+  t = t.replace(/(?<![₹\d])(\d{1,2},\d{2},\d{2},\d{3})(?!\d)/g, (_, numStr) => {
+    const n = parseInt(numStr.replace(/,/g, ''), 10);
+    return numberToTamil(n);
+  });
+
+  // 5. Standalone numbers with commas (Western thousands): "50,000" → "ஐம்பதாயிரம்"
   t = t.replace(/(?<![₹\d])(\d{1,3}(?:,\d{3})+)(?!\d)/g, (_, numStr) => {
     const n = parseInt(numStr.replace(/,/g, ''), 10);
     return numberToTamil(n);
@@ -332,6 +347,11 @@ function tamilizeText(text) {
     if (n === 0) return 'பூஜ்யம்';
     return numberToTamil(n);
   });
+
+  // 8. Clean up duplicate "தேதி" that occurs when the date converter adds "தேதி"
+  //    but the original script already had " தேதி" right after the template variable.
+  //    e.g. "மே ஏழாம் தேதி தேதி" → "மே ஏழாம் தேதி"
+  t = t.replace(/தேதி(\s+தேதி)+/g, 'தேதி');
 
   return t;
 }
