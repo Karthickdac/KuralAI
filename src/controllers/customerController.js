@@ -105,6 +105,81 @@ async function getCustomer(req, res) {
 }
 
 /**
+ * POST /api/customers
+ * Create a new customer (optionally with a chit account).
+ */
+async function createCustomer(req, res) {
+  try {
+    const { name, phone, address, notes, chit } = req.body;
+    if (!name || !phone) return res.status(400).json({ error: 'name and phone are required' });
+
+    const existing = await Customer.findOne({ where: { phone } });
+    if (existing) return res.status(409).json({ error: 'A customer with this phone number already exists' });
+
+    const c = await Customer.create({ name, phone, address: address || '', notes: notes || '', preferences: {} });
+
+    if (chit) {
+      await ChitAccount.create({
+        customerId:       c.id,
+        chitGroup:        chit.chitGroup || 'Group A',
+        chitValue:        chit.chitValue || 100000,
+        dueAmount:        chit.dueAmount || 2000,
+        totalDues:        chit.totalDues || 20,
+        completedDues:    chit.completedDues || 0,
+        nextDueDate:      chit.nextDueDate || null,
+        withdrawalAmount: chit.withdrawalAmount || null,
+        isPrimary:        true,
+      });
+    }
+
+    res.status(201).json({ success: true, id: c.id, name: c.name, phone: c.phone });
+  } catch (err) {
+    logger.error('createCustomer error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
+ * PUT /api/customers/:id
+ * Update customer name, phone, address, notes.
+ */
+async function updateCustomer(req, res) {
+  try {
+    const c = await Customer.findByPk(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Customer not found' });
+
+    const { name, phone, address, notes } = req.body;
+    if (name)    c.name    = name;
+    if (phone)   c.phone   = phone;
+    if (address !== undefined) c.address = address;
+    if (notes   !== undefined) c.notes   = notes;
+    await c.save();
+
+    res.json({ success: true, id: c.id, name: c.name, phone: c.phone });
+  } catch (err) {
+    logger.error('updateCustomer error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
+ * DELETE /api/customers/:id
+ * Remove customer and their chit accounts.
+ */
+async function deleteCustomer(req, res) {
+  try {
+    const c = await Customer.findByPk(req.params.id);
+    if (!c) return res.status(404).json({ error: 'Customer not found' });
+    await ChitAccount.destroy({ where: { customerId: c.id } });
+    await c.destroy();
+    res.json({ success: true });
+  } catch (err) {
+    logger.error('deleteCustomer error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
  * PATCH /api/customers/:id/preferences
  * Set a preference key: { key, value }
  */
@@ -134,4 +209,4 @@ async function deletePreference(req, res) {
   }
 }
 
-module.exports = { listCustomers, getCustomer, buildChitMetadata, updatePreference, deletePreference };
+module.exports = { listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer, buildChitMetadata, updatePreference, deletePreference };
