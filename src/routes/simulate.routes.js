@@ -1,8 +1,15 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const { startSimulatedCall, simulateTurn, endSimulatedCall } = require('../services/simulateService');
+const { transcribeAudio } = require('../services/speechService');
 const logger = require('../utils/logger');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 },
+});
 
 /**
  * POST /api/simulate/start
@@ -52,6 +59,31 @@ router.post('/end', authenticateToken, async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     logger.error('[SIM] /end error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/simulate/transcribe
+ * Multipart: audio file
+ * Transcribes browser-recorded audio using OpenAI Whisper.
+ */
+router.post('/transcribe', authenticateToken, upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
+
+    const mimetype = req.file.mimetype || 'audio/webm';
+    let ext = 'webm';
+    if (mimetype.includes('mp4'))                          ext = 'mp4';
+    else if (mimetype.includes('ogg'))                     ext = 'ogg';
+    else if (mimetype.includes('wav'))                     ext = 'wav';
+    else if (mimetype.includes('mpeg') || mimetype.includes('mp3')) ext = 'mp3';
+
+    logger.info(`[SIM] Transcribing ${req.file.size} bytes (${mimetype})`);
+    const result = await transcribeAudio(req.file.buffer, ext);
+    res.json({ text: result.text, confidence: result.confidence });
+  } catch (err) {
+    logger.error('[SIM] /transcribe error:', err);
     res.status(500).json({ error: err.message });
   }
 });

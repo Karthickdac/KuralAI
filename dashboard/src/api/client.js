@@ -90,6 +90,17 @@ export const simulateApi = {
   turn: (callId, turn, userText) =>
     api.post('/api/simulate/turn', { callId, turn, userText }, { timeout: 30000 }),
   end: (callId) => api.post('/api/simulate/end', { callId }),
+  transcribe: (audioBlob) => {
+    const form = new FormData();
+    const ext = audioBlob.type.includes('mp4') ? 'mp4'
+              : audioBlob.type.includes('ogg') ? 'ogg'
+              : audioBlob.type.includes('wav') ? 'wav' : 'webm';
+    form.append('audio', audioBlob, `recording.${ext}`);
+    return api.post('/api/simulate/transcribe', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 30000,
+    });
+  },
 };
 
 export default api;
