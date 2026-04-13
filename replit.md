@@ -58,7 +58,7 @@ CSS variables defined in `dashboard/src/global.css`:
 - `/` — `Dashboard.jsx` — 5 KPI cards, area chart, donut chart, intent bar, live WS activity, recent calls table
 - `/calls` — `Calls.jsx` — paginated table, status/date filters, CSV export
 - `/calls/:id` — `CallDetail.jsx` — transcript bubbles, event logs, recording player, export
-- `/workflows` — `Workflows.jsx` — call campaign management (create/edit/start/pause/delete, AI script, schedule)
+- `/workflows` — `Workflows.jsx` — call campaign management with redesigned UX: "How It Works" guide, visual flow mini-map, template variable chips, color-coded branch actions, step reordering, inline help text throughout
 - `/reports` — `Reports.jsx` — period tabs (7/14/30/90d), 5 KPI cards, volume chart, outcome pie, intent bar, summary table, CSV export
 - `/users` — `Users.jsx` — CRUD user management with modal
 - `/settings` — `Settings.jsx` — grouped settings sections (call behaviour, retry, AI/voice, escalation)

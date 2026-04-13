@@ -45,11 +45,15 @@ function loadWorkflow(workflowId) {
 }
 
 function getScriptFlow(call) {
-  if (call?.metadata?.scriptFlow?.enabled) return call.metadata.scriptFlow;
-  const wfId = call?.metadata?.workflowId || call?.metadata?.callType;
+  const meta = call?.metadata;
+  if (meta?.scriptFlow) {
+    if (meta.scriptFlow.enabled && meta.scriptFlow.steps?.length > 0) return meta.scriptFlow;
+    return null;
+  }
+  const wfId = meta?.workflowId || meta?.callType;
   if (wfId) {
     const wf = loadWorkflow(wfId);
-    if (wf?.scriptFlow?.enabled) return wf.scriptFlow;
+    if (wf?.scriptFlow?.enabled && wf.scriptFlow.steps?.length > 0) return wf.scriptFlow;
   }
   return null;
 }

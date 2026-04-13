@@ -14,7 +14,23 @@ const STATUS_CONFIG = {
   completed:{ label: 'Done',     bg: 'var(--primary-light)', color: 'var(--primary-text)' },
 };
 
-/* ─── Script Preview Hook — Azure Neural TTS ───────────────────────────── */
+const TEMPLATE_VARS = [
+  { key: '{{customerName}}',     desc: 'Customer name' },
+  { key: '{{chitValue}}',        desc: 'Chit value' },
+  { key: '{{dueAmount}}',        desc: 'Due amount' },
+  { key: '{{nextDueDate}}',      desc: 'Next due date' },
+  { key: '{{currentDue}}',       desc: 'Current due number' },
+  { key: '{{withdrawalAmount}}', desc: 'Withdrawal amount' },
+  { key: '{{otherChitDues}}',    desc: 'Other chit dues' },
+  { key: '{{totalDues}}',        desc: 'Total dues' },
+];
+
+const ACTION_CONFIG = {
+  continue: { label: 'Go to next step', color: 'var(--success-text)', bg: 'var(--success-bg)', icon: '→' },
+  end_call: { label: 'End the call',    color: 'var(--danger-text)',  bg: 'var(--danger-bg)',  icon: '×' },
+  escalate: { label: 'Transfer to human', color: 'var(--warning-text)', bg: 'var(--warning-bg)', icon: '↗' },
+};
+
 function useScriptPreview() {
   const [playing, setPlaying]   = useState(false);
   const [loading, setLoading]   = useState(false);
@@ -76,7 +92,6 @@ function useScriptPreview() {
   return { playing, loading, progress, ttsError, play, stop };
 }
 
-/* ─── Waveform Animation ───────────────────────────────────────────────── */
 function Waveform({ playing }) {
   const bars = [3, 5, 8, 12, 9, 6, 10, 7, 4, 11, 8, 5, 9, 6, 4];
   return (
@@ -96,7 +111,6 @@ function Waveform({ playing }) {
   );
 }
 
-/* ─── Script Preview Panel ─────────────────────────────────────────────── */
 function ScriptPreview({ script }) {
   const { playing, loading, progress, ttsError, play, stop } = useScriptPreview();
   const isEmpty = !script?.trim();
@@ -174,7 +188,6 @@ function ScriptPreview({ script }) {
   );
 }
 
-/* ─── Intent label map for Q&A picker ─────────────────────────────────── */
 const INTENT_LABELS = {
   identity_confirm:     { label: 'அடையாளம் உறுதி', desc: 'Customer confirms identity' },
   seat_due_status:      { label: 'Due Status', desc: 'Customer asks about due amount / installment' },
@@ -199,7 +212,6 @@ const INTENT_DEFAULT_QUESTION = {
   end_call:              'நன்றி சார்! வேற ஏதாவது கேள்வி இருக்கா?',
 };
 
-/* ─── Q&A Picker Modal ─────────────────────────────────────────────────── */
 function QaPickerModal({ onClose, onPick }) {
   const [qaList, setQaList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -248,7 +260,6 @@ function QaPickerModal({ onClose, onPick }) {
   );
 }
 
-/* ─── Helpers for scriptFlow state ─────────────────────────────────────── */
 const uid = () => `id_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
 const emptyBranch = () => ({
@@ -307,7 +318,171 @@ function serializeScriptFlow(sf) {
   };
 }
 
-/* ─── Script Flow Builder Component ────────────────────────────────────── */
+function TemplateVarChips() {
+  const [copied, setCopied] = useState('');
+  function handleCopy(key) {
+    navigator.clipboard.writeText(key).catch(() => {});
+    setCopied(key);
+    setTimeout(() => setCopied(''), 1200);
+  }
+  return (
+    <div className={styles.templateVarSection}>
+      <div className={styles.templateVarHead}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+        <span>Available Variables</span>
+        <span className={styles.templateVarHint}>Click to copy, then paste into any message field</span>
+      </div>
+      <div className={styles.templateVarList}>
+        {TEMPLATE_VARS.map(v => (
+          <button
+            key={v.key}
+            type="button"
+            className={`${styles.templateVarChip} ${copied === v.key ? styles.templateVarCopied : ''}`}
+            onClick={() => handleCopy(v.key)}
+            title={v.desc}
+          >
+            <code>{v.key}</code>
+            <span className={styles.templateVarDesc}>{v.desc}</span>
+            {copied === v.key && <span className={styles.copiedLabel}>Copied!</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FlowMiniMap({ steps, startStep }) {
+  if (!steps.length) return null;
+
+  const startIdx = steps.findIndex(s => s.id === startStep);
+  const orderedSteps = startIdx > 0
+    ? [steps[startIdx], ...steps.filter((_, i) => i !== startIdx)]
+    : steps;
+
+  return (
+    <div className={styles.flowMap}>
+      <div className={styles.flowMapLabel}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Conversation Flow
+      </div>
+      <div className={styles.flowMapPath}>
+        {orderedSteps.map((step, i) => {
+          const branchSummary = step.branches?.map(b => {
+            const ac = ACTION_CONFIG[b.action] || ACTION_CONFIG.continue;
+            const target = b.nextStep ? steps.find(s => s.id === b.nextStep) : null;
+            const targetLabel = target ? `Step ${steps.indexOf(target) + 1}` : '';
+            return { label: b.label || `Response ${step.branches.indexOf(b) + 1}`, action: b.action, targetLabel, ac };
+          }) || [];
+
+          return (
+            <React.Fragment key={step.id}>
+              <div className={`${styles.flowMapNode} ${i === 0 ? styles.flowMapNodeStart : ''}`}>
+                <div className={styles.flowMapNodeNum}>{i + 1}</div>
+                <div className={styles.flowMapNodeText}>
+                  {step.agentMessage?.slice(0, 45) || 'Empty step'}
+                  {step.agentMessage?.length > 45 ? '…' : ''}
+                </div>
+                {branchSummary.length > 0 && (
+                  <div className={styles.flowMapBranches}>
+                    {branchSummary.map((br, bi) => (
+                      <span key={bi} className={styles.flowMapBranchTag} style={{ background: br.ac.bg, color: br.ac.color }}>
+                        {br.ac.icon} {br.label?.slice(0, 20)}{br.label?.length > 20 ? '…' : ''}
+                        {br.targetLabel && ` → ${br.targetLabel}`}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {i < orderedSteps.length - 1 && (
+                <div className={styles.flowMapArrow}>
+                  <svg width="10" height="16" viewBox="0 0 10 16"><path d="M5 0 L5 12 M2 9 L5 13 L8 9" stroke="var(--primary)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function HowItWorksGuide() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className={styles.guideSection}>
+      <button type="button" className={styles.guideToggle} onClick={() => setOpen(!open)}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>How does the Call Flow work?</span>
+        <svg
+          width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          className={`${styles.guideChevron} ${open ? styles.guideChevronOpen : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div className={styles.guideContent}>
+          <div className={styles.guideGrid}>
+            <div className={styles.guideCard}>
+              <div className={styles.guideCardIcon} style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>1</div>
+              <div>
+                <div className={styles.guideCardTitle}>Agent speaks first</div>
+                <div className={styles.guideCardDesc}>Each step starts with the AI agent (மகாலக்ஷ்மி) saying something to the customer — like asking their name or informing about a due.</div>
+              </div>
+            </div>
+            <div className={styles.guideCard}>
+              <div className={styles.guideCardIcon} style={{ background: 'var(--success-bg)', color: 'var(--success-text)' }}>2</div>
+              <div>
+                <div className={styles.guideCardTitle}>Customer responds</div>
+                <div className={styles.guideCardDesc}>Each "branch" represents a possible customer response. The system matches what they say using hint keywords (like "ஆமா", "ok", "busy").</div>
+              </div>
+            </div>
+            <div className={styles.guideCard}>
+              <div className={styles.guideCardIcon} style={{ background: 'var(--warning-bg)', color: 'var(--warning-text)' }}>3</div>
+              <div>
+                <div className={styles.guideCardTitle}>Agent reacts</div>
+                <div className={styles.guideCardDesc}>Each branch has an agent response and a next action — continue to the next step, end the call politely, or transfer to a human agent.</div>
+              </div>
+            </div>
+            <div className={styles.guideCard}>
+              <div className={styles.guideCardIcon} style={{ background: 'var(--danger-bg)', color: 'var(--danger-text)' }}>4</div>
+              <div>
+                <div className={styles.guideCardTitle}>Fallback for confusion</div>
+                <div className={styles.guideCardDesc}>If no branch matches what the customer said, the agent repeats the question using the fallback message. After max retries, it escalates.</div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.guideExample}>
+            <div className={styles.guideExampleTitle}>Example conversation flow:</div>
+            <div className={styles.guideTimeline}>
+              <div className={styles.guideTimelineItem}>
+                <span className={styles.guideTimelineDot} style={{ background: 'var(--primary)' }} />
+                <span className={styles.guideTimelineLabel}>Agent:</span>
+                <span>"வணக்கம் சார்! {{customerName}} சார்ங்களா?"</span>
+              </div>
+              <div className={styles.guideTimelineItem}>
+                <span className={styles.guideTimelineDot} style={{ background: 'var(--success)' }} />
+                <span className={styles.guideTimelineLabel}>Customer:</span>
+                <span>"ஆமா, நான் தான்"</span>
+              </div>
+              <div className={styles.guideTimelineItem}>
+                <span className={styles.guideTimelineDot} style={{ background: 'var(--primary)' }} />
+                <span className={styles.guideTimelineLabel}>Agent:</span>
+                <span>"நன்றி! உங்க due ₹{{dueAmount}} பற்றி..."</span>
+                <span className={styles.guideTimelineAction}>→ Goes to Step 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ScriptFlowBuilder({ value, onChange }) {
   const [expandedSteps, setExpandedSteps] = useState({});
   const [showQaPicker, setShowQaPicker] = useState(false);
@@ -383,16 +558,23 @@ function ScriptFlowBuilder({ value, onChange }) {
     });
   }
 
+  function moveStep(idx, dir) {
+    const steps = [...value.steps];
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= steps.length) return;
+    [steps[idx], steps[newIdx]] = [steps[newIdx], steps[idx]];
+    updateFlow({ steps });
+  }
+
   const stepIds = value.steps.map(s => s.id);
 
   return (
     <div className={styles.scriptFlowSection}>
-      {/* Enable toggle */}
       <div className={styles.sfToggleRow}>
         <div>
-          <div className={styles.sfToggleLabel}>Enable Q&A Script Flow</div>
+          <div className={styles.sfToggleLabel}>Enable Structured Call Flow</div>
           <div className={styles.sfToggleSub}>
-            Replace free-form AI with a structured question → answer → question flow
+            Instead of free-form AI conversation, the agent follows a step-by-step script you define below
           </div>
         </div>
         <label className={styles.toggle}>
@@ -407,11 +589,16 @@ function ScriptFlowBuilder({ value, onChange }) {
 
       {value.enabled && (
         <>
-          {/* Start step indicator */}
+          <HowItWorksGuide />
+
+          <TemplateVarChips />
+
+          <FlowMiniMap steps={value.steps} startStep={value.startStep} />
+
           {value.steps.length > 0 && (
             <div className={styles.sfStartRow}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <span>Flow starts at: <strong>{value.steps.find(s => s.id === value.startStep)?.agentMessage?.slice(0, 40) || value.startStep || value.steps[0]?.id || '—'}</strong></span>
+              <span>Call starts at: <strong>{value.steps.find(s => s.id === value.startStep)?.agentMessage?.slice(0, 40) || 'Step 1'}{(value.steps.find(s => s.id === value.startStep)?.agentMessage?.length || 0) > 40 ? '…' : ''}</strong></span>
               {value.steps.length > 1 && (
                 <select
                   className={styles.sfSelect}
@@ -431,22 +618,40 @@ function ScriptFlowBuilder({ value, onChange }) {
 
           {value.steps.length === 0 ? (
             <div className={styles.sfEmptyHint}>
-              No steps yet. Add your first step — define what the agent says, then what the customer might reply.
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 8 }}>
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              </svg>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>No conversation steps yet</div>
+              <div>Start by adding your first step — define what the agent says when the call connects, and what to do based on the customer's response.</div>
             </div>
           ) : (
             <div className={styles.sfStepList}>
               {value.steps.map((step, stepIdx) => {
                 const isOpen = expandedSteps[step.id] !== false;
+                const isStart = step.id === value.startStep || (!value.startStep && stepIdx === 0);
                 return (
-                  <div key={step.id} className={styles.sfStep}>
+                  <div key={step.id} className={`${styles.sfStep} ${isStart ? styles.sfStepStart : ''}`}>
                     <div className={styles.sfStepHead} onClick={() => toggleStep(step.id)}>
-                      <div className={styles.sfStepNum}>{stepIdx + 1}</div>
+                      <div className={`${styles.sfStepNum} ${isStart ? styles.sfStepNumStart : ''}`}>{stepIdx + 1}</div>
                       <div className={styles.sfStepTitle} style={{ flex: 1 }}>
-                        {step.agentMessage?.slice(0, 55) || `Step ${stepIdx + 1} — (no message yet)`}
-                        {step.agentMessage?.length > 55 && '…'}
-                        <div className={styles.sfStepSub}>
-                          {step.branches.length} branch{step.branches.length !== 1 ? 'es' : ''}
+                        <div className={styles.sfStepTitleRow}>
+                          {isStart && <span className={styles.sfStartTag}>START</span>}
+                          {step.agentMessage?.slice(0, 55) || `Step ${stepIdx + 1} — (no message yet)`}
+                          {step.agentMessage?.length > 55 && '…'}
                         </div>
+                        <div className={styles.sfStepSub}>
+                          {step.branches.length} {step.branches.length === 1 ? 'possible response' : 'possible responses'}
+                          {step.branches.some(b => b.action === 'end_call') && ' · ends call'}
+                          {step.branches.some(b => b.action === 'escalate') && ' · can escalate'}
+                        </div>
+                      </div>
+                      <div className={styles.sfStepActions}>
+                        {stepIdx > 0 && (
+                          <button type="button" className={styles.sfMoveBtn} onClick={e => { e.stopPropagation(); moveStep(stepIdx, -1); }} title="Move up">↑</button>
+                        )}
+                        {stepIdx < value.steps.length - 1 && (
+                          <button type="button" className={styles.sfMoveBtn} onClick={e => { e.stopPropagation(); moveStep(stepIdx, 1); }} title="Move down">↓</button>
+                        )}
                       </div>
                       <svg
                         width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -465,110 +670,136 @@ function ScriptFlowBuilder({ value, onChange }) {
 
                     {isOpen && (
                       <div className={styles.sfStepBody}>
-                        {/* Agent message */}
                         <div className={styles.sfField}>
-                          <label className={styles.sfLabel}>Agent Message (what the AI says)</label>
+                          <label className={styles.sfLabel}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                            What does the agent say?
+                          </label>
+                          <div className={styles.sfFieldHint}>This is the Tamil message மகாலக்ஷ்மி speaks to the customer at this step. You can use template variables like {'{{customerName}}'}.</div>
                           <textarea
                             className={`${styles.sfInput} ${styles.sfTextarea}`}
                             value={step.agentMessage}
                             onChange={e => updateStep(step.id, { agentMessage: e.target.value })}
-                            placeholder="e.g. மாப்ளா, உங்க order number சொல்லுங்க"
+                            placeholder="e.g. வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன், Automystic Company-யிட இருந்து."
                             rows={3}
                           />
                         </div>
 
-                        {/* Branches */}
-                        <div>
+                        <div className={styles.sfBranchSection}>
                           <div className={styles.sfBranchHeader}>
                             <span className={styles.sfSectionLabel}>
-                              Customer Responses &amp; Branches
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v-2"/><polyline points="3 7 8 12 3 17"/></svg>
+                              How might the customer respond?
                             </span>
+                            <span className={styles.sfBranchCount}>{step.branches.length} {step.branches.length === 1 ? 'branch' : 'branches'}</span>
+                          </div>
+                          <div className={styles.sfBranchHelpText}>
+                            Each branch below handles a different type of customer response. Add hint keywords so the system knows which branch to take.
                           </div>
                           <div className={styles.sfBranchList}>
-                            {step.branches.map((branch, bIdx) => (
-                              <div key={branch.id} className={styles.sfBranch}>
-                                <div className={styles.sfBranchTopRow}>
-                                  <div className={styles.sfBranchNum}>{bIdx + 1}</div>
-                                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>
-                                    Branch {bIdx + 1}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    className={styles.sfBranchDelBtn}
-                                    onClick={() => removeBranch(step.id, branch.id)}
-                                    title="Remove branch"
-                                  >×</button>
+                            {step.branches.map((branch, bIdx) => {
+                              const ac = ACTION_CONFIG[branch.action] || ACTION_CONFIG.continue;
+                              return (
+                                <div key={branch.id} className={styles.sfBranch} style={{ borderLeftColor: ac.color }}>
+                                  <div className={styles.sfBranchTopRow}>
+                                    <div className={styles.sfBranchNum} style={{ background: ac.bg, color: ac.color }}>{bIdx + 1}</div>
+                                    <span className={styles.sfBranchTitle}>
+                                      {branch.label || `Response option ${bIdx + 1}`}
+                                    </span>
+                                    <span className={styles.sfBranchActionTag} style={{ background: ac.bg, color: ac.color }}>
+                                      {ac.icon} {ac.label}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className={styles.sfBranchDelBtn}
+                                      onClick={() => removeBranch(step.id, branch.id)}
+                                      title="Remove branch"
+                                    >×</button>
+                                  </div>
+
+                                  <div className={styles.sfBranchGrid}>
+                                    <div className={`${styles.sfField} ${styles.sfBranchFull}`}>
+                                      <label className={styles.sfLabel}>Describe this response</label>
+                                      <div className={styles.sfFieldHint}>A short label for this response type (e.g. "Customer says yes", "Customer is busy")</div>
+                                      <input
+                                        className={styles.sfInput}
+                                        value={branch.label}
+                                        onChange={e => updateBranch(step.id, branch.id, { label: e.target.value })}
+                                        placeholder="e.g. Customer confirms identity"
+                                      />
+                                    </div>
+
+                                    <div className={`${styles.sfField} ${styles.sfBranchFull}`}>
+                                      <label className={styles.sfLabel}>
+                                        Matching keywords
+                                        <span className={styles.sfLabelHint}>(comma-separated)</span>
+                                      </label>
+                                      <div className={styles.sfFieldHint}>Words/phrases the customer might say. If any of these appear in their speech, this branch activates.</div>
+                                      <input
+                                        className={styles.sfInput}
+                                        value={branch.expectedPhrases}
+                                        onChange={e => updateBranch(step.id, branch.id, { expectedPhrases: e.target.value })}
+                                        placeholder="e.g. ஆமா, yes, correct, நான் தான், சொல்லுங்க"
+                                      />
+                                      {branch.expectedPhrases && (
+                                        <div className={styles.sfKeywordPreview}>
+                                          {branch.expectedPhrases.split(',').filter(p => p.trim()).map((p, i) => (
+                                            <span key={i} className={styles.sfKeywordTag}>{p.trim()}</span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className={`${styles.sfField} ${styles.sfBranchFull}`}>
+                                      <label className={styles.sfLabel}>Agent's reply for this response</label>
+                                      <div className={styles.sfFieldHint}>What does the agent say after the customer gives this response?</div>
+                                      <textarea
+                                        className={`${styles.sfInput} ${styles.sfTextarea}`}
+                                        style={{ minHeight: 56 }}
+                                        value={branch.agentResponse}
+                                        onChange={e => updateBranch(step.id, branch.id, { agentResponse: e.target.value })}
+                                        placeholder="e.g. நன்றி சார்! உங்க details check பண்றேன்..."
+                                        rows={2}
+                                      />
+                                    </div>
+
+                                    <div className={styles.sfField}>
+                                      <label className={styles.sfLabel}>Then what happens?</label>
+                                      <select
+                                        className={styles.sfSelect}
+                                        value={branch.action}
+                                        onChange={e => updateBranch(step.id, branch.id, { action: e.target.value })}
+                                      >
+                                        <option value="continue">→ Continue to another step</option>
+                                        <option value="end_call">× End the call</option>
+                                        <option value="escalate">↗ Transfer to human agent</option>
+                                      </select>
+                                    </div>
+
+                                    {branch.action === 'continue' && (
+                                      <div className={styles.sfField}>
+                                        <label className={styles.sfLabel}>Go to which step?</label>
+                                        <select
+                                          className={styles.sfSelect}
+                                          value={branch.nextStep}
+                                          onChange={e => updateBranch(step.id, branch.id, { nextStep: e.target.value })}
+                                        >
+                                          <option value="">— Select a step —</option>
+                                          {value.steps
+                                            .filter(s => s.id !== step.id)
+                                            .map(s => (
+                                              <option key={s.id} value={s.id}>
+                                                Step {stepIds.indexOf(s.id) + 1}: {s.agentMessage?.slice(0, 25) || s.id}
+                                              </option>
+                                            ))
+                                          }
+                                        </select>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-
-                                <div className={styles.sfBranchGrid}>
-                                  <div className={`${styles.sfField} ${styles.sfBranchFull}`}>
-                                    <label className={styles.sfLabel}>What the customer says (description)</label>
-                                    <input
-                                      className={styles.sfInput}
-                                      value={branch.label}
-                                      onChange={e => updateBranch(step.id, branch.id, { label: e.target.value })}
-                                      placeholder="e.g. Customer provides order number"
-                                    />
-                                  </div>
-
-                                  <div className={`${styles.sfField} ${styles.sfBranchFull}`}>
-                                    <label className={styles.sfLabel}>
-                                      Hint keywords (comma-separated, optional)
-                                    </label>
-                                    <input
-                                      className={styles.sfInput}
-                                      value={branch.expectedPhrases}
-                                      onChange={e => updateBranch(step.id, branch.id, { expectedPhrases: e.target.value })}
-                                      placeholder="e.g. ORD, order, எண், number"
-                                    />
-                                  </div>
-
-                                  <div className={`${styles.sfField} ${styles.sfBranchFull}`}>
-                                    <label className={styles.sfLabel}>Agent Response</label>
-                                    <textarea
-                                      className={`${styles.sfInput} ${styles.sfTextarea}`}
-                                      style={{ minHeight: 56 }}
-                                      value={branch.agentResponse}
-                                      onChange={e => updateBranch(step.id, branch.id, { agentResponse: e.target.value })}
-                                      placeholder="e.g. ஒரு நிமிஷம் மாப்ளா, check பண்றேன்…"
-                                      rows={2}
-                                    />
-                                  </div>
-
-                                  <div className={styles.sfField}>
-                                    <label className={styles.sfLabel}>After this, go to</label>
-                                    <select
-                                      className={styles.sfSelect}
-                                      value={branch.nextStep}
-                                      onChange={e => updateBranch(step.id, branch.id, { nextStep: e.target.value })}
-                                    >
-                                      <option value="">— End flow —</option>
-                                      {value.steps
-                                        .filter(s => s.id !== step.id)
-                                        .map(s => (
-                                          <option key={s.id} value={s.id}>
-                                            Step {stepIds.indexOf(s.id) + 1}: {s.agentMessage?.slice(0, 25) || s.id}
-                                          </option>
-                                        ))
-                                      }
-                                    </select>
-                                  </div>
-
-                                  <div className={styles.sfField}>
-                                    <label className={styles.sfLabel}>Action</label>
-                                    <select
-                                      className={styles.sfSelect}
-                                      value={branch.action}
-                                      onChange={e => updateBranch(step.id, branch.id, { action: e.target.value })}
-                                    >
-                                      <option value="continue">Continue flow</option>
-                                      <option value="end_call">End call</option>
-                                      <option value="escalate">Escalate to human</option>
-                                    </select>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
 
                             <button
                               type="button"
@@ -576,34 +807,49 @@ function ScriptFlowBuilder({ value, onChange }) {
                               onClick={() => addBranch(step.id)}
                             >
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                              Add branch
+                              Add another response option
                             </button>
                           </div>
                         </div>
 
-                        {/* Fallback */}
-                        <div className={styles.sfBranchGrid}>
-                          <div className={styles.sfField}>
-                            <label className={styles.sfLabel}>Fallback (if no branch matches)</label>
-                            <input
-                              className={styles.sfInput}
-                              value={step.fallbackMessage}
-                              onChange={e => updateStep(step.id, { fallbackMessage: e.target.value })}
-                              placeholder="மறுபடியும் சொல்லுங்களா மாப்ளா?"
-                            />
+                        <div className={styles.sfFallbackSection}>
+                          <div className={styles.sfSectionLabel}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                            If nothing matches (fallback)
                           </div>
-                          <div className={styles.sfField}>
-                            <label className={styles.sfLabel}>Max retries before escalate</label>
-                            <input
-                              type="number"
-                              min={1}
-                              max={5}
-                              className={styles.sfInput}
-                              value={step.maxRetries}
-                              onChange={e => updateStep(step.id, { maxRetries: Number(e.target.value) })}
-                            />
+                          <div className={styles.sfFieldHint} style={{ marginBottom: 6 }}>
+                            When the customer says something unexpected, the agent says this message to try again.
+                          </div>
+                          <div className={styles.sfBranchGrid}>
+                            <div className={styles.sfField}>
+                              <label className={styles.sfLabel}>Retry message</label>
+                              <input
+                                className={styles.sfInput}
+                                value={step.fallbackMessage}
+                                onChange={e => updateStep(step.id, { fallbackMessage: e.target.value })}
+                                placeholder="மறுபடியும் சொல்லுங்களா மாப்ளா?"
+                              />
+                            </div>
+                            <div className={styles.sfField}>
+                              <label className={styles.sfLabel}>How many retries?</label>
+                              <div className={styles.sfFieldHint}>After this many failed attempts, the call escalates to a human</div>
+                              <input
+                                type="number"
+                                min={1}
+                                max={5}
+                                className={styles.sfInput}
+                                value={step.maxRetries}
+                                onChange={e => updateStep(step.id, { maxRetries: Number(e.target.value) })}
+                              />
+                            </div>
                           </div>
                         </div>
+                      </div>
+                    )}
+
+                    {stepIdx < value.steps.length - 1 && (
+                      <div className={styles.sfStepConnector}>
+                        <svg width="10" height="20" viewBox="0 0 10 20"><path d="M5 0 L5 16 M2 13 L5 17 L8 13" stroke="var(--border)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                     )}
                   </div>
@@ -615,11 +861,11 @@ function ScriptFlowBuilder({ value, onChange }) {
           <div className={styles.sfAddRow}>
             <button type="button" className={styles.sfAddStepBtn} onClick={addStep}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Add blank step
+              Add a new step
             </button>
             <button type="button" className={styles.sfAddFromQaBtn} onClick={() => setShowQaPicker(true)}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h6M9 16h6M17 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z"/><polyline points="13 2 13 8 17 8"/></svg>
-              Add from Q&amp;A
+              Auto-fill from Q&amp;A template
             </button>
           </div>
           {showQaPicker && (
@@ -634,7 +880,6 @@ function ScriptFlowBuilder({ value, onChange }) {
   );
 }
 
-/* ─── Workflow Modal ────────────────────────────────────────────────────── */
 function WorkflowModal({ onClose, onSaved, editWf }) {
   const [activeTab, setActiveTab] = useState('settings');
   const [form, setForm] = useState(editWf ? { ...editWf } : {
@@ -673,12 +918,11 @@ function WorkflowModal({ onClose, onSaved, editWf }) {
         <div className={styles.modalHead}>
           <div>
             <h2 className={styles.modalTitle}>{editWf ? 'Edit Workflow' : 'New Workflow'}</h2>
-            <p className={styles.modalSub}>Configure your Tamil AI call campaign</p>
+            <p className={styles.modalSub}>Configure how the AI agent handles calls in this campaign</p>
           </div>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
 
-        {/* Tab bar */}
         <div className={styles.modalTabs}>
           <button
             type="button"
@@ -686,7 +930,7 @@ function WorkflowModal({ onClose, onSaved, editWf }) {
             onClick={() => setActiveTab('settings')}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
-            Settings
+            General Settings
           </button>
           <button
             type="button"
@@ -694,9 +938,9 @@ function WorkflowModal({ onClose, onSaved, editWf }) {
             onClick={() => setActiveTab('script')}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            Q&A Script
+            Call Flow
             <span className={`${styles.tabBadge} ${stepCount === 0 ? styles.tabBadgeGray : ''}`}>
-              {stepCount}
+              {stepCount} {stepCount === 1 ? 'step' : 'steps'}
             </span>
           </button>
         </div>
@@ -712,7 +956,7 @@ function WorkflowModal({ onClose, onSaved, editWf }) {
                   className={styles.input}
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="e.g. Order confirmation campaign"
+                  placeholder="e.g. Due Reminder Call, Lottery Participation"
                   required
                 />
               </div>
@@ -727,11 +971,10 @@ function WorkflowModal({ onClose, onSaved, editWf }) {
                 />
               </div>
 
-              {/* Script + live preview side by side */}
               <div className={styles.scriptRow}>
                 <div className={styles.field} style={{ flex: 1 }}>
-                  <label className={styles.label}>AI System Prompt</label>
-                  <p className={styles.hint}>Base instructions for the AI agent (used in free-form mode)</p>
+                  <label className={styles.label}>AI System Prompt (Free-form mode only)</label>
+                  <p className={styles.hint}>Base instructions for the AI agent. Only used when the Call Flow is disabled — if you enable the structured call flow, the agent follows your step-by-step script instead.</p>
                   <textarea
                     className={`${styles.input} ${styles.textarea}`}
                     value={form.script}
@@ -802,7 +1045,6 @@ function WorkflowModal({ onClose, onSaved, editWf }) {
   );
 }
 
-/* ─── Main Workflows Page ──────────────────────────────────────────────── */
 export default function Workflows() {
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -868,7 +1110,9 @@ export default function Workflows() {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, color:'var(--info)' }}>
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          <span>Workflows define reusable Tamil AI call campaigns. Use the Q&A Script tab to build structured conversation flows with predefined questions and answers.</span>
+          <div>
+            <strong>What is a workflow?</strong> Each workflow defines a reusable call campaign for the AI agent (மகாலக்ஷ்மி). Use <strong>General Settings</strong> for naming and scheduling, and <strong>Call Flow</strong> to build the step-by-step conversation script the agent follows during calls.
+          </div>
         </div>
 
         {loading ? (
@@ -904,11 +1148,20 @@ export default function Workflows() {
                   </div>
 
                   {hasScript && (
-                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <div className={styles.wfCardFlowInfo}>
                       <span className={styles.wfScriptBadge}>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                        Q&A · {wf.scriptFlow.steps.length} step{wf.scriptFlow.steps.length !== 1 ? 's' : ''}
+                        Structured Flow · {wf.scriptFlow.steps.length} step{wf.scriptFlow.steps.length !== 1 ? 's' : ''}
                       </span>
+                      <span className={styles.wfFlowModeBadge}>
+                        {wf.scriptFlow.steps.reduce((c, s) => c + (s.branches?.length || 0), 0)} branches
+                      </span>
+                    </div>
+                  )}
+
+                  {!hasScript && (
+                    <div className={styles.wfCardFlowInfo}>
+                      <span className={styles.wfFreeformBadge}>Free-form AI mode</span>
                     </div>
                   )}
 

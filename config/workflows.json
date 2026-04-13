@@ -245,7 +245,8 @@
         }
       ]
     },
-    "updatedAt": "2026-04-13T16:20:57.316Z"
+    "updatedAt": "2026-04-13T16:30:00.984Z",
+    "status": "active"
   },
   {
     "id": "lottery_participation",
@@ -440,7 +441,9 @@
           "maxRetries": 2
         }
       ]
-    }
+    },
+    "status": "active",
+    "updatedAt": "2026-04-13T16:30:06.564Z"
   },
   {
     "id": "payment_followup",
@@ -636,6 +639,8 @@
           "maxRetries": 2
         }
       ]
-    }
+    },
+    "status": "active",
+    "updatedAt": "2026-04-13T16:30:07.829Z"
   }
 ]
