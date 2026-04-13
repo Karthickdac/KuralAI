@@ -117,6 +117,17 @@ export const simulateApi = {
   },
 };
 
+export const campaignsApi = {
+  list: (params) => api.get('/api/campaigns', { params }),
+  get: (id) => api.get(`/api/campaigns/${id}`),
+  create: (data) => api.post('/api/campaigns', data),
+  update: (id, data) => api.put(`/api/campaigns/${id}`, data),
+  remove: (id) => api.delete(`/api/campaigns/${id}`),
+  start: (id) => api.post(`/api/campaigns/${id}/start`),
+  pause: (id) => api.post(`/api/campaigns/${id}/pause`),
+  resume: (id) => api.post(`/api/campaigns/${id}/resume`),
+};
+
 export const templatesApi = {
   listQa:          ()        => api.get('/api/templates/qa'),
   createQa:        (data)    => api.post('/api/templates/qa', data),

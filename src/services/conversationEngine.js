@@ -166,8 +166,8 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     // ── Step 3: Check escalation conditions ───────────────────────────────
     const escalationCheck = shouldEscalate(callId, confidence);
 
-    if (intent === 'end_call') {
-      return handleEndCall(callId, turn);
+    if (intent === 'end_call' || intent === 'identity_deny' || intent === 'callback_request') {
+      return handleEndCall(callId, turn, intent);
     }
 
     if (intent === 'human_request' || escalationCheck.escalate) {
@@ -300,12 +300,24 @@ async function handleSilence(callId, turn) {
 /**
  * Handle call end gracefully
  */
-async function handleEndCall(callId, turn) {
-  await logEvent(callId, 'call_ending', 'info', 'Ending call normally');
+async function handleEndCall(callId, turn, endIntent) {
+  await logEvent(callId, 'call_ending', 'info', `Ending call: ${endIntent || 'normal'}`);
 
-  const goodbyeText = await getPromptText('GOODBYE', await getCallMeta(callId));
+  const meta = await getCallMeta(callId);
+  let goodbyeText;
+  if (endIntent === 'identity_deny') {
+    goodbyeText = 'மன்னிக்கணும் சார். Inconvenience-க்கு sorry சார். நன்றி சார். வணக்கம்.';
+  } else if (endIntent === 'callback_request') {
+    goodbyeText = applyTemplate(
+      'சரி {{customerName}} சார்! அப்புறம் call பண்றோம் சார். Inconvenience-க்கு மன்னிக்கணும் சார். நன்றி சார்.',
+      meta
+    );
+  } else {
+    goodbyeText = await getPromptText('GOODBYE', meta);
+  }
+
   const tts = await synthesizeSpeech(goodbyeText);
-  await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'end_call', 1.0, tts.playableUrl);
+  await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, endIntent || 'end_call', 1.0, tts.playableUrl);
 
   clearConversationContext(callId);
   scriptEngine.clearFlow(callId);

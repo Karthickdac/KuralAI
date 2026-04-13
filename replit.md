@@ -76,10 +76,34 @@ CSS variables defined in `dashboard/src/global.css`:
 ## Template Variables (available in {{var}} syntax)
 `{{customerName}}`, `{{chitValue}}`, `{{dueAmount}}`, `{{currentDue}}`, `{{completedDues}}`, `{{pendingDues}}`, `{{totalDues}}`, `{{nextDueDate}}`, `{{withdrawalAmount}}`, `{{otherChitDues}}`, `{{chitGroup}}`, `{{familyJamin}}`, `{{otherJamin}}`, `{{chequeLeaf}}`
 
+## Campaign Module
+- **Model**: `src/models/Campaign.js` — id, name, type, status (draft/scheduled/running/paused/completed/cancelled), customerIds, callIds, concurrency (1-10), totalCalls, completedCalls, failedCalls, recordCalls, callbackUrl, workflowId
+- **Controller**: `src/controllers/campaignController.js` — CRUD + start/pause/resume + concurrent execution via Promise.all batches
+- **Routes**: `src/routes/campaign.routes.js` — `/api/campaigns`
+- **Frontend**: `dashboard/src/pages/Campaigns.jsx` — campaign list, create modal (name, type, customers, concurrency, schedule, callback URL), live progress, call details
+
+## Workflow Conversation Flows
+Three pre-built script flows in `config/workflows.json`:
+- **due_reminder**: Greeting → Identity → Due info → Lottery invite → Goodbye
+- **lottery_participation**: Greeting → Identity → Lottery invite → Due reminder → Goodbye
+- **payment_followup**: Greeting → Identity → Payment status → Other questions → Goodbye
+
+Each flow uses the `scriptEngine.js` to branch based on customer responses (keyword match + GPT-4o semantic classification fallback). Campaign type auto-maps to workflow ID.
+
+## Call Recording & API Push
+- Twilio `Record=true` enabled by default
+- `RecordingStatusCallback` webhook saves recording URL to Call model
+- `POST /api/calls/:id/recording/push` — push recording + transcript to external system
+- Auto-push: when `callbackUrl` is set (campaign/call metadata), webhook auto-POSTs payload on recording ready
+
+## Intent Detection (17 intents)
+seat_due_status, premature_withdrawal, jamin_documents, payment_complaint, reduce_calls, no_office_calls, lottery_participation, lottery_decline, identity_confirm, identity_deny, already_paid, callback_request, payment_date_inquiry, chit_value_inquiry, payment_mode, human_request, end_call
+
 ## API Routes
 - `POST /api/auth/login` / `GET /api/auth/me`
 - `POST /api/calls/initiate`, `GET /api/calls`, `GET /api/calls/export` (CSV)
 - `GET /api/calls/:id/status`, `GET /api/transcripts/:callId`, `GET /api/logs/:callId`
+- `POST /api/calls/:id/recording/push` — push recording to external system
 - `GET /api/dashboard/stats|intents|calls/timeline|recent-calls`
 - `GET/POST/PUT/DELETE /api/users` (admin only)
 - `GET/PUT /api/settings` — stored in `config/app-settings.json`
@@ -87,6 +111,8 @@ CSS variables defined in `dashboard/src/global.css`:
 - `GET/POST/PUT/DELETE /api/templates/qa` — Q&A pair templates (stored in DB)
 - `GET/POST/PUT/DELETE /api/templates/prompts` — system prompt templates (stored in DB)
 - `GET /api/customers`, `GET /api/customers/:id` — customer list + chit metadata
+- `GET/POST/PUT/DELETE /api/campaigns` — campaign CRUD
+- `POST /api/campaigns/:id/start|pause|resume` — campaign lifecycle
 - `POST /webhook/voice|status|recording`
 - `WS /ws?token=<jwt>` — real-time call events
 

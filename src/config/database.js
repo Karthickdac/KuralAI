@@ -43,6 +43,7 @@ async function initDatabase() {
   require('../models/QaTemplate');
   require('../models/PromptTemplate');
   require('../models/AppSetting');
+  require('../models/Campaign');
 
   // Sync schema (create tables if they don't exist)
   await sequelize.sync({ force: false });
@@ -365,10 +366,135 @@ async function seedQaTemplates() {
     },
   ];
 
-  for (let i = 0; i < pairs.length; i++) {
-    await QaTemplate.create(pairs[i]);
+  const newPairs = [
+    {
+      intent: 'lottery_decline',
+      label: 'குலுக்கல் வேண்டாம் — lottery decline',
+      sortOrder: 10,
+      minScore: 1,
+      action: 'continue',
+      phraseKeywords: [
+        'குலுக்கல் வேண்டாம்', 'lottery வேண்டாம்', 'participate வேண்டாம்',
+        'இப்போ வேண்டாம்', 'this time வேண்டாம்', 'skip பண்றேன்',
+        'அடுத்த தடவை பாக்குறேன்', 'next time', 'இல்ல வேண்டாம்',
+      ],
+      tokenKeywords: ['skip', 'வேண்டாம்'],
+      responses: [
+        'சரி {{customerName}} சார். Next time பாக்கலாம் சார். Due மட்டும் time-க்கு கட்டுங்க சார். நன்றி சார்.',
+        'ஓகே சார். அடுத்த தடவை participate பண்ணலாம் சார். Due ₹{{dueAmount}} ready-ஆ வைங்க சார். நன்றி சார்.',
+      ],
+    },
+    {
+      intent: 'identity_deny',
+      label: 'Wrong number / person — identity deny',
+      sortOrder: 11,
+      minScore: 1,
+      action: 'end_call',
+      phraseKeywords: [
+        'தப்பு', 'wrong number', 'wrong person', 'நான் இல்ல', 'வேற ஆளு',
+        'இது wrong number', 'தவறான number', 'அவரு இல்ல', 'available இல்ல',
+        'not available', 'அவரு வெளியில', 'busy-ஆ இருக்காரு',
+      ],
+      tokenKeywords: ['wrong', 'தப்பு', 'தவறான'],
+      responses: [
+        'மன்னிக்கணும் சார். Inconvenience-க்கு sorry சார். நன்றி சார்.',
+        'மன்னிக்கணும் சார். Wrong number-க்கு sorry. நல்ல நாள் சார். வணக்கம்.',
+      ],
+    },
+    {
+      intent: 'already_paid',
+      label: 'Already paid — கட்டிட்டேன்',
+      sortOrder: 12,
+      minScore: 1,
+      action: 'continue',
+      phraseKeywords: [
+        'already paid', 'கட்டிட்டேன்', 'கட்டாச்சு', 'போட்டாச்சு', 'pay பண்ணிட்டேன்',
+        'amount குடுத்தாச்சு', 'already குடுத்தாச்சு', 'செலுத்திட்டேன்',
+        'நேத்து கட்டினேன்', 'online transfer பண்ணிட்டேன்',
+        'UPI பண்ணிட்டேன்', 'GPay-ல போட்டேன்', 'PhonePe-ல போட்டேன்', 'bank-ல போட்டேன்',
+      ],
+      tokenKeywords: ['கட்டிட்டேன்', 'கட்டாச்சு', 'போட்டாச்சு', 'paid'],
+      responses: [
+        'நன்றி {{customerName}} சார்! Payment receive ஆனதும் update பண்றோம் சார். Inconvenience-க்கு மன்னிக்கணும் சார்.',
+        'Thank you சார். எங்க accounts team verify பண்ணிடுவாங்க சார். நன்றி சார்.',
+      ],
+    },
+    {
+      intent: 'callback_request',
+      label: 'Callback request — அப்புறம் call பண்ணுங்க',
+      sortOrder: 13,
+      minScore: 1,
+      action: 'end_call',
+      phraseKeywords: [
+        'அப்புறம் call பண்ணுங்க', 'later call', 'பின்னாடி call', 'இப்போ busy',
+        'meeting-ல இருக்கேன்', 'busy-ஆ இருக்கேன்', 'driving', 'drive பண்றேன்',
+        'கொஞ்ச நேரம் கழிச்சு', 'evening call பண்ணுங்க', 'tomorrow call',
+        'நாளைக்கு call', 'free-ஆ இருக்கும்போது', 'அப்புறம் பேசுவோம்',
+      ],
+      tokenKeywords: ['busy', 'later', 'driving', 'tomorrow', 'நாளைக்கு'],
+      responses: [
+        'சரி {{customerName}} சார்! அப்புறம் call பண்றோம் சார். Inconvenience-க்கு மன்னிக்கணும் சார். நன்றி சார்.',
+        'ஓகே சார். Convenient-ஆ இருக்கும்போது call பண்றோம் சார். நன்றி சார்.',
+      ],
+    },
+    {
+      intent: 'payment_date_inquiry',
+      label: 'Due date inquiry — எப்போ கட்டணும்',
+      sortOrder: 14,
+      minScore: 1,
+      action: 'continue',
+      phraseKeywords: [
+        'எப்போ கட்டணும்', 'due date', 'எந்த தேதி', 'last date', 'due date என்ன',
+        'எப்போ pay', 'deadline', 'அடுத்த due எப்போ', 'எந்த date-க்குள்ள',
+        'late-ஆ கட்டினா', 'fine வருமா', 'penalty',
+      ],
+      tokenKeywords: ['deadline', 'penalty', 'fine'],
+      responses: [
+        '{{nextDueDate}} தேதிக்குள்ள கட்டிடணும் சார். Due amount ₹{{dueAmount}} சார். Time-க்கு கட்டுங்க சார்.',
+        'அடுத்த due date {{nextDueDate}} சார். ₹{{dueAmount}} ready-ஆ வைங்க சார்.',
+      ],
+    },
+    {
+      intent: 'chit_value_inquiry',
+      label: 'Chit value — சீட் value என்ன',
+      sortOrder: 15,
+      minScore: 1,
+      action: 'continue',
+      phraseKeywords: [
+        'சீட் value என்ன', 'எவ்ளோ சீட்', 'chit value', 'எவ்ளோ amount சீட்',
+        'scheme details', 'plan details', 'scheme என்ன', 'plan என்ன',
+        'total value', 'மொத்தம் எவ்ளோ',
+      ],
+      tokenKeywords: ['scheme', 'plan', 'value'],
+      responses: [
+        'உங்க சீட் value {{chitValue}} சார். {{currentDue}}வது due — ₹{{dueAmount}} சார். {{nextDueDate}} last date சார்.',
+        '{{chitValue}} சீட் சார். Total {{totalDues}} dues-ல {{currentDue}}வது due போய்ட்டு இருக்கு சார்.',
+      ],
+    },
+    {
+      intent: 'payment_mode',
+      label: 'Payment mode — எப்படி கட்டணும்',
+      sortOrder: 16,
+      minScore: 1,
+      action: 'continue',
+      phraseKeywords: [
+        'எப்படி கட்டணும்', 'online pay', 'account number', 'account details',
+        'bank details', 'QR code', 'payment link', 'payment method',
+        'எந்த account', 'எந்த bank', 'how to pay',
+      ],
+      tokenKeywords: ['UPI', 'GPay', 'PhonePe', 'NEFT', 'account', 'bank'],
+      responses: [
+        'சார், office-ல direct-ஆ cash கட்டலாம் அல்லது bank transfer/UPI பண்ணலாம் சார். Account details-க்கு எங்க office-ஐ contact பண்ணுங்க சார்.',
+        'Cash, UPI, NEFT எதுவேணும்னாலும் okay சார். Exact bank details-க்கு எங்க accounts team-கிட்ட check பண்ணுங்க சார்.',
+      ],
+    },
+  ];
+
+  const allPairs = [...pairs, ...newPairs];
+  for (let i = 0; i < allPairs.length; i++) {
+    await QaTemplate.create(allPairs[i]);
   }
-  logger.info(`✅ Q&A templates seeded (${pairs.length} pairs)`);
+  logger.info(`✅ Q&A templates seeded (${allPairs.length} pairs)`);
 }
 
 async function seedPromptTemplates() {

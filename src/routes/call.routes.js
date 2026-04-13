@@ -109,4 +109,60 @@ router.post('/:callId/retry',
   retryCall
 );
 
+// POST /api/calls/:callId/recording/push — push recording to external system
+router.post('/:callId/recording/push',
+  [param('callId').isUUID()],
+  validate,
+  async (req, res) => {
+    const axios = require('axios');
+    const Call = require('../models/Call');
+    const Transcript = require('../models/Transcript');
+    const logger = require('../utils/logger');
+
+    const call = await Call.findByPk(req.params.callId);
+    if (!call) return res.status(404).json({ error: 'Call not found' });
+    if (!call.recordingUrl) return res.status(400).json({ error: 'No recording available for this call' });
+
+    const targetUrl = req.body.targetUrl || call.metadata?.callbackUrl;
+    if (!targetUrl) return res.status(400).json({ error: 'targetUrl is required (or set callbackUrl in campaign)' });
+
+    try {
+      const transcripts = await Transcript.findAll({
+        where: { callId: call.id },
+        order: [['turnNumber', 'ASC']],
+        attributes: ['turnNumber', 'speaker', 'text', 'intent', 'confidence'],
+      });
+
+      const payload = {
+        callId: call.id,
+        callSid: call.callSid,
+        phone: call.toPhone,
+        status: call.status,
+        duration: call.duration,
+        direction: call.direction,
+        recordingUrl: call.recordingUrl,
+        recordingSid: call.recordingSid,
+        escalated: call.escalated,
+        escalationReason: call.escalationReason,
+        metadata: call.metadata,
+        transcripts: transcripts.map(t => t.toJSON()),
+        startedAt: call.startedAt,
+        endedAt: call.endedAt,
+        pushedAt: new Date().toISOString(),
+      };
+
+      const response = await axios.post(targetUrl, payload, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 15000,
+      });
+
+      logger.info(`Recording pushed for call ${call.id} to ${targetUrl}: status=${response.status}`);
+      res.json({ success: true, message: 'Recording and transcript pushed', targetStatus: response.status });
+    } catch (err) {
+      logger.error(`Recording push failed for call ${call.id}: ${err.message}`);
+      res.status(502).json({ success: false, error: `Push failed: ${err.message}` });
+    }
+  }
+);
+
 module.exports = router;

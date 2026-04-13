@@ -175,13 +175,48 @@ async function handleCallStatus(req, res) {
  * Exotel posts RecordingUrl and CallSid.
  */
 async function handleRecordingStatus(req, res) {
-  const { RecordingUrl, CallSid } = req.body;
+  const { RecordingUrl, RecordingSid, CallSid } = req.body;
+  const callId = req.query.callId;
 
-  if (RecordingUrl && CallSid) {
-    const call = await Call.findOne({ where: { callSid: CallSid } });
-    if (call) {
-      await call.update({ recordingUrl: RecordingUrl });
-      logger.info(`Recording saved for call ${call.id}`);
+  let call = null;
+  if (callId) call = await Call.findByPk(callId);
+  if (!call && CallSid) call = await Call.findOne({ where: { callSid: CallSid } });
+
+  if (call && RecordingUrl) {
+    const update = { recordingUrl: RecordingUrl };
+    if (RecordingSid) update.recordingSid = RecordingSid;
+    await call.update(update);
+    logger.info(`Recording saved for call ${call.id}: ${RecordingUrl}`);
+    await notifyDashboard({ type: 'RECORDING_READY', callId: call.id, recordingUrl: RecordingUrl });
+
+    if (call.metadata?.callbackUrl) {
+      setImmediate(async () => {
+        try {
+          const axios = require('axios');
+          const Transcript = require('../models/Transcript');
+          const transcripts = await Transcript.findAll({
+            where: { callId: call.id },
+            order: [['turnNumber', 'ASC']],
+            attributes: ['turnNumber', 'speaker', 'text', 'intent', 'confidence'],
+          });
+          await axios.post(call.metadata.callbackUrl, {
+            event: 'recording_ready',
+            callId: call.id,
+            callSid: call.callSid,
+            phone: call.toPhone,
+            status: call.status,
+            duration: call.duration,
+            recordingUrl: RecordingUrl,
+            recordingSid: RecordingSid,
+            campaignId: call.metadata?.campaignId,
+            transcripts: transcripts.map(t => t.toJSON()),
+            pushedAt: new Date().toISOString(),
+          }, { timeout: 15000 });
+          logger.info(`Auto-pushed recording for call ${call.id} to ${call.metadata.callbackUrl}`);
+        } catch (e) {
+          logger.error(`Auto-push recording failed for call ${call.id}: ${e.message}`);
+        }
+      });
     }
   }
   res.sendStatus(200);

@@ -42,7 +42,7 @@ function getTwilioBase() {
 /**
  * Initiate an outgoing call via Twilio
  */
-async function initiateCall(toPhone, callId) {
+async function initiateCall(toPhone, callId, callMeta = {}) {
   const { baseUrl, auth, s } = getTwilioBase();
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
   const token       = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
@@ -60,7 +60,13 @@ async function initiateCall(toPhone, callId) {
   params.append('StatusCallbackEvent',  'answered');
   params.append('StatusCallbackEvent',  'completed');
   params.append('TimeLimit',            String(timeLimit));
-  params.append('Record',               'false');
+  const shouldRecord = callMeta.recordCalls !== false;
+  if (shouldRecord) {
+    params.append('Record',               'true');
+    params.append('RecordingStatusCallback', `${webhookBase}/webhook/recording/status?callId=${callId}&wt=${token}`);
+    params.append('RecordingStatusCallbackMethod', 'POST');
+    params.append('RecordingChannels',    'dual');
+  }
 
   const response = await axios.post(
     `${baseUrl}/Calls.json`,
