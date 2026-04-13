@@ -142,6 +142,7 @@ export default function Simulate() {
   const lastTextRef     = useRef('');
   const bottomRef       = useRef(null);
   const textInputRef    = useRef(null);
+  const processingRef   = useRef(false);
 
   useEffect(() => {
     workflowsApi.list().then(r => setWorkflows(r.data || [])).catch(() => {});
@@ -217,7 +218,8 @@ export default function Simulate() {
 
   // ─── Submit a text response ──────────────────────────────────────────────────
   async function submitText(text) {
-    if (!text?.trim() || phase !== USER_TURN) return;
+    if (!text?.trim() || phase !== USER_TURN || processingRef.current) return;
+    stopSpeechRecognition();
     setUserInput('');
     pushTurn('user', text.trim(), null);
     await processAiTurn(text.trim());
@@ -225,6 +227,8 @@ export default function Simulate() {
 
   // ─── Process AI response after user input ───────────────────────────────────
   async function processAiTurn(userText) {
+    if (processingRef.current) return;
+    processingRef.current = true;
     setPhase(AI_TURN);
     setStatusLabel('KuralAI சிந்திக்கிறது…');
     setError('');
@@ -255,6 +259,8 @@ export default function Simulate() {
       setError(e.response?.data?.error || e.message);
       setPhase(USER_TURN);
       setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
+    } finally {
+      processingRef.current = false;
     }
   }
 
@@ -294,12 +300,16 @@ export default function Simulate() {
       recognitionRef.current = null;
       setLiveText('');
       const spoken = lastTextRef.current.trim();
+      lastTextRef.current = '';
       if (!spoken) {
-        setError('Nothing heard. Please try again or type your response.');
-        setPhase(USER_TURN);
-        setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
+        if (!processingRef.current) {
+          setError('Nothing heard. Please try again or type your response.');
+          setPhase(USER_TURN);
+          setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
+        }
         return;
       }
+      if (processingRef.current) return;
       pushTurn('user', spoken, null);
       await processAiTurn(spoken);
     };
@@ -341,6 +351,8 @@ export default function Simulate() {
   function reset() {
     stopAudio();
     stopSpeechRecognition();
+    processingRef.current = false;
+    lastTextRef.current = '';
     setPhase(IDLE);
     setCallId(null);
     setTurn(0);
@@ -511,7 +523,7 @@ export default function Simulate() {
                   )}
 
                   {canRecord && !isRecording && (
-                    <button className={styles.typeToggle} onClick={() => setTextMode(true)}>
+                    <button className={styles.typeToggle} onClick={() => { stopSpeechRecognition(); setTextMode(true); }}>
                       Type instead
                     </button>
                   )}

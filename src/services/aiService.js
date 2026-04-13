@@ -322,7 +322,7 @@ function pickResponse(qa) {
  * @param {Object} metadata  — customer/chit data for template substitution
  * Returns null if no pair reaches its minScore.
  */
-async function findExactAnswer(userText, metadata = {}) {
+async function findExactAnswer(userText, metadata = {}, silent = false) {
   const normalized = userText.toLowerCase().trim();
   const pairs = await loadQaPairs();
 
@@ -341,7 +341,7 @@ async function findExactAnswer(userText, metadata = {}) {
   if (bestMatch) {
     const rawResponse = pickResponse(bestMatch);
     const response    = applyTemplate(rawResponse, metadata);
-    logger.info(`Q&A match: intent="${bestMatch.intent}" score=${bestScore} → "${response}"`);
+    if (!silent) logger.info(`Q&A match: intent="${bestMatch.intent}" score=${bestScore} → "${response}"`);
     return {
       response,
       intent: bestMatch.intent,
@@ -367,8 +367,8 @@ async function detectIntent(userText, metadata = {}) {
     return { intent: 'unknown', confidence: 0.0, keywords: [] };
   }
 
-  // Step 0: Exact Q&A match → high confidence, no LLM needed
-  const exact = await findExactAnswer(userText, metadata);
+  // Step 0: Exact Q&A match → high confidence, no LLM needed (silent=true to avoid double-logging)
+  const exact = await findExactAnswer(userText, metadata, true);
   if (exact) {
     return { intent: exact.intent, confidence: 0.95, keywords: [] };
   }
