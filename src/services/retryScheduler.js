@@ -4,7 +4,7 @@
  */
 
 const cron = require('node-cron');
-const { Op } = require('sequelize');
+const { Op, literal } = require('sequelize');
 const Call = require('../models/Call');
 const { initiateCall } = require('./exotelService');
 const logger = require('../utils/logger');
@@ -16,11 +16,12 @@ function startRetryScheduler() {
       const now = new Date();
 
       // Find calls due for retry
+      // Note: column-to-column comparison uses literal() — Op.col() is not valid inside Op.lt
       const callsToRetry = await Call.findAll({
         where: {
           status: { [Op.in]: ['no-answer', 'busy', 'failed'] },
           nextRetryAt: { [Op.lte]: now },
-          retryCount: { [Op.lt]: Op.col('maxRetries') },
+          [Op.and]: [literal('"retryCount" < "maxRetries"')],
         },
         limit: 10, // Process max 10 retries per minute
       });
