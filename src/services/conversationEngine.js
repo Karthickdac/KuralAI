@@ -19,6 +19,7 @@ const {
   incrementSilenceCount,
   clearConversationContext,
   shouldEscalate,
+  getPromptText,
 } = require('./aiService');
 const {
   generateConversationExoML,
@@ -51,6 +52,14 @@ function getScriptFlow(call) {
   return null;
 }
 
+/** Load a call's metadata from DB (for use in prompt variable substitution). */
+async function getCallMeta(callId) {
+  try {
+    const c = await Call.findByPk(callId);
+    return c?.metadata || {};
+  } catch { return {}; }
+}
+
 /**
  * Process the initial call answer - play greeting
  * Returns TwiML to initiate the conversation
@@ -74,12 +83,10 @@ async function processCallAnswer(callId) {
   if (scriptFlow) {
     greetingText = scriptEngine.startFlow(callId, scriptFlow);
     await logEvent(callId, 'script_flow_started', 'info', `Script flow started at step: ${scriptFlow.startStep}`);
+    greetingText = applyTemplate(greetingText, meta);
   } else {
-    greetingText = TAMIL_PROMPTS.GREETING;
+    greetingText = await getPromptText('GREETING', meta);
   }
-
-  // Replace {{customerName}} and other template variables
-  greetingText = applyTemplate(greetingText, meta);
 
   const tts = await synthesizeSpeech(greetingText);
   await saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0, tts.playableUrl);
@@ -224,8 +231,9 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     await logEvent(callId, 'processing_error', 'error', error.message);
 
     // Play error fallback and continue
-    const fallbackTts = await synthesizeSpeech(TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE);
-    return generateConversationExoML(fallbackTts.playableUrl, callId, turn + 1, TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE);
+    const fallbackText = await getPromptText('FALLBACK_LOW_CONFIDENCE', await getCallMeta(callId));
+    const fallbackTts = await synthesizeSpeech(fallbackText);
+    return generateConversationExoML(fallbackTts.playableUrl, callId, turn + 1, fallbackText);
   }
 }
 
@@ -253,7 +261,7 @@ async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTim
   }
 
   if (result.done) {
-    const goodbyeText = result.response || TAMIL_PROMPTS.GOODBYE;
+    const goodbyeText = result.response || await getPromptText('GOODBYE', await getCallMeta(callId));
     const tts = await synthesizeSpeech(goodbyeText);
     await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'script_complete', 1.0, tts.playableUrl, Date.now() - startTime);
     scriptEngine.clearFlow(callId);
@@ -281,10 +289,11 @@ async function handleSilence(callId, turn) {
   }
 
   // Ask user to repeat
-  const tts = await synthesizeSpeech(TAMIL_PROMPTS.FALLBACK_SILENCE);
-  await saveTranscript(callId, turn, 'ai', TAMIL_PROMPTS.FALLBACK_SILENCE, null, 'silence_handler', 1.0);
+  const silenceText = await getPromptText('FALLBACK_SILENCE', await getCallMeta(callId));
+  const tts = await synthesizeSpeech(silenceText);
+  await saveTranscript(callId, turn, 'ai', silenceText, null, 'silence_handler', 1.0);
 
-  return generateConversationExoML(tts.playableUrl, callId, turn, TAMIL_PROMPTS.FALLBACK_SILENCE);
+  return generateConversationExoML(tts.playableUrl, callId, turn, silenceText);
 }
 
 /**
@@ -293,8 +302,9 @@ async function handleSilence(callId, turn) {
 async function handleEndCall(callId, turn) {
   await logEvent(callId, 'call_ending', 'info', 'Ending call normally');
 
-  const tts = await synthesizeSpeech(TAMIL_PROMPTS.GOODBYE);
-  await saveTranscript(callId, turn + 1, 'ai', TAMIL_PROMPTS.GOODBYE, null, 'end_call', 1.0);
+  const goodbyeText = await getPromptText('GOODBYE', await getCallMeta(callId));
+  const tts = await synthesizeSpeech(goodbyeText);
+  await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'end_call', 1.0);
 
   clearConversationContext(callId);
   scriptEngine.clearFlow(callId);
@@ -308,8 +318,9 @@ async function handleEndCall(callId, turn) {
 async function handleEscalation(callId, turn, reason) {
   await logEvent(callId, 'escalating', 'warn', `Escalating: ${reason}`);
 
-  const tts = await synthesizeSpeech(TAMIL_PROMPTS.ESCALATION_MESSAGE);
-  await saveTranscript(callId, turn + 1, 'ai', TAMIL_PROMPTS.ESCALATION_MESSAGE, null, 'escalation', 1.0);
+  const escalationText = await getPromptText('ESCALATION_MESSAGE', await getCallMeta(callId));
+  const tts = await synthesizeSpeech(escalationText);
+  await saveTranscript(callId, turn + 1, 'ai', escalationText, null, 'escalation', 1.0);
 
   // Update call record
   await Call.update(
@@ -323,7 +334,7 @@ async function handleEscalation(callId, turn, reason) {
 
   clearConversationContext(callId);
 
-  return generateEscalationExoML(tts.playableUrl, TAMIL_PROMPTS.ESCALATION_MESSAGE);
+  return generateEscalationExoML(tts.playableUrl, escalationText);
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

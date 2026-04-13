@@ -47,12 +47,43 @@ const openai = new Proxy({}, { get(_, prop) { return getOpenAI()[prop]; } });
 
 let _qaCache = null;
 let _qaCacheAt = 0;
+let _promptCache = null;
+let _promptCacheAt = 0;
 const QA_CACHE_TTL = 60_000;
 
 function invalidateTemplateCache() {
   _qaCache = null;
   _qaCacheAt = 0;
+  _promptCache = null;
+  _promptCacheAt = 0;
   logger.debug('Template cache invalidated');
+}
+
+async function loadPrompts() {
+  const now = Date.now();
+  if (_promptCache && now - _promptCacheAt < QA_CACHE_TTL) return _promptCache;
+  try {
+    const PromptTemplate = require('../models/PromptTemplate');
+    const rows = await PromptTemplate.findAll({ where: { isActive: true } });
+    _promptCache = Object.fromEntries(rows.map(r => [r.key, r.text]));
+    _promptCacheAt = now;
+    return _promptCache;
+  } catch (err) {
+    logger.warn('loadPrompts DB error, using hardcoded fallback:', err.message);
+    return {};
+  }
+}
+
+/**
+ * Get a system prompt text by key, resolved from the DB with fallback to
+ * the hardcoded TAMIL_PROMPTS constant. Template variables are substituted.
+ */
+async function getPromptText(key, metadata = {}) {
+  const prompts = await loadPrompts();
+  const raw = prompts[key];
+  if (raw) return applyTemplate(raw, metadata);
+  const fallback = TAMIL_PROMPTS[key] || '';
+  return applyTemplate(fallback, metadata);
 }
 
 async function loadQaPairs() {
@@ -648,4 +679,5 @@ module.exports = {
   clearConversationContext,
   shouldEscalate,
   invalidateTemplateCache,
+  getPromptText,
 };
