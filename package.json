@@ -11,7 +11,8 @@
     "test": "jest --runInBand --forceExit",
     "test:unit": "jest tests/unit --runInBand --forceExit",
     "test:integration": "jest tests/integration --runInBand --forceExit",
-    "test:coverage": "jest --coverage --runInBand --forceExit"
+    "test:coverage": "jest --coverage --runInBand --forceExit",
+    "build": "cd dashboard && npm install && npm run build"
   },
   "jest": {
     "testEnvironment": "node",
