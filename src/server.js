@@ -79,6 +79,7 @@ app.get('/health', (req, res) => {
 
 // ─── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
+app.get('/api/calls/:callId/recording/stream', require('./routes/recordingStream'));
 app.use('/api/calls', callRoutes);
 app.use('/api/transcripts', transcriptRoutes);
 app.use('/api/logs', logRoutes);
