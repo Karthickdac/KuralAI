@@ -5,6 +5,7 @@
  */
 
 const OpenAI = require('openai');
+const { toFile } = require('openai');
 const sdk = require('microsoft-cognitiveservices-speech-sdk');
 const axios = require('axios');
 const fs = require('fs');
@@ -83,28 +84,30 @@ async function transcribeAudio(audioData, format = 'wav') {
   const startTime = Date.now();
 
   try {
-    let fileStream;
+    // Build a buffer regardless of input type
+    const buffer = Buffer.isBuffer(audioData) ? audioData : fs.readFileSync(audioData);
 
-    if (Buffer.isBuffer(audioData)) {
-      // Write buffer to temp file (Whisper API needs a file)
-      const tempPath = path.join('/tmp', `kuralai_stt_${uuidv4()}.${format}`);
-      fs.writeFileSync(tempPath, audioData);
-      fileStream = fs.createReadStream(tempPath);
+    // Map format to MIME type — required for Whisper multipart upload
+    const mimeMap = {
+      webm: 'audio/webm',
+      mp4:  'audio/mp4',
+      ogg:  'audio/ogg',
+      wav:  'audio/wav',
+      mp3:  'audio/mpeg',
+      m4a:  'audio/mp4',
+    };
+    const mimeType = mimeMap[format] || 'audio/webm';
 
-      // Cleanup temp file after use
-      setTimeout(() => fs.unlink(tempPath, () => {}), 5000);
-    } else {
-      // Assume it's a file path
-      fileStream = fs.createReadStream(audioData);
-    }
+    // toFile creates a proper File-like object the SDK can upload via multipart form
+    const file = await toFile(buffer, `recording.${format}`, { type: mimeType });
 
-    const response = await openai.audio.transcriptions.create({
-      file: fileStream,
-      model: process.env.OPENAI_WHISPER_MODEL || 'whisper-1',
-      language: 'ta',        // Force Tamil language for accuracy
-      response_format: 'verbose_json', // Get word-level timestamps & confidence
-      temperature: 0.0,      // Low temperature for deterministic output
-      prompt: 'வணக்கம். இது தமிழ் உரையாடல்.', // Tamil context hint improves accuracy
+    const response = await getOpenAI().audio.transcriptions.create({
+      file,
+      model: 'whisper-1',
+      language: 'ta',
+      response_format: 'verbose_json',
+      temperature: 0.0,
+      prompt: 'வணக்கம். இது தமிழ் உரையாடல்.',
     });
 
     const processingTime = Date.now() - startTime;
