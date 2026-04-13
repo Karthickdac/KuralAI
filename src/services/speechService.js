@@ -69,7 +69,7 @@ function getElevenLabsConfig() {
   return {
     apiKey:  s.elevenLabsApiKey  || process.env.ELEVENLABS_API_KEY  || '',
     voiceId: s.elevenLabsVoiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
-    modelId: s.elevenLabsModelId || 'eleven_multilingual_v2',
+    modelId: s.elevenLabsModelId || 'eleven_flash_v2_5',
   };
 }
 
@@ -319,14 +319,44 @@ function buildTamilSSML(text, voiceName) {
 </speak>`;
 }
 
+// In-memory TTS cache: text → { playableUrl, cachedAt }
+// Avoids re-synthesizing identical responses (goodbye phrases, common turns)
+const _ttsCache = new Map();
+const _TTS_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+function _getTtsCached(text) {
+  const entry = _ttsCache.get(text);
+  if (!entry) return null;
+  if (Date.now() - entry.cachedAt > _TTS_CACHE_TTL_MS) {
+    _ttsCache.delete(text);
+    return null;
+  }
+  return entry;
+}
+
+function _setTtsCache(text, playableUrl) {
+  if (_ttsCache.size > 200) {
+    const oldest = [..._ttsCache.entries()].sort((a,b) => a[1].cachedAt - b[1].cachedAt)[0];
+    if (oldest) _ttsCache.delete(oldest[0]);
+  }
+  _ttsCache.set(text, { playableUrl, cachedAt: Date.now() });
+}
+
 /**
- * Convert Tamil text to speech using ElevenLabs multilingual v2
+ * Convert Tamil text to speech using ElevenLabs Flash v2.5
  * @param {string} text - Tamil text to synthesize
  * @returns {Object} { audioBuffer, playableUrl, duration, processingTimeMs }
  */
 async function synthesizeSpeechElevenLabs(text) {
   const startTime = Date.now();
   const cfg = getElevenLabsConfig();
+
+  // Return cached audio for identical text (saves ~1-1.5s per repeated phrase)
+  const cached = _getTtsCached(text);
+  if (cached) {
+    logger.info(`ElevenLabs TTS cache hit in ${Date.now() - startTime}ms for ${text.length} chars`);
+    return { audioBuffer: null, s3Url: null, playableUrl: cached.playableUrl, duration: null, processingTimeMs: 0 };
+  }
 
   if (!cfg.apiKey) throw new Error('ElevenLabs API key is not configured. Add it in Settings.');
   if (!cfg.voiceId) throw new Error('ElevenLabs Voice ID is not configured. Add it in Settings.');
@@ -374,6 +404,7 @@ async function synthesizeSpeechElevenLabs(text) {
     logger.debug(`ElevenLabs audio served locally: ${playableUrl}`);
   }
 
+  _setTtsCache(text, playableUrl);
   return { audioBuffer, s3Url, playableUrl, duration: null, processingTimeMs: processingTime };
 }
 
