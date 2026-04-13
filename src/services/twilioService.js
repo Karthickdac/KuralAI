@@ -108,8 +108,6 @@ function generateAnswerExoML(callId) {
   const token = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-webhook';
 
   return _xml(`
-  <Say language="ta-IN">${_escapeXml(TAMIL_PROMPTS.RECORDING_CONSENT)}</Say>
-  <Pause length="1"/>
   <Redirect method="POST">${webhookBase}/webhook/call/conversation?callId=${callId}&amp;turn=0&amp;wt=${token}</Redirect>`);
 }
 
