@@ -27,6 +27,7 @@ const userRoutes = require('./routes/user.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const workflowRoutes = require('./routes/workflow.routes');
 const ttsRoutes = require('./routes/tts.routes');
+const simulateRoutes = require('./routes/simulate.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -82,6 +83,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/tts', ttsRoutes);
+app.use('/api/simulate', simulateRoutes);
 
 // Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);

@@ -85,4 +85,11 @@ export const ttsApi = {
     api.post('/api/tts/preview', { text, voice }, { responseType: 'arraybuffer', timeout: 25000 }),
 };
 
+export const simulateApi = {
+  start: (workflowId) => api.post('/api/simulate/start', { workflowId }, { timeout: 30000 }),
+  turn: (callId, turn, userText) =>
+    api.post('/api/simulate/turn', { callId, turn, userText }, { timeout: 30000 }),
+  end: (callId) => api.post('/api/simulate/end', { callId }),
+};
+
 export default api;
