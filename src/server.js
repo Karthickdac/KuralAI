@@ -125,9 +125,9 @@ app.get('/audio/:filename', (req, res) => {
   res.sendFile(filePath);
 });
 
-// ─── Production Static File Serving (React Dashboard) ────────────────────────
+// ─── Static File Serving (React Dashboard Build) ─────────────────────────────
 const dashboardBuildDir = path.join(__dirname, '..', 'dashboard', 'build');
-if (process.env.NODE_ENV === 'production' && require('fs').existsSync(dashboardBuildDir)) {
+if (require('fs').existsSync(path.join(dashboardBuildDir, 'index.html'))) {
   app.use(express.static(dashboardBuildDir));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/webhook') || req.path.startsWith('/audio/')) {
@@ -151,7 +151,7 @@ app.use((req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'Route not found' });
   }
-  if (process.env.NODE_ENV === 'production' && require('fs').existsSync(dashboardBuildDir)) {
+  if (require('fs').existsSync(path.join(dashboardBuildDir, 'index.html'))) {
     return res.sendFile(path.join(dashboardBuildDir, 'index.html'));
   }
   res.status(404).json({ error: 'Route not found' });

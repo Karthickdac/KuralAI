@@ -70,5 +70,5 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "NODE_ENV=production PORT=3000 node src/server.js"]
+run = ["node", "src/server.js"]
 build = ["bash", "-c", "cd dashboard && npm install && npm run build"]
