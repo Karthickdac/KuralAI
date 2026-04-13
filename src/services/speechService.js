@@ -321,27 +321,42 @@ function buildTamilSSML(text, voiceName) {
 </speak>`;
 }
 
-// In-memory TTS cache: text → { playableUrl, cachedAt }
-// Avoids re-synthesizing identical responses (goodbye phrases, common turns)
+// In-memory TTS cache: "<voiceId>::<text>" → { playableUrl, cachedAt }
+// Key includes voiceId so changing the voice immediately invalidates old entries.
 const _ttsCache = new Map();
 const _TTS_CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
-function _getTtsCached(text) {
-  const entry = _ttsCache.get(text);
+function _ttsCacheKey(voiceId, text) {
+  return `${voiceId || 'default'}::${text}`;
+}
+
+function _getTtsCached(voiceId, text) {
+  const key = _ttsCacheKey(voiceId, text);
+  const entry = _ttsCache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.cachedAt > _TTS_CACHE_TTL_MS) {
-    _ttsCache.delete(text);
+    _ttsCache.delete(key);
     return null;
   }
   return entry;
 }
 
-function _setTtsCache(text, playableUrl) {
+function _setTtsCache(voiceId, text, playableUrl) {
   if (_ttsCache.size > 200) {
     const oldest = [..._ttsCache.entries()].sort((a,b) => a[1].cachedAt - b[1].cachedAt)[0];
     if (oldest) _ttsCache.delete(oldest[0]);
   }
-  _ttsCache.set(text, { playableUrl, cachedAt: Date.now() });
+  _ttsCache.set(_ttsCacheKey(voiceId, text), { playableUrl, cachedAt: Date.now() });
+}
+
+/**
+ * Clear the entire in-memory TTS cache.
+ * Call this whenever the voice ID or TTS settings change.
+ */
+function clearTtsCache() {
+  const size = _ttsCache.size;
+  _ttsCache.clear();
+  logger.info(`TTS cache cleared (${size} entries removed)`);
 }
 
 /**
@@ -353,8 +368,8 @@ async function synthesizeSpeechElevenLabs(text) {
   const startTime = Date.now();
   const cfg = getElevenLabsConfig();
 
-  // Return cached audio for identical text (saves ~1-1.5s per repeated phrase)
-  const cached = _getTtsCached(text);
+  // Return cached audio for identical text + voice (saves ~1-1.5s per repeated phrase)
+  const cached = _getTtsCached(cfg.voiceId, text);
   if (cached) {
     logger.info(`ElevenLabs TTS cache hit in ${Date.now() - startTime}ms for ${text.length} chars`);
     return { audioBuffer: null, s3Url: null, playableUrl: cached.playableUrl, duration: null, processingTimeMs: 0 };
@@ -406,7 +421,7 @@ async function synthesizeSpeechElevenLabs(text) {
     logger.debug(`ElevenLabs audio served locally: ${playableUrl}`);
   }
 
-  _setTtsCache(text, playableUrl);
+  _setTtsCache(cfg.voiceId, text, playableUrl);
   return { audioBuffer, s3Url, playableUrl, duration: null, processingTimeMs: processingTime };
 }
 
@@ -450,4 +465,5 @@ module.exports = {
   buildTamilSSML,
   getTtsProvider,
   getElevenLabsConfig,
+  clearTtsCache,
 };

@@ -12,6 +12,7 @@ const path    = require('path');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { clearTtsCache } = require('../services/speechService');
 
 // Fields that are credentials — masked in GET response as '••••••••'
 const CREDENTIAL_FIELDS = [
@@ -220,6 +221,13 @@ router.put('/', requireAdmin, async (req, res) => {
 
     // Sync to running process env
     syncEnv(updated);
+
+    // If any TTS setting changed, clear the in-memory audio cache so the
+    // new voice / provider is used immediately on the next call.
+    const TTS_FIELDS = ['elevenLabsVoiceId', 'elevenLabsApiKey', 'ttsProvider',
+                        'azureSpeechVoice', 'azureSpeechKey', 'azureSpeechRegion'];
+    const ttsChanged = TTS_FIELDS.some(f => req.body[f] !== undefined && req.body[f] !== current[f]);
+    if (ttsChanged) clearTtsCache();
 
     res.json({ success: true, settings: maskCredentials(updated) });
   } catch (err) {
