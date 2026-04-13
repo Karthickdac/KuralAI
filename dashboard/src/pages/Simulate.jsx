@@ -3,14 +3,13 @@ import Sidebar from '../components/Sidebar';
 import { simulateApi, workflowsApi } from '../api/client';
 import styles from './Simulate.module.css';
 
-const IDLE         = 'idle';
-const STARTING     = 'starting';
-const AI_SPEAKING  = 'ai_speaking';
-const USER_TURN    = 'user_turn';
-const RECORDING    = 'recording';
-const TRANSCRIBING = 'transcribing';
-const AI_TURN      = 'ai_turn';
-const ENDED        = 'ended';
+const IDLE        = 'idle';
+const STARTING    = 'starting';
+const AI_SPEAKING = 'ai_speaking';
+const USER_TURN   = 'user_turn';
+const RECORDING   = 'recording';
+const AI_TURN     = 'ai_turn';
+const ENDED       = 'ended';
 
 // ─── Transcript bubble ────────────────────────────────────────────────────────
 function TurnBubble({ speaker, text, audioUrl, onPlay }) {
@@ -43,25 +42,28 @@ function WaveformBars() {
   );
 }
 
+// Check Web Speech API support
+const hasSpeechRecognition = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Simulate() {
   const [phase, setPhase]           = useState(IDLE);
   const [callId, setCallId]         = useState(null);
   const [turn, setTurn]             = useState(0);
   const [transcript, setTranscript] = useState([]);
-  const [textMode, setTextMode]     = useState(false);
+  const [textMode, setTextMode]     = useState(!hasSpeechRecognition);
   const [userInput, setUserInput]   = useState('');
   const [error, setError]           = useState('');
   const [workflows, setWorkflows]   = useState([]);
   const [selectedWf, setSelectedWf] = useState('');
   const [statusLabel, setStatusLabel] = useState('');
+  const [liveText, setLiveText]     = useState('');
 
-  const audioRef       = useRef(null);
-  const recorderRef    = useRef(null);
-  const chunksRef      = useRef([]);
-  const streamRef      = useRef(null);
-  const bottomRef      = useRef(null);
-  const textInputRef   = useRef(null);
+  const audioRef        = useRef(null);
+  const recognitionRef  = useRef(null);
+  const lastTextRef     = useRef('');
+  const bottomRef       = useRef(null);
+  const textInputRef    = useRef(null);
 
   useEffect(() => {
     workflowsApi.list().then(r => setWorkflows(r.data || [])).catch(() => {});
@@ -69,13 +71,12 @@ export default function Simulate() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [transcript, phase]);
+  }, [transcript, phase, liveText]);
 
   useEffect(() => {
     if (phase === USER_TURN && textMode) textInputRef.current?.focus();
   }, [phase, textMode]);
 
-  // Stop any ongoing audio playback
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -84,15 +85,14 @@ export default function Simulate() {
     }
   }, []);
 
-  // Play a URL in the browser and await completion
   const playAudio = useCallback((url) => {
     return new Promise((resolve) => {
       stopAudio();
       if (!url) return resolve();
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended  = resolve;
-      audio.onerror  = resolve;
+      audio.onended = resolve;
+      audio.onerror = resolve;
       audio.play().catch(resolve);
     });
   }, [stopAudio]);
@@ -105,6 +105,7 @@ export default function Simulate() {
   async function startCall() {
     setError('');
     setTranscript([]);
+    setLiveText('');
     setPhase(STARTING);
     setStatusLabel('Connecting…');
     try {
@@ -170,96 +171,91 @@ export default function Simulate() {
     }
   }
 
-  // ─── Microphone recording ────────────────────────────────────────────────────
-  async function startRecording() {
-    setError('');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      chunksRef.current = [];
-
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
-
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
-      recorderRef.current = recorder;
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        // Stop all mic tracks
-        stream.getTracks().forEach(t => t.stop());
-        streamRef.current = null;
-
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
-        chunksRef.current = [];
-
-        if (blob.size < 1000) {
-          setError('Recording too short. Please speak clearly and try again.');
-          setPhase(USER_TURN);
-          setStatusLabel('Your turn — speak or type');
-          return;
-        }
-
-        setPhase(TRANSCRIBING);
-        setStatusLabel('Transcribing your speech…');
-
-        try {
-          const sttRes = await simulateApi.transcribe(blob);
-          const spokenText = sttRes.data.text?.trim();
-          if (!spokenText) {
-            setError('Could not understand the audio. Please try again or type your response.');
-            setPhase(USER_TURN);
-            setStatusLabel('Your turn — speak or type');
-            return;
-          }
-          pushTurn('user', spokenText, null);
-          await processAiTurn(spokenText);
-        } catch (e) {
-          setError(e.response?.data?.error || e.message || 'Transcription failed.');
-          setPhase(USER_TURN);
-          setStatusLabel('Your turn — speak or type');
-        }
-      };
-
-      recorder.start(250); // Collect data every 250ms
-      setPhase(RECORDING);
-      setStatusLabel('Recording… tap again to send');
-    } catch (e) {
-      if (e.name === 'NotAllowedError') {
-        setError('Microphone access denied. Please allow microphone access in your browser and try again.');
-      } else {
-        setError(e.message || 'Could not access microphone.');
-      }
+  // ─── Web Speech API STT ──────────────────────────────────────────────────────
+  function startSpeechRecognition() {
+    if (!hasSpeechRecognition) {
+      setTextMode(true);
+      setError('Voice recognition is not supported in this browser. Please use Chrome or type your response.');
+      return;
     }
+
+    setError('');
+    lastTextRef.current = '';
+    setLiveText('');
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SR();
+    recognition.lang = 'ta-IN';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += t;
+        else interim += t;
+      }
+      lastTextRef.current = final || interim;
+      setLiveText(lastTextRef.current);
+    };
+
+    recognition.onend = async () => {
+      recognitionRef.current = null;
+      setLiveText('');
+      const spoken = lastTextRef.current.trim();
+      if (!spoken) {
+        setError('Nothing heard. Please try again or type your response.');
+        setPhase(USER_TURN);
+        setStatusLabel('Your turn — speak or type');
+        return;
+      }
+      pushTurn('user', spoken, null);
+      await processAiTurn(spoken);
+    };
+
+    recognition.onerror = (event) => {
+      recognitionRef.current = null;
+      setLiveText('');
+      if (event.error === 'no-speech') {
+        setError('No speech detected. Please try again.');
+      } else if (event.error === 'not-allowed') {
+        setError('Microphone access denied. Please allow mic permission in your browser.');
+      } else {
+        setError(`Voice recognition error: ${event.error}. Please try again or type.`);
+      }
+      setPhase(USER_TURN);
+      setStatusLabel('Your turn — speak or type');
+    };
+
+    recognition.start();
+    setPhase(RECORDING);
+    setStatusLabel('Listening… tap mic to send');
   }
 
-  function stopRecording() {
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      recorderRef.current.stop();
+  function stopSpeechRecognition() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
   }
 
   // ─── Hang up ────────────────────────────────────────────────────────────────
   async function hangUp() {
     stopAudio();
-    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-      recorderRef.current.stop();
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-    }
+    stopSpeechRecognition();
     if (callId) simulateApi.end(callId).catch(() => {});
     pushTurn('ai', '— Call ended —', null);
     setPhase(ENDED);
     setStatusLabel('');
+    setLiveText('');
   }
 
   function reset() {
     stopAudio();
+    stopSpeechRecognition();
     setPhase(IDLE);
     setCallId(null);
     setTurn(0);
@@ -267,11 +263,12 @@ export default function Simulate() {
     setUserInput('');
     setError('');
     setStatusLabel('');
-    setTextMode(false);
+    setLiveText('');
+    setTextMode(!hasSpeechRecognition);
   }
 
-  const isActive = phase !== IDLE && phase !== ENDED && phase !== STARTING;
-  const canRecord = phase === USER_TURN;
+  const isActive    = phase !== IDLE && phase !== ENDED && phase !== STARTING;
+  const canRecord   = phase === USER_TURN;
   const isRecording = phase === RECORDING;
 
   return (
@@ -306,7 +303,9 @@ export default function Simulate() {
               </div>
               <h2 className={styles.setupTitle}>Ready to simulate a call</h2>
               <p className={styles.setupText}>
-                Speak Tamil into your microphone and hear KuralAI respond. Optionally pick a workflow script below.
+                Speak Tamil into your microphone and hear KuralAI respond.
+                {!hasSpeechRecognition && ' Voice input requires Chrome or Edge — text mode enabled.'}
+                {hasSpeechRecognition && ' Uses your browser\'s built-in voice recognition — no API key needed.'}
               </p>
               {workflows.length > 0 && (
                 <select className={styles.wfSelect} value={selectedWf} onChange={e => setSelectedWf(e.target.value)}>
@@ -336,7 +335,13 @@ export default function Simulate() {
                 {transcript.map((t, i) => (
                   <TurnBubble key={i} speaker={t.speaker} text={t.text} audioUrl={t.audioUrl} onPlay={playAudio} />
                 ))}
-                {/* Thinking indicator */}
+                {/* Live interim text while recording */}
+                {isRecording && liveText && (
+                  <div className={`${styles.bubble} ${styles.userBubble} ${styles.liveText}`}>
+                    <p className={styles.bubbleText}>{liveText}</p>
+                  </div>
+                )}
+                {/* AI thinking indicator */}
                 {phase === AI_TURN && (
                   <div className={`${styles.bubble} ${styles.aiBubble} ${styles.thinking}`}>
                     <span className={styles.dot}/><span className={styles.dot}/><span className={styles.dot}/>
@@ -362,26 +367,21 @@ export default function Simulate() {
           )}
 
           {/* Audio controls (shown when call is active) */}
-          {(isActive || phase === TRANSCRIBING) && (
+          {isActive && (
             <div className={styles.controls}>
 
               {/* Primary: mic button */}
               {!textMode && (
                 <div className={styles.micSection}>
-                  {phase === TRANSCRIBING ? (
-                    <div className={styles.transcribingWrap}>
-                      <div className={styles.spinner}/>
-                      <span className={styles.transcribingLabel}>Transcribing…</span>
-                    </div>
-                  ) : isRecording ? (
-                    <button className={`${styles.micBtn} ${styles.micBtnRecording}`} onClick={stopRecording}>
+                  {isRecording ? (
+                    <button className={`${styles.micBtn} ${styles.micBtnRecording}`} onClick={stopSpeechRecognition}>
                       <WaveformBars />
                       <span className={styles.micLabel}>Tap to send</span>
                     </button>
                   ) : (
                     <button
                       className={`${styles.micBtn} ${canRecord ? styles.micBtnReady : styles.micBtnDisabled}`}
-                      onClick={startRecording}
+                      onClick={startSpeechRecognition}
                       disabled={!canRecord}
                     >
                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -407,12 +407,14 @@ export default function Simulate() {
               {/* Fallback: text input */}
               {textMode && phase === USER_TURN && (
                 <div className={styles.textRow}>
-                  <button className={styles.micToggle} onClick={() => setTextMode(false)} title="Switch to voice">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
-                      <path d="M19 10v2a7 7 0 01-14 0v-2"/>
-                    </svg>
-                  </button>
+                  {hasSpeechRecognition && (
+                    <button className={styles.micToggle} onClick={() => setTextMode(false)} title="Switch to voice">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                        <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+                      </svg>
+                    </button>
+                  )}
                   <input
                     ref={textInputRef}
                     className={styles.textInput}
@@ -466,8 +468,8 @@ export default function Simulate() {
           <div className={styles.infoCard}>
             <div className={styles.infoTitle}>How it works</div>
             <ul className={styles.infoList}>
-              <li>Tap mic → speak in Tamil → tap again to send</li>
-              <li>Whisper STT transcribes your speech</li>
+              <li>Tap mic → speak Tamil → tap again to send</li>
+              <li>Browser voice recognition transcribes (free, no quota)</li>
               <li>GPT-4o generates a Tamil response</li>
               <li>Azure TTS speaks it back to you</li>
             </ul>
@@ -475,8 +477,9 @@ export default function Simulate() {
           <div className={styles.infoCard}>
             <div className={styles.infoTitle}>Requirements</div>
             <ul className={styles.infoList}>
-              <li>OpenAI API key (Settings → AI &amp; Voice)</li>
+              <li>Chrome or Edge browser (for voice input)</li>
               <li>Azure Speech key (Settings → AI &amp; Voice)</li>
+              <li>OpenAI key for AI responses (Settings → AI &amp; Voice)</li>
               <li>Microphone permission in browser</li>
             </ul>
           </div>
