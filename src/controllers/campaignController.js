@@ -290,15 +290,51 @@ function preWarmTts(meta, callId) {
       const { getPromptText }    = require('../services/aiService');
       const { applyTemplate }    = require('../utils/templateEngine');
       const QaTemplate           = require('../models/QaTemplate');
-      const greetingText = await getPromptText('GREETING', meta);
-      await synthesizeSpeech(greetingText).catch(() => {});
-      const qaRows = await QaTemplate.findAll({ where: { isActive: true }, raw: true });
-      const texts = [];
-      qaRows.forEach(r => (r.responses || []).forEach(t => texts.push(applyTemplate(t, meta))));
-      for (let j = 0; j < texts.length; j += 5) {
-        await Promise.all(texts.slice(j, j + 5).map(t => synthesizeSpeech(t).catch(() => {})));
+      const _fs = require('fs');
+      const _path = require('path');
+
+      const allTexts = [];
+
+      const wfId = meta.workflowId || meta.callType;
+      let wfDone = false;
+      if (wfId) {
+        try {
+          const wfFile = _path.join(__dirname, '../../config/workflows.json');
+          if (_fs.existsSync(wfFile)) {
+            const wfs = JSON.parse(_fs.readFileSync(wfFile, 'utf8'));
+            const wf = wfs.find(w => w.id === wfId);
+            if (wf?.scriptFlow?.enabled && wf.scriptFlow.steps?.length) {
+              for (const step of wf.scriptFlow.steps) {
+                if (step.agentMessage) allTexts.push(applyTemplate(step.agentMessage, meta));
+                if (step.fallbackMessage) allTexts.push(applyTemplate(step.fallbackMessage, meta));
+                if (step.branches) {
+                  for (const br of step.branches) {
+                    if (br.agentResponse) allTexts.push(applyTemplate(br.agentResponse, meta));
+                  }
+                }
+              }
+              wfDone = true;
+            }
+          }
+        } catch {}
       }
-    } catch {}
+
+      if (!wfDone) {
+        const greetingText = await getPromptText('GREETING', meta);
+        allTexts.unshift(greetingText);
+      }
+
+      const qaRows = await QaTemplate.findAll({ where: { isActive: true }, raw: true });
+      qaRows.forEach(r => (r.responses || []).forEach(t => allTexts.push(applyTemplate(t, meta))));
+
+      const unique = [...new Set(allTexts)];
+      for (let j = 0; j < unique.length; j += 6) {
+        await Promise.all(unique.slice(j, j + 6).map(t => synthesizeSpeech(t).catch(() => {})));
+      }
+      logger.info(`Campaign pre-warmed ${unique.length} TTS entries for call ${callId} (workflow: ${wfId || 'none'})`);
+    } catch (e) {
+      logger.warn('Campaign TTS pre-warm failed:', e.message);
+    }
   })();
 }
 

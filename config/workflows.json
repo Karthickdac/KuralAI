@@ -15,21 +15,46 @@
             {
               "id": "identity_yes",
               "label": "Customer confirms identity",
-              "expectedPhrases": ["ஆமா", "ஆமாம்", "நான் தான்", "பேசுறேன்", "yes", "yeah", "haan", "சொல்லுங்க", "correct"],
-              "agentResponse": "நன்றி சார்!",
+              "expectedPhrases": [
+                "ஆமா",
+                "ஆமாம்",
+                "நான் தான்",
+                "பேசுறேன்",
+                "yes",
+                "yeah",
+                "haan",
+                "சொல்லுங்க",
+                "correct"
+              ],
+              "agentResponse": "நன்றி!",
               "nextStep": "due_info"
             },
             {
               "id": "identity_no",
               "label": "Wrong person or not available",
-              "expectedPhrases": ["இல்ல", "wrong", "தப்பு", "வேற ஆளு", "நான் இல்ல", "available இல்ல", "வெளியில"],
+              "expectedPhrases": [
+                "இல்ல",
+                "wrong",
+                "தப்பு",
+                "வேற ஆளு",
+                "நான் இல்ல",
+                "available இல்ல",
+                "வெளியில"
+              ],
               "agentResponse": "மன்னிக்கணும் சார். Inconvenience-க்கு sorry சார். நன்றி சார். வணக்கம்.",
               "action": "end_call"
             },
             {
               "id": "busy_now",
               "label": "Customer is busy, asks for callback",
-              "expectedPhrases": ["busy", "later", "அப்புறம்", "driving", "meeting", "நாளைக்கு"],
+              "expectedPhrases": [
+                "busy",
+                "later",
+                "அப்புறம்",
+                "driving",
+                "meeting",
+                "நாளைக்கு"
+              ],
               "agentResponse": "சரி சார், அப்புறம் call பண்றோம் சார். Inconvenience-க்கு மன்னிக்கணும் சார். நன்றி சார்.",
               "action": "end_call"
             }
@@ -39,47 +64,92 @@
         },
         {
           "id": "due_info",
-          "agentMessage": "சார், உங்களுக்கு {{nextDueDate}} தேதி {{chitValue}} சீட்டோட {{currentDue}}வது due இருக்கு சார். Due amount ₹{{dueAmount}} சார். Time-க்கு கட்டிடுங்க சார்.",
+          "agentMessage": "சார், உங்களுக்கு {{nextDueDate}} தேதி {{chitValue}} சீட்டோட {{currentDue}}வது due இருக்கு சார். Due amount {{dueAmount}}ரூபாய் சார். Time-க்கு கட்டிடுங்க சார்.",
           "branches": [
             {
               "id": "will_pay",
               "label": "Customer agrees to pay / acknowledges",
-              "expectedPhrases": ["சரி", "ok", "ஓகே", "கட்டுறேன்", "pay பண்றேன்", "கட்டிடுறேன்", "noted", "sure", "ஆமா"],
+              "expectedPhrases": [
+                "சரி",
+                "ok",
+                "ஓகே",
+                "கட்டுறேன்",
+                "pay பண்றேன்",
+                "கட்டிடுறேன்",
+                "noted",
+                "sure",
+                "ஆமா"
+              ],
               "agentResponse": "நன்றி சார்!",
               "nextStep": "lottery_ask"
             },
             {
               "id": "already_paid",
               "label": "Customer says already paid",
-              "expectedPhrases": ["கட்டிட்டேன்", "paid", "போட்டாச்சு", "கட்டாச்சு", "UPI", "GPay", "transfer"],
+              "expectedPhrases": [
+                "கட்டிட்டேன்",
+                "paid",
+                "போட்டாச்சு",
+                "கட்டாச்சு",
+                "UPI",
+                "GPay",
+                "transfer"
+              ],
               "agentResponse": "நன்றி சார்! Payment receive ஆனதும் update பண்றோம் சார்.",
               "nextStep": "lottery_ask"
             },
             {
               "id": "payment_difficulty",
               "label": "Customer has difficulty paying",
-              "expectedPhrases": ["கஷ்டம்", "முடியல", "பணம் இல்ல", "afford", "salary வரல", "later"],
+              "expectedPhrases": [
+                "கஷ்டம்",
+                "முடியல",
+                "பணம் இல்ல",
+                "afford",
+                "salary வரல",
+                "later"
+              ],
               "agentResponse": "புரிஞ்சது சார். Convenient-ஆன நேரம் arrange பண்ணிக்கோங்க சார். Due date-க்குள்ள pay பண்ணிட்டா penalty இல்ல சார்.",
               "nextStep": "lottery_ask"
             },
             {
               "id": "due_date_question",
               "label": "Customer asks about due date or last date",
-              "expectedPhrases": ["எப்போ", "due date", "last date", "எந்த தேதி", "deadline"],
+              "expectedPhrases": [
+                "எப்போ",
+                "due date",
+                "last date",
+                "எந்த தேதி",
+                "deadline"
+              ],
               "agentResponse": "{{nextDueDate}} தேதிக்குள்ள கட்டிடணும் சார். ₹{{dueAmount}} ready-ஆ வைங்க சார்.",
               "nextStep": "lottery_ask"
             },
             {
               "id": "payment_mode_question",
               "label": "Customer asks how to pay",
-              "expectedPhrases": ["எப்படி கட்டணும்", "UPI", "account", "bank details", "online", "cash"],
+              "expectedPhrases": [
+                "எப்படி கட்டணும்",
+                "UPI",
+                "account",
+                "bank details",
+                "online",
+                "cash"
+              ],
               "agentResponse": "Cash-ஆ office-ல கட்டலாம் அல்லது UPI/bank transfer பண்ணலாம் சார். Account details-க்கு எங்க office-ஐ contact பண்ணுங்க சார்.",
               "nextStep": "lottery_ask"
             },
             {
               "id": "human_request",
               "label": "Customer wants to speak to a person",
-              "expectedPhrases": ["senior", "manager", "ஆளு", "transfer", "complaint", "புகார்"],
+              "expectedPhrases": [
+                "senior",
+                "manager",
+                "ஆளு",
+                "transfer",
+                "complaint",
+                "புகார்"
+              ],
               "agentResponse": "சரி சார், உங்களை எங்க senior-கிட்ட transfer பண்றேன். ஒரு நிமிஷம் சார்.",
               "action": "escalate"
             }
@@ -94,21 +164,44 @@
             {
               "id": "lottery_yes",
               "label": "Customer wants to participate in lottery",
-              "expectedPhrases": ["ஆமா", "participate", "கலந்துக்கிறேன்", "interested", "yes", "ok", "ஓகே", "ready"],
+              "expectedPhrases": [
+                "ஆமா",
+                "participate",
+                "கலந்துக்கிறேன்",
+                "interested",
+                "yes",
+                "ok",
+                "ஓகே",
+                "ready"
+              ],
               "agentResponse": "நல்லது சார்! Due ₹{{dueAmount}} time-க்கு கட்டுங்க சார், அப்போ automatically குலுக்கல்ல include ஆகும் சார். நன்றி சார்! உங்களோட நேரம் எடுத்ததுக்கு மன்னிக்கணும் சார். நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "lottery_no",
               "label": "Customer declines lottery",
-              "expectedPhrases": ["வேண்டாம்", "இல்ல", "no", "next time", "skip", "அடுத்த தடவை", "இப்போ வேண்டாம்"],
+              "expectedPhrases": [
+                "வேண்டாம்",
+                "இல்ல",
+                "no",
+                "next time",
+                "skip",
+                "அடுத்த தடவை",
+                "இப்போ வேண்டாம்"
+              ],
               "agentResponse": "சரி சார், அடுத்த தடவை பாக்கலாம். Due மட்டும் time-க்கு கட்டுங்க சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "lottery_question",
               "label": "Customer asks about lottery details",
-              "expectedPhrases": ["எப்போ", "குலுக்கல் எப்போ", "details", "எப்படி", "rules"],
+              "expectedPhrases": [
+                "எப்போ",
+                "குலுக்கல் எப்போ",
+                "details",
+                "எப்படி",
+                "rules"
+              ],
               "agentResponse": "சார், due time-க்கு கட்டினா automatically குலுக்கல்ல include ஆகும் சார். Participate பண்றீங்களா சார்?",
               "nextStep": "lottery_confirm"
             }
@@ -123,14 +216,26 @@
             {
               "id": "confirm_yes",
               "label": "Customer confirms participation",
-              "expectedPhrases": ["ஆமா", "ok", "participate", "yes", "ready", "சரி"],
+              "expectedPhrases": [
+                "ஆமா",
+                "ok",
+                "participate",
+                "yes",
+                "ready",
+                "சரி"
+              ],
               "agentResponse": "நல்லது சார்! Due ₹{{dueAmount}} time-க்கு கட்டுங்க சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "confirm_no",
               "label": "Customer declines",
-              "expectedPhrases": ["வேண்டாம்", "no", "இல்ல", "skip"],
+              "expectedPhrases": [
+                "வேண்டாம்",
+                "no",
+                "இல்ல",
+                "skip"
+              ],
               "agentResponse": "சரி சார். Due மட்டும் time-க்கு கட்டுங்க சார். நன்றி சார்! வணக்கம்!",
               "action": "end_call"
             }
@@ -139,7 +244,8 @@
           "maxRetries": 2
         }
       ]
-    }
+    },
+    "updatedAt": "2026-04-13T16:20:57.316Z"
   },
   {
     "id": "lottery_participation",
@@ -157,21 +263,43 @@
             {
               "id": "identity_yes",
               "label": "Customer confirms identity",
-              "expectedPhrases": ["ஆமா", "ஆமாம்", "நான் தான்", "பேசுறேன்", "yes", "yeah", "haan", "சொல்லுங்க"],
+              "expectedPhrases": [
+                "ஆமா",
+                "ஆமாம்",
+                "நான் தான்",
+                "பேசுறேன்",
+                "yes",
+                "yeah",
+                "haan",
+                "சொல்லுங்க"
+              ],
               "agentResponse": "நன்றி சார்!",
               "nextStep": "lottery_invite"
             },
             {
               "id": "identity_no",
               "label": "Wrong person or not available",
-              "expectedPhrases": ["இல்ல", "wrong", "தப்பு", "வேற ஆளு", "நான் இல்ல", "available இல்ல"],
+              "expectedPhrases": [
+                "இல்ல",
+                "wrong",
+                "தப்பு",
+                "வேற ஆளு",
+                "நான் இல்ல",
+                "available இல்ல"
+              ],
               "agentResponse": "மன்னிக்கணும் சார். Wrong number-க்கு sorry. நல்ல நாள் சார். வணக்கம்.",
               "action": "end_call"
             },
             {
               "id": "busy_now",
               "label": "Customer is busy",
-              "expectedPhrases": ["busy", "later", "அப்புறம்", "driving", "meeting"],
+              "expectedPhrases": [
+                "busy",
+                "later",
+                "அப்புறம்",
+                "driving",
+                "meeting"
+              ],
               "agentResponse": "சரி சார், அப்புறம் call பண்றோம் சார். நன்றி சார்.",
               "action": "end_call"
             }
@@ -186,28 +314,55 @@
             {
               "id": "interested",
               "label": "Customer is interested in lottery",
-              "expectedPhrases": ["ஆமா", "interested", "கலந்துக்கிறேன்", "participate", "yes", "ok", "ready", "ஓகே"],
+              "expectedPhrases": [
+                "ஆமா",
+                "interested",
+                "கலந்துக்கிறேன்",
+                "participate",
+                "yes",
+                "ok",
+                "ready",
+                "ஓகே"
+              ],
               "agentResponse": "நல்லது சார்!",
               "nextStep": "due_remind"
             },
             {
               "id": "not_interested",
               "label": "Customer declines lottery",
-              "expectedPhrases": ["வேண்டாம்", "no", "இல்ல", "skip", "next time", "அடுத்த தடவை"],
+              "expectedPhrases": [
+                "வேண்டாம்",
+                "no",
+                "இல்ல",
+                "skip",
+                "next time",
+                "அடுத்த தடவை"
+              ],
               "agentResponse": "சரி சார், அடுத்த தடவை பாக்கலாம். Due amount ₹{{dueAmount}} time-க்கு கட்டிடுங்க சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "lottery_details",
               "label": "Customer asks for more details",
-              "expectedPhrases": ["details", "எப்படி", "rules", "எப்போ", "explain"],
+              "expectedPhrases": [
+                "details",
+                "எப்படி",
+                "rules",
+                "எப்போ",
+                "explain"
+              ],
               "agentResponse": "சார், {{nextDueDate}} தேதி குலுக்கல் நடக்கும் சார். Due ₹{{dueAmount}} time-க்கு கட்டினா automatically உங்க name include ஆகும் சார். Separate-ஆ apply பண்ண வேண்டாம் சார். Participate பண்றீங்களா சார்?",
               "nextStep": "lottery_confirm"
             },
             {
               "id": "already_paid_due",
               "label": "Customer says already paid",
-              "expectedPhrases": ["கட்டிட்டேன்", "paid", "போட்டாச்சு", "transfer"],
+              "expectedPhrases": [
+                "கட்டிட்டேன்",
+                "paid",
+                "போட்டாச்சு",
+                "transfer"
+              ],
               "agentResponse": "நன்றி சார்! Payment receive ஆனதும் குலுக்கல்ல automatically include ஆகும் சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             }
@@ -222,14 +377,28 @@
             {
               "id": "ok_understood",
               "label": "Customer acknowledges",
-              "expectedPhrases": ["ok", "சரி", "ஆமா", "sure", "கட்டுறேன்", "noted"],
+              "expectedPhrases": [
+                "ok",
+                "சரி",
+                "ஆமா",
+                "sure",
+                "கட்டுறேன்",
+                "noted"
+              ],
               "agentResponse": "நன்றி சார்! உங்களோட நேரம் எடுத்ததுக்கு மன்னிக்கணும் சார். நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "payment_how",
               "label": "Customer asks how to pay",
-              "expectedPhrases": ["எப்படி", "account", "UPI", "bank", "online", "cash"],
+              "expectedPhrases": [
+                "எப்படி",
+                "account",
+                "UPI",
+                "bank",
+                "online",
+                "cash"
+              ],
               "agentResponse": "Cash-ஆ office-ல கட்டலாம், UPI/bank transfer-ம் okay சார். Account details-க்கு office-ஐ contact பண்ணுங்க சார். நன்றி சார்! வணக்கம்!",
               "action": "end_call"
             }
@@ -244,14 +413,25 @@
             {
               "id": "yes_participate",
               "label": "Customer confirms",
-              "expectedPhrases": ["ஆமா", "yes", "ok", "participate", "ready"],
+              "expectedPhrases": [
+                "ஆமா",
+                "yes",
+                "ok",
+                "participate",
+                "ready"
+              ],
               "agentResponse": "நல்லது சார்! ₹{{dueAmount}} time-க்கு கட்டுங்க சார். All the best சார்! நன்றி சார்! வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "no_participate",
               "label": "Customer declines",
-              "expectedPhrases": ["வேண்டாம்", "no", "skip", "இல்ல"],
+              "expectedPhrases": [
+                "வேண்டாம்",
+                "no",
+                "skip",
+                "இல்ல"
+              ],
               "agentResponse": "சரி சார். Due மட்டும் time-க்கு கட்டுங்க சார். நன்றி சார்! வணக்கம்!",
               "action": "end_call"
             }
@@ -278,21 +458,43 @@
             {
               "id": "identity_yes",
               "label": "Customer confirms identity",
-              "expectedPhrases": ["ஆமா", "ஆமாம்", "நான் தான்", "பேசுறேன்", "yes", "yeah", "haan", "சொல்லுங்க"],
+              "expectedPhrases": [
+                "ஆமா",
+                "ஆமாம்",
+                "நான் தான்",
+                "பேசுறேன்",
+                "yes",
+                "yeah",
+                "haan",
+                "சொல்லுங்க"
+              ],
               "agentResponse": "நன்றி சார்!",
               "nextStep": "payment_status"
             },
             {
               "id": "identity_no",
               "label": "Wrong person or not available",
-              "expectedPhrases": ["இல்ல", "wrong", "தப்பு", "வேற ஆளு", "நான் இல்ல", "available இல்ல"],
+              "expectedPhrases": [
+                "இல்ல",
+                "wrong",
+                "தப்பு",
+                "வேற ஆளு",
+                "நான் இல்ல",
+                "available இல்ல"
+              ],
               "agentResponse": "மன்னிக்கணும் சார். நன்றி சார். வணக்கம்.",
               "action": "end_call"
             },
             {
               "id": "busy_now",
               "label": "Customer is busy",
-              "expectedPhrases": ["busy", "later", "அப்புறம்", "driving", "meeting"],
+              "expectedPhrases": [
+                "busy",
+                "later",
+                "அப்புறம்",
+                "driving",
+                "meeting"
+              ],
               "agentResponse": "சரி சார், அப்புறம் call பண்றோம் சார். நன்றி சார்.",
               "action": "end_call"
             }
@@ -307,35 +509,74 @@
             {
               "id": "will_pay_soon",
               "label": "Customer says will pay soon / gives a date",
-              "expectedPhrases": ["கட்டுறேன்", "நாளைக்கு", "tomorrow", "இந்த week", "2 days", "pay பண்றேன்", "arrange பண்றேன்", "this week"],
+              "expectedPhrases": [
+                "கட்டுறேன்",
+                "நாளைக்கு",
+                "tomorrow",
+                "இந்த week",
+                "2 days",
+                "pay பண்றேன்",
+                "arrange பண்றேன்",
+                "this week"
+              ],
               "agentResponse": "நன்றி சார்! ₹{{dueAmount}} — जल்தியா pay பண்ணிடுங்க சார். Late fee avoid பண்ணலாம் சார்.",
               "nextStep": "other_dues_check"
             },
             {
               "id": "already_paid",
               "label": "Customer says already paid",
-              "expectedPhrases": ["கட்டிட்டேன்", "paid", "போட்டாச்சு", "கட்டாச்சு", "transfer", "UPI"],
+              "expectedPhrases": [
+                "கட்டிட்டேன்",
+                "paid",
+                "போட்டாச்சு",
+                "கட்டாச்சு",
+                "transfer",
+                "UPI"
+              ],
               "agentResponse": "நன்றி சார்! எங்க accounts team verify பண்ணிடுவாங்க சார். Payment confirm ஆனதும் update பண்றோம் சார்.",
               "nextStep": "other_dues_check"
             },
             {
               "id": "difficulty",
               "label": "Customer has financial difficulty",
-              "expectedPhrases": ["கஷ்டம்", "முடியல", "பணம் இல்ல", "afford", "salary வரல", "வேலை இல்ல", "loan"],
+              "expectedPhrases": [
+                "கஷ்டம்",
+                "முடியல",
+                "பணம் இல்ல",
+                "afford",
+                "salary வரல",
+                "வேலை இல்ல",
+                "loan"
+              ],
               "agentResponse": "புரிஞ்சது சார். கஷ்டப்படாதீங்க சார். எங்க office-ல வந்து பேசுங்க சார், installment plan arrange பண்ணிக்கலாம் சார்.",
               "nextStep": "other_dues_check"
             },
             {
               "id": "payment_how",
               "label": "Customer asks how to pay",
-              "expectedPhrases": ["எப்படி", "account", "UPI", "bank", "online", "cash", "GPay"],
+              "expectedPhrases": [
+                "எப்படி",
+                "account",
+                "UPI",
+                "bank",
+                "online",
+                "cash",
+                "GPay"
+              ],
               "agentResponse": "Office-ல cash கட்டலாம், UPI/bank transfer-ம் okay சார். Account details-க்கு office-ஐ contact பண்ணுங்க சார்.",
               "nextStep": "other_dues_check"
             },
             {
               "id": "human_request",
               "label": "Customer wants to speak to a person",
-              "expectedPhrases": ["senior", "manager", "ஆளு", "transfer", "complaint", "புகார்"],
+              "expectedPhrases": [
+                "senior",
+                "manager",
+                "ஆளு",
+                "transfer",
+                "complaint",
+                "புகார்"
+              ],
               "agentResponse": "சரி சார், உங்களை எங்க senior-கிட்ட transfer பண்றேன் சார்.",
               "action": "escalate"
             }
@@ -350,21 +591,43 @@
             {
               "id": "no_questions",
               "label": "Customer has no questions / wants to end call",
-              "expectedPhrases": ["இல்ல", "no", "ok", "சரி", "bye", "நன்றி", "முடிக்கலாம்", "that's all"],
+              "expectedPhrases": [
+                "இல்ல",
+                "no",
+                "ok",
+                "சரி",
+                "bye",
+                "நன்றி",
+                "முடிக்கலாம்",
+                "that's all"
+              ],
               "agentResponse": "நன்றி சார்! ₹{{dueAmount}} ஜல்தியா pay பண்ணிடுங்க சார். நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "other_chit_due",
               "label": "Customer asks about other chit dues",
-              "expectedPhrases": ["இன்னொரு சீட்", "மத்த சீட்", "வேற சீட்", "other due", "மத்த due"],
+              "expectedPhrases": [
+                "இன்னொரு சீட்",
+                "மத்த சீட்",
+                "வேற சீட்",
+                "other due",
+                "மத்த due"
+              ],
               "agentResponse": "சார், உங்க மத்த சீட் details-க்கு எங்க office-ஐ contact பண்ணுங்க சார். Exact details சொல்லுவாங்க சார். நன்றி சார்! வணக்கம்!",
               "action": "end_call"
             },
             {
               "id": "premature_withdrawal",
               "label": "Customer asks about premature withdrawal",
-              "expectedPhrases": ["எடுத்தா", "withdraw", "close", "cancel", "நிறுத்த", "refund"],
+              "expectedPhrases": [
+                "எடுத்தா",
+                "withdraw",
+                "close",
+                "cancel",
+                "நிறுத்த",
+                "refund"
+              ],
               "agentResponse": "சார், premature withdrawal details-க்கு எங்க office-ல நேர்ல வந்து பேசுங்க சார். Exact amount சொல்லுவாங்க சார். நன்றி சார்! வணக்கம்!",
               "action": "end_call"
             }

@@ -82,7 +82,7 @@ async function initiateCallController(req, res) {
 
     // ── Fire-and-forget TTS pre-warm during ring phase ─────────────────────────
     // Customer's phone rings for ~10-15 seconds — use that time to pre-synthesize
-    // the greeting + all QA responses for this customer so every turn is cached.
+    // the greeting + all script flow step messages for this customer so every turn is cached.
     const _meta = { ...enrichedMeta };
     setImmediate(async () => {
       try {
@@ -90,24 +90,67 @@ async function initiateCallController(req, res) {
         const { getPromptText }    = require('../services/aiService');
         const { applyTemplate }    = require('../utils/templateEngine');
         const QaTemplate           = require('../models/QaTemplate');
+        const _fs = require('fs');
+        const _path = require('path');
 
-        // 1) Greeting (personalised per customer)
-        const greetingText = await getPromptText('GREETING', _meta);
-        await synthesizeSpeech(greetingText).catch(() => {});
+        const allTexts = [];
+
+        // 1) Pre-warm the correct greeting based on workflow
+        const wfId = _meta.workflowId || _meta.callType;
+        let wfGreetingDone = false;
+        if (wfId) {
+          try {
+            const wfFile = _path.join(__dirname, '../../config/workflows.json');
+            if (_fs.existsSync(wfFile)) {
+              const wfs = JSON.parse(_fs.readFileSync(wfFile, 'utf8'));
+              const wf = wfs.find(w => w.id === wfId);
+              if (wf?.scriptFlow?.enabled && wf.scriptFlow.steps?.length) {
+                // Pre-warm ALL script flow step messages + branch responses
+                for (const step of wf.scriptFlow.steps) {
+                  if (step.agentMessage) {
+                    allTexts.push(applyTemplate(step.agentMessage, _meta));
+                  }
+                  if (step.fallbackMessage) {
+                    allTexts.push(applyTemplate(step.fallbackMessage, _meta));
+                  }
+                  if (step.branches) {
+                    for (const br of step.branches) {
+                      if (br.agentResponse) {
+                        allTexts.push(applyTemplate(br.agentResponse, _meta));
+                      }
+                    }
+                  }
+                }
+                wfGreetingDone = true;
+              }
+            }
+          } catch (e) {
+            logger.debug('Workflow pre-warm parse error:', e.message);
+          }
+        }
+
+        // Fallback: generic greeting if no workflow script
+        if (!wfGreetingDone) {
+          const greetingText = await getPromptText('GREETING', _meta);
+          allTexts.unshift(greetingText);
+        }
 
         // 2) All active QA response texts with this customer's template vars filled
         const qaRows = await QaTemplate.findAll({ where: { isActive: true }, raw: true });
-        const allTexts = [];
         qaRows.forEach(r => {
           (r.responses || []).forEach(t => {
             allTexts.push(applyTemplate(t, _meta));
           });
         });
-        // Synthesise in parallel (max 5 at a time to avoid rate-limit)
-        for (let i = 0; i < allTexts.length; i += 5) {
-          await Promise.all(allTexts.slice(i, i + 5).map(t => synthesizeSpeech(t).catch(() => {})));
+
+        // Deduplicate
+        const unique = [...new Set(allTexts)];
+
+        // Synthesise in parallel (max 6 at a time to avoid rate-limit)
+        for (let i = 0; i < unique.length; i += 6) {
+          await Promise.all(unique.slice(i, i + 6).map(t => synthesizeSpeech(t).catch(() => {})));
         }
-        logger.info(`Pre-warmed ${allTexts.length + 1} TTS entries for call ${call.id}`);
+        logger.info(`Pre-warmed ${unique.length} TTS entries for call ${call.id} (workflow: ${wfId || 'none'})`);
       } catch (e) {
         logger.warn('Per-call TTS pre-warm failed:', e.message);
       }

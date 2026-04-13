@@ -46,8 +46,9 @@ function loadWorkflow(workflowId) {
 
 function getScriptFlow(call) {
   if (call?.metadata?.scriptFlow?.enabled) return call.metadata.scriptFlow;
-  if (call?.metadata?.workflowId) {
-    const wf = loadWorkflow(call.metadata.workflowId);
+  const wfId = call?.metadata?.workflowId || call?.metadata?.callType;
+  if (wfId) {
+    const wf = loadWorkflow(wfId);
     if (wf?.scriptFlow?.enabled) return wf.scriptFlow;
   }
   return null;
@@ -66,13 +67,13 @@ async function getCallMeta(callId) {
  * Returns TwiML to initiate the conversation
  */
 async function processCallAnswer(callId) {
-  await logEvent(callId, 'call_answered', 'info', 'User answered the call');
-
-  await Call.update(
+  // Fire-and-forget: status update + logging don't block response
+  Call.update(
     { status: 'in-progress', startedAt: new Date() },
     { where: { id: callId } }
   );
-  await notifyDashboard({ type: 'CALL_STARTED', callId });
+  logEvent(callId, 'call_answered', 'info', 'User answered the call');
+  notifyDashboard({ type: 'CALL_STARTED', callId });
 
   const call = await Call.findByPk(callId);
   const scriptFlow = getScriptFlow(call);
@@ -83,14 +84,14 @@ async function processCallAnswer(callId) {
 
   if (scriptFlow) {
     greetingText = scriptEngine.startFlow(callId, scriptFlow);
-    await logEvent(callId, 'script_flow_started', 'info', `Script flow started at step: ${scriptFlow.startStep}`);
+    logEvent(callId, 'script_flow_started', 'info', `Script flow started at step: ${scriptFlow.startStep}`);
     greetingText = applyTemplate(greetingText, meta);
   } else {
     greetingText = await getPromptText('GREETING', meta);
   }
 
   const tts = await synthesizeSpeech(greetingText);
-  await saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0, tts.playableUrl);
+  saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0, tts.playableUrl);
 
   return generateConversationExoML(tts.playableUrl, callId, 0, greetingText);
 }

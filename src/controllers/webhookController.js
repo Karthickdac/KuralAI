@@ -76,9 +76,6 @@ async function handleConversationStart(req, res) {
   logger.info(`Conversation starting for callId=${callId}`);
 
   try {
-    const call = await Call.findByPk(callId);
-    if (!call) return res.type('text/xml').send('<Response><Hangup/></Response>');
-
     const exoml = await processCallAnswer(callId);
     res.type('text/xml').send(exoml);
   } catch (error) {
