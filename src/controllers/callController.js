@@ -80,6 +80,39 @@ async function initiateCallController(req, res) {
       status: 'queued',
     });
 
+    // ── Fire-and-forget TTS pre-warm during ring phase ─────────────────────────
+    // Customer's phone rings for ~10-15 seconds — use that time to pre-synthesize
+    // the greeting + all QA responses for this customer so every turn is cached.
+    const _meta = { ...enrichedMeta };
+    setImmediate(async () => {
+      try {
+        const { synthesizeSpeech } = require('../services/speechService');
+        const { getPromptText }    = require('../services/aiService');
+        const { applyTemplate }    = require('../utils/templateEngine');
+        const QaTemplate           = require('../models/QaTemplate');
+
+        // 1) Greeting (personalised per customer)
+        const greetingText = await getPromptText('GREETING', _meta);
+        await synthesizeSpeech(greetingText).catch(() => {});
+
+        // 2) All active QA response texts with this customer's template vars filled
+        const qaRows = await QaTemplate.findAll({ where: { isActive: true }, raw: true });
+        const allTexts = [];
+        qaRows.forEach(r => {
+          (r.responses || []).forEach(t => {
+            allTexts.push(applyTemplate(t, _meta));
+          });
+        });
+        // Synthesise in parallel (max 5 at a time to avoid rate-limit)
+        for (let i = 0; i < allTexts.length; i += 5) {
+          await Promise.all(allTexts.slice(i, i + 5).map(t => synthesizeSpeech(t).catch(() => {})));
+        }
+        logger.info(`Pre-warmed ${allTexts.length + 1} TTS entries for call ${call.id}`);
+      } catch (e) {
+        logger.warn('Per-call TTS pre-warm failed:', e.message);
+      }
+    });
+
     res.status(201).json({
       success: true,
       callId: call.id,

@@ -145,6 +145,25 @@ async function bootstrap() {
     startRetryScheduler();
     logger.info('✅ Retry scheduler started');
 
+    // Pre-warm TTS cache with static Tamil phrases so first calls are instant
+    setImmediate(async () => {
+      try {
+        const { synthesizeSpeech } = require('./services/speechService');
+        const { TAMIL_PROMPTS } = require('./config/tamilPrompts');
+        const staticPhrases = [
+          TAMIL_PROMPTS.GOODBYE,
+          TAMIL_PROMPTS.FALLBACK_SILENCE,
+          TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE,
+          TAMIL_PROMPTS.GREETING_REPEAT,
+          TAMIL_PROMPTS.FALLBACK_REPEATED,
+        ].filter(Boolean);
+        await Promise.all(staticPhrases.map(p => synthesizeSpeech(p).catch(() => {})));
+        logger.info(`✅ Pre-warmed ${staticPhrases.length} static TTS phrases`);
+      } catch (e) {
+        logger.warn('Static TTS pre-warm skipped:', e.message);
+      }
+    });
+
     const PORT = process.env.PORT || 3000;
     server.listen(PORT, () => {
       logger.info(`🚀 KuralAI server running on port ${PORT}`);
