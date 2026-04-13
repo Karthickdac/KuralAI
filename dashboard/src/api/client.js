@@ -87,8 +87,11 @@ export const ttsApi = {
 };
 
 export const customersApi = {
-  list: () => api.get('/api/customers'),
-  get:  (id) => api.get(`/api/customers/${id}`),
+  list:   ()         => api.get('/api/customers'),
+  get:    (id)       => api.get(`/api/customers/${id}`),
+  create: (data)     => api.post('/api/customers', data),
+  update: (id, data) => api.put(`/api/customers/${id}`, data),
+  remove: (id)       => api.delete(`/api/customers/${id}`),
   setPreference:   (id, key, value) => api.patch(`/api/customers/${id}/preferences`, { key, value }),
   clearPreference: (id, key)        => api.delete(`/api/customers/${id}/preferences/${key}`),
 };
