@@ -183,11 +183,15 @@ async function handleRecordingStatus(req, res) {
   if (!call && CallSid) call = await Call.findOne({ where: { callSid: CallSid } });
 
   if (call && RecordingUrl) {
-    const update = { recordingUrl: RecordingUrl };
+    let publicUrl = RecordingUrl;
+    if (publicUrl.includes('api.twilio.com') && !publicUrl.match(/\.\w{2,4}$/)) {
+      publicUrl = publicUrl + '.mp3';
+    }
+    const update = { recordingUrl: publicUrl };
     if (RecordingSid) update.recordingSid = RecordingSid;
     await call.update(update);
-    logger.info(`Recording saved for call ${call.id}: ${RecordingUrl}`);
-    await notifyDashboard({ type: 'RECORDING_READY', callId: call.id, recordingUrl: RecordingUrl });
+    logger.info(`Recording saved for call ${call.id}: ${publicUrl}`);
+    await notifyDashboard({ type: 'RECORDING_READY', callId: call.id, recordingUrl: publicUrl });
 
     if (call.metadata?.callbackUrl) {
       setImmediate(async () => {
@@ -206,7 +210,7 @@ async function handleRecordingStatus(req, res) {
             phone: call.toPhone,
             status: call.status,
             duration: call.duration,
-            recordingUrl: RecordingUrl,
+            recordingUrl: publicUrl,
             recordingSid: RecordingSid,
             campaignId: call.metadata?.campaignId,
             transcripts: transcripts.map(t => t.toJSON()),

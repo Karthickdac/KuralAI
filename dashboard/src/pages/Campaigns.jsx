@@ -399,7 +399,7 @@ export default function Campaigns() {
                             <td>{call.duration ? `${call.duration}s` : '-'}</td>
                             <td>
                               {call.recordingUrl ? (
-                                <a href={call.recordingUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontSize: 12 }}>Play</a>
+                                <a href={`/api/calls/${call.id}/recording/stream`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontSize: 12 }}>Play</a>
                               ) : '-'}
                             </td>
                             <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatDate(call.createdAt)}</td>
