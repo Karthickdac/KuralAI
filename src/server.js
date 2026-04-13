@@ -6,6 +6,7 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -124,6 +125,19 @@ app.get('/audio/:filename', (req, res) => {
   res.sendFile(filePath);
 });
 
+// ─── Production Static File Serving (React Dashboard) ────────────────────────
+const dashboardBuildDir = path.join(__dirname, '..', 'dashboard', 'build');
+if (process.env.NODE_ENV === 'production' && require('fs').existsSync(dashboardBuildDir)) {
+  app.use(express.static(dashboardBuildDir));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/webhook') || req.path.startsWith('/audio/')) {
+      return next();
+    }
+    res.sendFile(path.join(dashboardBuildDir, 'index.html'));
+  });
+  logger.info('📦 Serving dashboard from build directory');
+}
+
 // ─── Global Error Handler ──────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
   logger.error(`Unhandled error: ${err.message}`, { stack: err.stack });
@@ -134,6 +148,12 @@ app.use((err, req, res, next) => {
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Route not found' });
+  }
+  if (process.env.NODE_ENV === 'production' && require('fs').existsSync(dashboardBuildDir)) {
+    return res.sendFile(path.join(dashboardBuildDir, 'index.html'));
+  }
   res.status(404).json({ error: 'Route not found' });
 });
 
