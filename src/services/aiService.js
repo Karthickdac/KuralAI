@@ -41,16 +41,47 @@ const openai = new Proxy({}, { get(_, prop) { return getOpenAI()[prop]; } });
 
 // ─── Comprehensive Q&A Engine (LLM-independent) ────────────────────────────────
 //
-// Each Q&A pair has:
-//   phraseKeywords  — multi-word substrings  (score +3 each)
-//   tokenKeywords   — single meaningful words (score +1 each)
-//   minScore        — minimum to trigger this pair (default 1)
-//   responses       — array of response variants (one is picked at random)
-//   action          — 'continue' | 'end_call' | 'escalate'
-//
-// The pair with the HIGHEST total score wins (ties go to first listed).
+// Q&A pairs are now loaded from the qa_templates DB table.
+// An in-memory cache (60 s TTL) keeps hot reads fast.
+// Call invalidateTemplateCache() after any DB mutation.
 
-const QA_PAIRS = [
+let _qaCache = null;
+let _qaCacheAt = 0;
+const QA_CACHE_TTL = 60_000;
+
+function invalidateTemplateCache() {
+  _qaCache = null;
+  _qaCacheAt = 0;
+  logger.debug('Template cache invalidated');
+}
+
+async function loadQaPairs() {
+  const now = Date.now();
+  if (_qaCache && now - _qaCacheAt < QA_CACHE_TTL) return _qaCache;
+  try {
+    const QaTemplate = require('../models/QaTemplate');
+    const rows = await QaTemplate.findAll({
+      where: { isActive: true },
+      order: [['sortOrder', 'ASC'], ['createdAt', 'ASC']],
+    });
+    _qaCache = rows.map(r => ({
+      intent:        r.intent,
+      phraseKeywords: r.phraseKeywords || [],
+      tokenKeywords:  r.tokenKeywords  || [],
+      minScore:       r.minScore  ?? 1,
+      responses:      r.responses || [],
+      action:         r.action || 'continue',
+    }));
+    _qaCacheAt = now;
+    return _qaCache;
+  } catch (err) {
+    logger.warn('loadQaPairs DB error — using fallback:', err.message);
+    return _qaCache || HARDCODED_QA_PAIRS;
+  }
+}
+
+// ── Fallback when DB is unavailable ──────────────────────────────────────────
+const HARDCODED_QA_PAIRS = [
   // ── 1. Another seat — how many dues pending ─────────────────────────────
   {
     intent: 'seat_due_status',
@@ -286,18 +317,19 @@ function pickResponse(qa) {
 
 /**
  * Find the best-matching Q&A answer for user text.
+ * Loads Q&A pairs from DB (with TTL cache) — no LLM call needed.
  * @param {string} userText
  * @param {Object} metadata  — customer/chit data for template substitution
  * Returns null if no pair reaches its minScore.
- * Runs before LLM — zero API calls needed.
  */
-function findExactAnswer(userText, metadata = {}) {
+async function findExactAnswer(userText, metadata = {}) {
   const normalized = userText.toLowerCase().trim();
+  const pairs = await loadQaPairs();
 
   let bestMatch = null;
   let bestScore = 0;
 
-  for (const qa of QA_PAIRS) {
+  for (const qa of pairs) {
     const score = scoreQaPair(qa, normalized);
     const min = qa.minScore ?? 1;
     if (score >= min && score > bestScore) {
@@ -336,7 +368,7 @@ async function detectIntent(userText, metadata = {}) {
   }
 
   // Step 0: Exact Q&A match → high confidence, no LLM needed
-  const exact = findExactAnswer(userText, metadata);
+  const exact = await findExactAnswer(userText, metadata);
   if (exact) {
     return { intent: exact.intent, confidence: 0.95, keywords: [] };
   }
@@ -428,7 +460,7 @@ async function generateResponse(intent, userText, conversationHistory = [], call
   const startTime = Date.now();
 
   // ── Step 0: Check exact Q&A lookup (no LLM needed) ──────────────────────
-  const exact = findExactAnswer(userText, callMetadata);
+  const exact = await findExactAnswer(userText, callMetadata);
   if (exact) {
     return { ...exact, processingTimeMs: Date.now() - startTime };
   }
@@ -615,4 +647,5 @@ module.exports = {
   incrementSilenceCount,
   clearConversationContext,
   shouldEscalate,
+  invalidateTemplateCache,
 };

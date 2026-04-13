@@ -109,4 +109,16 @@ export const simulateApi = {
   },
 };
 
+export const templatesApi = {
+  listQa:          ()        => api.get('/api/templates/qa'),
+  createQa:        (data)    => api.post('/api/templates/qa', data),
+  updateQa:        (id, data) => api.put(`/api/templates/qa/${id}`, data),
+  deleteQa:        (id)      => api.delete(`/api/templates/qa/${id}`),
+
+  listPrompts:     ()        => api.get('/api/templates/prompts'),
+  createPrompt:    (data)    => api.post('/api/templates/prompts', data),
+  updatePrompt:    (id, data) => api.put(`/api/templates/prompts/${id}`, data),
+  deletePrompt:    (id)      => api.delete(`/api/templates/prompts/${id}`),
+};
+
 export default api;

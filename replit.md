@@ -45,6 +45,19 @@ CSS variables defined in `dashboard/src/global.css`:
 - `/reports` — `Reports.jsx` — period tabs (7/14/30/90d), 5 KPI cards, volume chart, outcome pie, intent bar, summary table, CSV export
 - `/users` — `Users.jsx` — CRUD user management with modal
 - `/settings` — `Settings.jsx` — grouped settings sections (call behaviour, retry, AI/voice, escalation)
+- `/simulate` — `Simulate.jsx` — customer selector + chit panel + live call simulation with Web Speech API (ta-IN)
+- `/templates` — `Templates.jsx` — full CRUD for Q&A pairs and system prompts stored in PostgreSQL
+
+## Database Tables
+- `calls`, `transcripts`, `call_logs` — call data
+- `users` — dashboard users
+- `customers` — seeded with ரமேஷ் (+919876543210), சுரேஷ் (+919876543211), பிரியா (+919876543212)
+- `chit_accounts` — 6 accounts (2 per customer, isPrimary flag)
+- `qa_templates` — Q&A pairs (intent, phraseKeywords, tokenKeywords, minScore, responses, action, sortOrder) — editable via /templates
+- `prompt_templates` — system prompts (GREETING, FALLBACK_*, ESCALATION, GOODBYE etc.) — editable via /templates
+
+## Template Variables (available in {{var}} syntax)
+`{{customerName}}`, `{{chitValue}}`, `{{dueAmount}}`, `{{currentDue}}`, `{{completedDues}}`, `{{pendingDues}}`, `{{totalDues}}`, `{{nextDueDate}}`, `{{withdrawalAmount}}`, `{{otherChitDues}}`, `{{chitGroup}}`, `{{familyJamin}}`, `{{otherJamin}}`, `{{chequeLeaf}}`
 
 ## API Routes
 - `POST /api/auth/login` / `GET /api/auth/me`
@@ -54,6 +67,9 @@ CSS variables defined in `dashboard/src/global.css`:
 - `GET/POST/PUT/DELETE /api/users` (admin only)
 - `GET/PUT /api/settings` — stored in `config/app-settings.json`
 - `GET/POST/PUT/DELETE /api/workflows` — stored in `config/workflows.json`
+- `GET/POST/PUT/DELETE /api/templates/qa` — Q&A pair templates (stored in DB)
+- `GET/POST/PUT/DELETE /api/templates/prompts` — system prompt templates (stored in DB)
+- `GET /api/customers`, `GET /api/customers/:id` — customer list + chit metadata
 - `POST /webhook/voice|status|recording`
 - `WS /ws?token=<jwt>` — real-time call events
 

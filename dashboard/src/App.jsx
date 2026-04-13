@@ -10,6 +10,7 @@ import Settings from './pages/Settings';
 import Workflows from './pages/Workflows';
 import Reports from './pages/Reports';
 import Simulate from './pages/Simulate';
+import Templates from './pages/Templates';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><Simulate /></ProtectedRoute>} />
+        <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
