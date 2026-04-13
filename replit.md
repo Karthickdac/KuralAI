@@ -99,6 +99,20 @@ Each flow uses the `scriptEngine.js` to branch based on customer responses (keyw
 ## Intent Detection (17 intents)
 seat_due_status, premature_withdrawal, jamin_documents, payment_complaint, reduce_calls, no_office_calls, lottery_participation, lottery_decline, identity_confirm, identity_deny, already_paid, callback_request, payment_date_inquiry, chit_value_inquiry, payment_mode, human_request, end_call
 
+## CRM Integration Module
+- **Page**: `/crm` — 3-tab dashboard (Configuration, Fetch Customers, Push Recordings)
+- **Backend**: `src/routes/crm.routes.js` — `/api/crm/*`
+  - `GET /config` + `PUT /config` — CRM URL settings (fetch URL, push URL, headers)
+  - `POST /fetch-customers` — pull customer data from external CRM, upsert into KuralAI
+  - `GET /calls` — list calls with recordings and push status
+  - `POST /push-recording/:callId` — push single call recording + transcript to CRM
+  - `POST /push-all` — bulk push all unpushed recordings
+- **Frontend**: `dashboard/src/pages/CrmIntegration.jsx` + `CrmIntegration.module.css`
+- **Settings keys**: `crmFetchUrl`, `crmFetchMethod`, `crmFetchHeaders`, `crmPushUrl`, `crmPushHeaders`
+- CRM response format auto-detected: root array, `{customers:[]}`, `{data:[]}`, or `{results:[]}`
+- Push payload includes: callId, phone, status, duration, recordingUrl, full transcript array, timestamps
+- Push status tracked in `call.metadata.recordingPushedAt`
+
 ## API Config Module
 - **Page**: `/api-config` — dedicated dashboard page showing all external service integrations
 - **Backend**: `src/routes/apiConfig.routes.js` — `GET /api/api-config/status` + `POST /api/api-config/test/:serviceId`

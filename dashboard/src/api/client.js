@@ -128,6 +128,15 @@ export const campaignsApi = {
   resume: (id) => api.post(`/api/campaigns/${id}/resume`),
 };
 
+export const crmApi = {
+  getConfig: () => api.get('/api/crm/config'),
+  saveConfig: (data) => api.put('/api/crm/config', data),
+  fetchCustomers: (opts) => api.post('/api/crm/fetch-customers', opts || {}, { timeout: 45000 }),
+  getCalls: (params) => api.get('/api/crm/calls', { params }),
+  pushRecording: (callId, opts) => api.post(`/api/crm/push-recording/${callId}`, opts || {}, { timeout: 20000 }),
+  pushAll: (opts) => api.post('/api/crm/push-all', opts || {}, { timeout: 120000 }),
+};
+
 export const apiConfigApi = {
   status: () => api.get('/api/api-config/status'),
   test: (serviceId) => api.post(`/api/api-config/test/${serviceId}`, {}, { timeout: 30000 }),
