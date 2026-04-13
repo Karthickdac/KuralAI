@@ -7,8 +7,33 @@ const fs   = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Call = require('../models/Call');
+const Customer = require('../models/Customer');
+const ChitAccount = require('../models/ChitAccount');
+const { buildChitMetadata } = require('./customerController');
 const { initiateCall } = require('../services/telephonyService');
 const logger = require('../utils/logger');
+
+/**
+ * Look up a customer by phone and build their full chit metadata.
+ * Returns {} if the customer or chit data is not found.
+ */
+async function resolveCustomerMeta(toPhone) {
+  try {
+    const customer = await Customer.findOne({ where: { phone: toPhone } });
+    if (!customer) return {};
+    const chits   = await ChitAccount.findAll({
+      where: { customerId: customer.id },
+      order: [['isPrimary', 'DESC']],
+    });
+    if (!chits.length) return { customerId: customer.id, customerName: customer.name, phone: customer.phone };
+    const primary = chits.find(ch => ch.isPrimary) || chits[0];
+    const others  = chits.filter(ch => !ch.isPrimary);
+    return buildChitMetadata(customer, primary, others[0] || null);
+  } catch (e) {
+    logger.warn('resolveCustomerMeta failed:', e.message);
+    return {};
+  }
+}
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 function getSettings() {
@@ -23,6 +48,10 @@ async function initiateCallController(req, res) {
   const { toPhone, metadata = {}, maxRetries } = req.body;
 
   try {
+    // Auto-enrich metadata with customer chit data from DB (DB values win over manual overrides)
+    const customerMeta = await resolveCustomerMeta(toPhone);
+    const enrichedMeta = { ...customerMeta, ...metadata };
+
     // Create call record in DB first
     const s = getSettings();
     const provider   = (s.telephonyProvider || 'twilio').toLowerCase();
@@ -37,13 +66,13 @@ async function initiateCallController(req, res) {
       status: 'initiated',
       direction: 'outbound',
       maxRetries: maxRetries || parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
-      metadata,
+      metadata: enrichedMeta,
     });
 
-    logger.info(`Call initiated: ${call.id} -> ${toPhone}`);
+    logger.info(`Call initiated: ${call.id} -> ${toPhone} | customer=${enrichedMeta.customerName || 'unknown'} | chit=${enrichedMeta.chitGroup || 'none'}`);
 
-    // Trigger Exotel call
-    const exotelCall = await initiateCall(toPhone, call.id, metadata);
+    // Trigger telephony call
+    const exotelCall = await initiateCall(toPhone, call.id, enrichedMeta);
 
     // Update with Exotel SID
     await call.update({
