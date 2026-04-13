@@ -658,8 +658,9 @@ async function generateResponse(intent, userText, conversationHistory = [], call
     logger.info(`AI response generated in ${processingTime}ms, action: ${result.action}`);
 
     const fallbackText = result.response ? null : await getPromptText('FALLBACK_LOW_CONFIDENCE', callMetadata);
+    const rawResp = result.response || fallbackText;
     return {
-      response: result.response || fallbackText,
+      response: applyTemplate(rawResp, callMetadata),
       action: result.action || 'continue', // continue | escalate | end_call
       confidence: result.confidence || 0.7,
       intent: result.intent || intent,
@@ -712,13 +713,13 @@ function buildSystemPrompt(intent, metadata = {}) {
       contextAddition = TAMIL_PROMPTS.LOTTERY_PARTICIPATION_CONTEXT;
       break;
     case 'human_request':
-      return `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் senior / manager-கிட்ட பேசணும்னு கேக்குறாங்க.
+      return applyTemplate(`${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் senior / manager-கிட்ட பேசணும்னு கேக்குறாங்க.
 action: "escalate" என்று திரும்பவும்.
-response: "${TAMIL_PROMPTS.HUMAN_REQUESTED}"`;
+response: "${TAMIL_PROMPTS.HUMAN_REQUESTED}"`, metadata);
     case 'end_call':
-      return `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் call முடிக்கணும்னு சொல்றாங்க.
+      return applyTemplate(`${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் call முடிக்கணும்னு சொல்றாங்க.
 action: "end_call" என்று திரும்பவும்.
-response: "${TAMIL_PROMPTS.GOODBYE}"`;
+response: "${TAMIL_PROMPTS.GOODBYE}"`, metadata);
     default:
       contextAddition = TAMIL_PROMPTS.GENERAL_HELP_CONTEXT;
   }
@@ -727,7 +728,8 @@ response: "${TAMIL_PROMPTS.GOODBYE}"`;
     contextAddition += `\nவாடிக்கையாளர் பெயர்: ${metadata.customerName}`;
   }
 
-  return `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\n${contextAddition}`;
+  const rawPrompt = `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\n${contextAddition}`;
+  return applyTemplate(rawPrompt, metadata);
 }
 
 // ─── Conversation Manager ──────────────────────────────────────────────────────

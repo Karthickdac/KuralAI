@@ -244,36 +244,37 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
 async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTime) {
   await logEvent(callId, 'script_flow_processing', 'info', `Matching: "${userText}"`);
 
+  const meta = await getCallMeta(callId);
   const result = await scriptEngine.processStep(callId, userText, scriptFlow);
+  const response = applyTemplate(result.response || '', meta);
 
-  await logEvent(callId, 'script_flow_matched', 'info', result.response, {
+  await logEvent(callId, 'script_flow_matched', 'info', response, {
     done: result.done,
     escalate: result.escalate,
   });
 
   if (result.escalate) {
-    if (result.response) {
-      const tts = await synthesizeSpeech(result.response);
-      await saveTranscript(callId, turn + 1, 'ai', result.response, null, 'script_escalation', 1.0, tts.playableUrl, Date.now() - startTime);
-      // Play response then escalate
-      return generateConversationExoML(tts.playableUrl, callId, turn + 1, result.response);
+    if (response) {
+      const tts = await synthesizeSpeech(response);
+      await saveTranscript(callId, turn + 1, 'ai', response, null, 'script_escalation', 1.0, tts.playableUrl, Date.now() - startTime);
+      return generateConversationExoML(tts.playableUrl, callId, turn + 1, response);
     }
     return handleEscalation(callId, turn, 'script_no_match');
   }
 
   if (result.done) {
-    const goodbyeText = result.response || await getPromptText('GOODBYE', await getCallMeta(callId));
+    const goodbyeText = response || await getPromptText('GOODBYE', meta);
     const tts = await synthesizeSpeech(goodbyeText);
     await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'script_complete', 1.0, tts.playableUrl, Date.now() - startTime);
     scriptEngine.clearFlow(callId);
     return generateEndCallExoML(null, goodbyeText);
   }
 
-  const tts = await synthesizeSpeech(result.response);
-  await saveTranscript(callId, turn + 1, 'ai', result.response, null, 'script_response', 1.0, tts.playableUrl, Date.now() - startTime);
+  const tts = await synthesizeSpeech(response);
+  await saveTranscript(callId, turn + 1, 'ai', response, null, 'script_response', 1.0, tts.playableUrl, Date.now() - startTime);
 
   await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent: 'script_flow' });
-  return generateConversationExoML(tts.playableUrl, callId, turn + 1, result.response);
+  return generateConversationExoML(tts.playableUrl, callId, turn + 1, response);
 }
 
 /**
