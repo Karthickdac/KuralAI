@@ -15,6 +15,7 @@ const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 const CREDENTIAL_FIELDS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
+  'elevenLabsApiKey',
 ];
 
 const DEFAULTS = {
@@ -28,10 +29,15 @@ const DEFAULTS = {
   // OpenAI
   openaiApiKey:         process.env.OPENAI_API_KEY || '',
   openaiModel:          process.env.OPENAI_MODEL || 'gpt-4o',
+  // TTS Provider selection
+  ttsProvider:          process.env.TTS_PROVIDER || 'azure',
   // Azure Speech
   azureSpeechKey:       process.env.AZURE_SPEECH_KEY || '',
   azureSpeechRegion:    process.env.AZURE_SPEECH_REGION || '',
   azureSpeechVoice:     process.env.AZURE_SPEECH_VOICE || 'ta-IN-PallaviNeural',
+  // ElevenLabs TTS
+  elevenLabsApiKey:     process.env.ELEVENLABS_API_KEY || '',
+  elevenLabsVoiceId:    process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
   // AWS S3
   awsAccessKeyId:       process.env.AWS_ACCESS_KEY_ID || '',
   awsSecretAccessKey:   process.env.AWS_SECRET_ACCESS_KEY || '',
@@ -122,9 +128,12 @@ router.put('/', requireAdmin, (req, res) => {
       appUrl:               'APP_URL',
       openaiApiKey:         'OPENAI_API_KEY',
       openaiModel:          'OPENAI_MODEL',
+      ttsProvider:          'TTS_PROVIDER',
       azureSpeechKey:       'AZURE_SPEECH_KEY',
       azureSpeechRegion:    'AZURE_SPEECH_REGION',
       azureSpeechVoice:     'AZURE_SPEECH_VOICE',
+      elevenLabsApiKey:     'ELEVENLABS_API_KEY',
+      elevenLabsVoiceId:    'ELEVENLABS_VOICE_ID',
       awsAccessKeyId:       'AWS_ACCESS_KEY_ID',
       awsSecretAccessKey:   'AWS_SECRET_ACCESS_KEY',
       s3BucketName:         'S3_BUCKET_NAME',

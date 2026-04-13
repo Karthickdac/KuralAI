@@ -3,9 +3,17 @@ import { settingsApi, workflowsApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './Settings.module.css';
 
-const VOICE_OPTIONS = [
+const AZURE_VOICE_OPTIONS = [
   { value: 'ta-IN-PallaviNeural', label: 'Pallavi (Female)' },
   { value: 'ta-IN-ValluvarNeural', label: 'Valluvar (Male)' },
+];
+
+const ELEVENLABS_VOICE_PRESETS = [
+  { value: '21m00Tcm4TlvDq8ikWAM', label: 'Rachel — calm, professional (Female)' },
+  { value: 'EXAVITQu4vr4xnSDxMaL', label: 'Bella — soft, warm (Female)' },
+  { value: 'TxGEqnHWrfWFTfGW9XjX', label: 'Josh — deep, assured (Male)' },
+  { value: 'ErXwobaYiN019PkySvjV', label: 'Antoni — warm, friendly (Male)' },
+  { value: 'custom', label: 'Custom Voice ID…' },
 ];
 
 const MODEL_OPTIONS = [
@@ -18,6 +26,7 @@ const MODEL_OPTIONS = [
 const CREDENTIAL_KEYS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
+  'elevenLabsApiKey',
 ];
 
 /* ─── Reusable section wrapper ─── */
@@ -134,6 +143,7 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [workflows, setWorkflows] = useState([]);
+  const [elVoicePreset, setElVoicePreset] = useState('21m00Tcm4TlvDq8ikWAM');
 
   useEffect(() => {
     Promise.all([
@@ -151,6 +161,9 @@ export default function Settings() {
         setSavedCreds(alreadySaved);
         setSettings(s);
         setWorkflows(workflowsRes.data.workflows || []);
+        // Init ElevenLabs preset picker
+        const knownPreset = ELEVENLABS_VOICE_PRESETS.find(p => p.value === (s.elevenLabsVoiceId || '21m00Tcm4TlvDq8ikWAM') && p.value !== 'custom');
+        setElVoicePreset(knownPreset ? knownPreset.value : 'custom');
       })
       .catch(() => setError('Failed to load settings'))
       .finally(() => setLoading(false));
@@ -297,36 +310,106 @@ export default function Settings() {
             </div>
           </Section>
 
-          {/* ── Azure Speech ─────────────────────────────────────────── */}
+          {/* ── TTS Provider ─────────────────────────────────────────── */}
           <Section
-            title="Azure Speech (TTS)"
+            title="Text-to-Speech (TTS)"
             badge="Required"
-            description="Tamil Neural TTS voices — from portal.azure.com → Cognitive Services → Speech."
+            description="Choose your TTS provider and configure its credentials."
           >
             <div className={styles.grid}>
-              <Field label="Azure Speech Key" hint="From Azure Portal → Speech resource → Keys and Endpoint">
-                <SecretInput
-                  name="azureSpeechKey"
-                  value={settings.azureSpeechKey || ''}
-                  onChange={e => handleChange('azureSpeechKey', e.target.value)}
-                  placeholder="Enter your Azure Speech subscription key"
-                  alreadySaved={savedCreds.has('azureSpeechKey')}
-                />
-              </Field>
-              <Field label="Azure Region" hint="e.g. eastus, southeastasia, centralindia">
-                <input
+              <Field label="TTS Provider" hint="Select which service generates the agent's voice" wide>
+                <select
                   className={styles.input}
-                  value={settings.azureSpeechRegion || ''}
-                  onChange={e => handleChange('azureSpeechRegion', e.target.value)}
-                  placeholder="e.g. centralindia"
-                />
-              </Field>
-              <Field label="Tamil TTS Voice" hint="Azure Neural TTS voice for Tamil speech synthesis">
-                <select className={styles.input} value={settings.azureSpeechVoice || 'ta-IN-PallaviNeural'} onChange={e => handleChange('azureSpeechVoice', e.target.value)}>
-                  {VOICE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  value={settings.ttsProvider || 'azure'}
+                  onChange={e => handleChange('ttsProvider', e.target.value)}
+                >
+                  <option value="azure">Azure Neural TTS (Tamil native voices)</option>
+                  <option value="elevenlabs">ElevenLabs (multilingual, highly natural)</option>
                 </select>
               </Field>
             </div>
+
+            {/* Azure fields */}
+            {(settings.ttsProvider || 'azure') === 'azure' && (
+              <div className={styles.grid} style={{ marginTop: 16 }}>
+                <Field label="Azure Speech Key" hint="From Azure Portal → Speech resource → Keys and Endpoint">
+                  <SecretInput
+                    name="azureSpeechKey"
+                    value={settings.azureSpeechKey || ''}
+                    onChange={e => handleChange('azureSpeechKey', e.target.value)}
+                    placeholder="Enter your Azure Speech subscription key"
+                    alreadySaved={savedCreds.has('azureSpeechKey')}
+                  />
+                </Field>
+                <Field label="Azure Region" hint="e.g. eastus, southeastasia, centralindia">
+                  <input
+                    className={styles.input}
+                    value={settings.azureSpeechRegion || ''}
+                    onChange={e => handleChange('azureSpeechRegion', e.target.value)}
+                    placeholder="e.g. centralindia"
+                  />
+                </Field>
+                <Field label="Tamil TTS Voice" hint="Azure Neural TTS voice for Tamil speech synthesis">
+                  <select className={styles.input} value={settings.azureSpeechVoice || 'ta-IN-PallaviNeural'} onChange={e => handleChange('azureSpeechVoice', e.target.value)}>
+                    {AZURE_VOICE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </Field>
+              </div>
+            )}
+
+            {/* ElevenLabs fields */}
+            {settings.ttsProvider === 'elevenlabs' && (
+              <div className={styles.grid} style={{ marginTop: 16 }}>
+                <Field label="ElevenLabs API Key" hint="From elevenlabs.io → Profile → API Key">
+                  <SecretInput
+                    name="elevenLabsApiKey"
+                    value={settings.elevenLabsApiKey || ''}
+                    onChange={e => handleChange('elevenLabsApiKey', e.target.value)}
+                    placeholder="sk_..."
+                    alreadySaved={savedCreds.has('elevenLabsApiKey')}
+                  />
+                </Field>
+                <Field label="Voice Preset" hint="Pick a built-in ElevenLabs voice or enter a custom Voice ID">
+                  <select
+                    className={styles.input}
+                    value={elVoicePreset}
+                    onChange={e => {
+                      const v = e.target.value;
+                      setElVoicePreset(v);
+                      if (v !== 'custom') handleChange('elevenLabsVoiceId', v);
+                    }}
+                  >
+                    {ELEVENLABS_VOICE_PRESETS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </Field>
+                <Field
+                  label={elVoicePreset === 'custom' ? 'Custom Voice ID' : 'Voice ID'}
+                  hint={elVoicePreset === 'custom'
+                    ? 'Paste the Voice ID from your ElevenLabs voice library'
+                    : 'Voice ID sent to ElevenLabs API — change Voice Preset above to override'}
+                >
+                  <input
+                    className={styles.input}
+                    value={settings.elevenLabsVoiceId || ''}
+                    onChange={e => {
+                      setElVoicePreset('custom');
+                      handleChange('elevenLabsVoiceId', e.target.value);
+                    }}
+                    placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
+                    readOnly={elVoicePreset !== 'custom'}
+                    style={elVoicePreset !== 'custom' ? { opacity: 0.6 } : {}}
+                  />
+                </Field>
+                <Field label="Model" hint="eleven_multilingual_v2 supports Tamil and 28 other languages">
+                  <input
+                    className={styles.input}
+                    value="eleven_multilingual_v2"
+                    readOnly
+                    style={{ opacity: 0.6 }}
+                  />
+                </Field>
+              </div>
+            )}
           </Section>
 
           {/* ── AWS S3 ───────────────────────────────────────────────── */}

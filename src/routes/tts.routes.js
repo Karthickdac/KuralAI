@@ -1,6 +1,6 @@
 /**
  * TTS Preview Route - /api/tts/preview
- * Synthesises text using Azure Neural TTS and streams audio to the client.
+ * Synthesises text using the configured TTS provider (Azure or ElevenLabs) and streams audio.
  * Used by the Workflow script preview panel in the dashboard.
  */
 
@@ -10,7 +10,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { authenticateToken } = require('../middleware/auth');
-const { buildTamilSSML } = require('../services/speechService');
+const { buildTamilSSML, getTtsProvider, getElevenLabsConfig } = require('../services/speechService');
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 
@@ -25,8 +25,6 @@ function readSettings() {
 
 function getAzureConfig() {
   const stored = readSettings();
-  // User-saved settings (via the Settings UI) always take priority over env vars.
-  // This prevents stale/mismatched environment variables from overriding the dashboard config.
   return {
     key:    stored.azureSpeechKey    || process.env.AZURE_SPEECH_KEY    || '',
     region: stored.azureSpeechRegion || process.env.AZURE_SPEECH_REGION || '',
@@ -44,6 +42,59 @@ router.post('/preview', authenticateToken, async (req, res) => {
     return res.status(400).json({ error: 'text is required' });
   }
 
+  const provider = getTtsProvider();
+
+  // ─── ElevenLabs ────────────────────────────────────────────────────────────
+  if (provider === 'elevenlabs') {
+    const cfg = getElevenLabsConfig();
+
+    if (!cfg.apiKey) {
+      return res.status(503).json({
+        error: 'ElevenLabs API key is not configured. Add it in Settings → ElevenLabs TTS.',
+      });
+    }
+
+    const voiceId = voice || cfg.voiceId;
+    const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+
+    try {
+      const response = await axios.post(
+        endpoint,
+        {
+          text,
+          model_id: cfg.modelId,
+          voice_settings: { stability: 0.50, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true },
+        },
+        {
+          headers: {
+            'xi-api-key': cfg.apiKey,
+            'Content-Type': 'application/json',
+            Accept: 'audio/mpeg',
+          },
+          responseType: 'arraybuffer',
+          timeout: 30000,
+        }
+      );
+
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': response.data.byteLength,
+        'Cache-Control': 'no-store',
+      });
+      return res.send(Buffer.from(response.data));
+    } catch (err) {
+      const status = err.response?.status;
+      const detail = err.response?.data ? Buffer.from(err.response.data).toString('utf-8') : err.message;
+      const msg = status === 401
+        ? 'ElevenLabs API key is invalid or expired.'
+        : status === 422
+        ? `ElevenLabs rejected the request — check Voice ID. (${detail})`
+        : `ElevenLabs TTS request failed (${status}): ${err.message}`;
+      return res.status(502).json({ error: msg });
+    }
+  }
+
+  // ─── Azure (default) ────────────────────────────────────────────────────────
   const cfg = getAzureConfig();
 
   if (!cfg.key || !cfg.region) {
@@ -52,12 +103,8 @@ router.post('/preview', authenticateToken, async (req, res) => {
     });
   }
 
-  // Resolve final voice: per-request override → saved setting → default
   const selectedVoice = voice || cfg.voice;
-
-  // Build rich SSML — pass voice name explicitly so env vars don't interfere
   const ssml = buildTamilSSML(text, selectedVoice);
-
   const endpoint = `https://${cfg.region}.tts.speech.microsoft.com/cognitiveservices/v1`;
 
   try {

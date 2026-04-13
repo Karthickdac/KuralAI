@@ -1,7 +1,7 @@
 /**
  * Speech Service
  * Speech-to-Text: OpenAI Whisper (Tamil-accurate)
- * Text-to-Speech: Azure Neural TTS (Tamil Neural Voice)
+ * Text-to-Speech: Azure Neural TTS (Tamil Neural Voice) OR ElevenLabs multilingual
  */
 
 const OpenAI = require('openai');
@@ -49,6 +49,29 @@ async function storeAudioLocally(audioBuffer, filename) {
 }
 
 const SETTINGS_FILE_STT = path.join(__dirname, '../../config/app-settings.json');
+
+function readAppSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE_STT)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE_STT, 'utf-8'));
+    }
+  } catch {}
+  return {};
+}
+
+function getTtsProvider() {
+  const s = readAppSettings();
+  return s.ttsProvider || process.env.TTS_PROVIDER || 'azure';
+}
+
+function getElevenLabsConfig() {
+  const s = readAppSettings();
+  return {
+    apiKey:  s.elevenLabsApiKey  || process.env.ELEVENLABS_API_KEY  || '',
+    voiceId: s.elevenLabsVoiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
+    modelId: s.elevenLabsModelId || 'eleven_multilingual_v2',
+  };
+}
 
 function getOpenAIKey() {
   try {
@@ -158,12 +181,20 @@ async function transcribeFromUrl(audioUrl, authUser, authPass) {
 // ─── Text-to-Speech (TTS) ──────────────────────────────────────────────────────
 
 /**
- * Convert Tamil text to speech using Azure Neural TTS
+ * Convert Tamil text to speech — routes to ElevenLabs or Azure based on ttsProvider setting.
  * @param {string} text - Tamil text to synthesize
- * @param {string} outputPath - Optional: where to save audio file
- * @returns {Object} { audioBuffer, duration, s3Url }
+ * @param {string} outputPath - Optional: where to save audio file (Azure only)
+ * @returns {Object} { audioBuffer, duration, s3Url, playableUrl }
  */
 async function synthesizeSpeech(text, outputPath = null) {
+  const provider = getTtsProvider();
+  if (provider === 'elevenlabs') {
+    return synthesizeSpeechElevenLabs(text);
+  }
+  return synthesizeSpeechAzure(text, outputPath);
+}
+
+async function synthesizeSpeechAzure(text, outputPath = null) {
   const startTime = Date.now();
 
   return new Promise((resolve, reject) => {
@@ -289,6 +320,64 @@ function buildTamilSSML(text, voiceName) {
 }
 
 /**
+ * Convert Tamil text to speech using ElevenLabs multilingual v2
+ * @param {string} text - Tamil text to synthesize
+ * @returns {Object} { audioBuffer, playableUrl, duration, processingTimeMs }
+ */
+async function synthesizeSpeechElevenLabs(text) {
+  const startTime = Date.now();
+  const cfg = getElevenLabsConfig();
+
+  if (!cfg.apiKey) throw new Error('ElevenLabs API key is not configured. Add it in Settings.');
+  if (!cfg.voiceId) throw new Error('ElevenLabs Voice ID is not configured. Add it in Settings.');
+
+  const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${cfg.voiceId}`;
+
+  const response = await axios.post(
+    endpoint,
+    {
+      text,
+      model_id: cfg.modelId,
+      voice_settings: {
+        stability: 0.50,
+        similarity_boost: 0.75,
+        style: 0.0,
+        use_speaker_boost: true,
+      },
+    },
+    {
+      headers: {
+        'xi-api-key': cfg.apiKey,
+        'Content-Type': 'application/json',
+        Accept: 'audio/mpeg',
+      },
+      responseType: 'arraybuffer',
+      timeout: 30000,
+    }
+  );
+
+  const audioBuffer = Buffer.from(response.data);
+  const processingTime = Date.now() - startTime;
+  logger.info(`ElevenLabs TTS completed in ${processingTime}ms for ${text.length} chars`);
+
+  const audioFilename = `el_${uuidv4()}.mp3`;
+  let s3Url = null;
+  let playableUrl = null;
+
+  if (isS3Configured()) {
+    const s3Key = `${process.env.S3_TTS_PREFIX || 'tts-cache/'}${audioFilename}`;
+    s3Url = await uploadAudioToS3(audioBuffer, s3Key, 'audio/mpeg');
+    playableUrl = await getSignedUrl(s3Key, 3600);
+  } else {
+    const local = await storeAudioLocally(audioBuffer, audioFilename);
+    playableUrl = local.playableUrl;
+    logger.debug(`ElevenLabs audio served locally: ${playableUrl}`);
+  }
+
+  return { audioBuffer, s3Url, playableUrl, duration: null, processingTimeMs: processingTime };
+}
+
+/**
  * Fallback TTS using OpenAI (for when Azure is unavailable)
  * Note: OpenAI TTS doesn't support Tamil natively, use only as last resort
  */
@@ -323,6 +412,9 @@ module.exports = {
   transcribeAudio,
   transcribeFromUrl,
   synthesizeSpeech,
+  synthesizeSpeechElevenLabs,
   synthesizeSpeechFallback,
   buildTamilSSML,
+  getTtsProvider,
+  getElevenLabsConfig,
 };
