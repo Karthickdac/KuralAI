@@ -136,6 +136,7 @@ export default function Simulate() {
   const [customers, setCustomers]           = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loadingCustomers, setLoadingCustomers] = useState(true);
+  const [customersError, setCustomersError]     = useState(false);
 
   const audioRef        = useRef(null);
   const recognitionRef  = useRef(null);
@@ -144,17 +145,23 @@ export default function Simulate() {
   const textInputRef    = useRef(null);
   const processingRef   = useRef(false);
 
-  useEffect(() => {
-    workflowsApi.list().then(r => setWorkflows(r.data || [])).catch(() => {});
+  const loadCustomers = useCallback(() => {
+    setLoadingCustomers(true);
+    setCustomersError(false);
     customersApi.list()
       .then(r => {
         const list = r.data || [];
         setCustomers(list);
         if (list.length > 0) setSelectedCustomer(list[0]);
       })
-      .catch(() => {})
+      .catch(() => setCustomersError(true))
       .finally(() => setLoadingCustomers(false));
   }, []);
+
+  useEffect(() => {
+    workflowsApi.list().then(r => setWorkflows(r.data || [])).catch(() => {});
+    loadCustomers();
+  }, [loadCustomers]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -410,6 +417,11 @@ export default function Simulate() {
 
                 {loadingCustomers ? (
                   <div className={styles.spinner} style={{ alignSelf: 'center' }} />
+                ) : customersError ? (
+                  <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--danger)' }}>
+                    <p style={{ marginBottom: 8, fontSize: 13 }}>Customers load ஆகவில்லை. மீண்டும் முயற்சிக்கவும்.</p>
+                    <button className={styles.newCallBtn} onClick={loadCustomers}>Retry</button>
+                  </div>
                 ) : (
                   <div className={styles.customerGrid}>
                     {customers.map(c => (
