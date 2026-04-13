@@ -3,6 +3,20 @@ import { crmApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './CrmIntegration.module.css';
 
+function SampleCard({ title, badge, defaultOpen, children }) {
+  const [open, setOpen] = useState(defaultOpen || false);
+  return (
+    <div className={styles.card}>
+      <button className={styles.sampleToggle} onClick={() => setOpen(o => !o)}>
+        <span className={`${styles.sampleToggleIcon} ${open ? styles.sampleToggleIconOpen : ''}`}>&#9654;</span>
+        {title}
+        {badge && <span className={styles.cardBadge}>{badge}</span>}
+      </button>
+      {open && <div className={styles.sampleBody}>{children}</div>}
+    </div>
+  );
+}
+
 function ConfigSection({ config, setConfig, onSave, saving, saved }) {
   function handleChange(key, value) {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -67,6 +81,97 @@ function ConfigSection({ config, setConfig, onSave, saving, saved }) {
           Saved
         </span>}
       </div>
+
+      <SampleCard title="Expected CRM Response Format" badge="Inbound Reference">
+        <div className={styles.sampleSection}>
+          <span className={`${styles.sampleLabel} ${styles.sampleLabelIn}`}>Your CRM should return</span>
+          <pre className={styles.samplePre}>{`{
+  "customers": [
+    {
+      "name": "ரமேஷ்",
+      "phone": "+919876543210",
+      "email": "ramesh@example.com",
+      "chit": {
+        "chitGroup": "CG-2024-A",
+        "chitValue": 500000,
+        "dueAmount": 18750,
+        "totalDues": 40,
+        "completedDues": 12,
+        "nextDueDate": "மே 7"
+      }
+    },
+    {
+      "name": "கார்த்திக்",
+      "phone": "7358337470",
+      "chit": {
+        "chitGroup": "CG-2024-C",
+        "chitValue": 1000000,
+        "dueAmount": 37500,
+        "totalDues": 40,
+        "completedDues": 1,
+        "nextDueDate": "மே 5"
+      }
+    }
+  ]
+}`}</pre>
+          <p className={styles.sampleNote}>
+            <strong>Accepted wrappers:</strong> root array <code>[ ]</code>, or object with key <code>customers</code>, <code>data</code>, or <code>results</code>.<br />
+            <strong>Phone field:</strong> <code>phone</code>, <code>mobile</code>, <code>phoneNumber</code>, or <code>contact</code>. 10-digit numbers are auto-prefixed with +91.<br />
+            <strong>Name field:</strong> <code>name</code>, <code>customerName</code>, or <code>fullName</code>.<br />
+            <strong>Chit details:</strong> nested under <code>chit</code>, <code>chitAccount</code>, or <code>account</code>. All chit fields are optional.
+          </p>
+        </div>
+      </SampleCard>
+
+      <SampleCard title="Recording Push Payload" badge="Outbound Reference">
+        <div className={styles.sampleSection}>
+          <span className={`${styles.sampleLabel} ${styles.sampleLabelOut}`}>KuralAI sends this to your CRM</span>
+          <pre className={styles.samplePre}>{`{
+  "callId": "ae4660e6-3a1d-4410-a817-d16726073a0c",
+  "phone": "+917358337470",
+  "customerName": "கார்த்திக்",
+  "status": "completed",
+  "duration": 113,
+  "recordingUrl": "https://your-domain.com/api/calls/<callId>/recording/stream",
+  "recordingSid": "RE10bcc57ae18866036031139ff3336b0d",
+  "callType": "due_reminder",
+  "transcript": [
+    {
+      "role": "assistant",
+      "text": "வணக்கம் கார்த்திக், ஆட்டோமிஸ்டிக் சிட் ஃபண்ட்ஸ்...",
+      "intent": null,
+      "turnNumber": 1
+    },
+    {
+      "role": "user",
+      "text": "சொல்லுங்க",
+      "intent": "identity_confirm",
+      "turnNumber": 2
+    },
+    {
+      "role": "assistant",
+      "text": "CG-2024-C சிட் குரூப்ல உங்க தவணை ₹37,500...",
+      "intent": null,
+      "turnNumber": 3
+    }
+  ],
+  "startedAt": "2026-04-13T15:29:38.254Z",
+  "endedAt": "2026-04-13T15:31:44.782Z",
+  "metadata": {
+    "chitGroup": "CG-2024-C",
+    "chitValue": "10,00,000",
+    "dueAmount": "37,500",
+    "currentDue": 2,
+    "totalDues": 40
+  }
+}`}</pre>
+          <p className={styles.sampleNote}>
+            <strong>recordingUrl:</strong> Public proxy URL — your CRM can access the audio without Twilio credentials.<br />
+            <strong>transcript:</strong> Full conversation turns with detected customer intents (e.g. <code>identity_confirm</code>, <code>already_paid</code>, <code>callback_request</code>).<br />
+            <strong>metadata:</strong> All chit fund details passed during the original call.
+          </p>
+        </div>
+      </SampleCard>
     </>
   );
 }
@@ -149,33 +254,6 @@ function FetchSection({ config }) {
         </div>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardHead}>
-          <span className={styles.cardTitle}>Expected CRM Response Format</span>
-          <span className={styles.cardBadge}>Reference</span>
-        </div>
-        <div className={styles.cardBody}>
-          <pre style={{ margin: 0, padding: 14, background: '#f8fafc', borderRadius: 6, fontSize: 12, fontFamily: 'monospace', color: '#334155', lineHeight: 1.6, overflow: 'auto' }}>
-{`{
-  "customers": [
-    {
-      "name": "ரமேஷ்",
-      "phone": "+919876543210",
-      "address": "Chennai",
-      "chit": {
-        "chitGroup": "CG-2024-A",
-        "chitValue": 500000,
-        "dueAmount": 18750,
-        "totalDues": 40,
-        "completedDues": 12,
-        "nextDueDate": "மே 7"
-      }
-    }
-  ]
-}`}
-          </pre>
-        </div>
-      </div>
     </>
   );
 }
