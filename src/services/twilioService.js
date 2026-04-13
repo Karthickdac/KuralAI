@@ -140,6 +140,7 @@ function generateConversationExoML(audioUrl, callId, turn, sayText) {
 
   return _xml(`
   <Gather input="speech" timeout="20" speechTimeout="3"
+          language="ta-IN"
           action="${speechUrl}"
           method="POST">
     ${spokenContent}
