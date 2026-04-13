@@ -257,7 +257,7 @@ async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTim
     const tts = await synthesizeSpeech(goodbyeText);
     await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'script_complete', 1.0, tts.playableUrl, Date.now() - startTime);
     scriptEngine.clearFlow(callId);
-    return generateEndCallExoML(null, goodbyeText);
+    return generateEndCallExoML(tts.playableUrl, goodbyeText);
   }
 
   const tts = await synthesizeSpeech(response);

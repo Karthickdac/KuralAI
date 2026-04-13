@@ -6,11 +6,11 @@
     "callType": "due_reminder",
     "scriptFlow": {
       "enabled": true,
-      "startStep": "greeting_and_due",
+      "startStep": "due_info",
       "steps": [
         {
-          "id": "greeting_and_due",
-          "agentMessage": "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்? சார், உங்களுக்கு {{nextDueDate}} தேதி {{chitValue}} சீட்டோட {{currentDue}}வது due இருக்கு சார். Due amount ₹{{dueAmount}} சார். Time-க்கு கட்டிடுங்க சார்.",
+          "id": "due_info",
+          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்களுக்கு {{nextDueDate}} தேதி {{chitValue}} சீட்டோட {{currentDue}}வது due இருக்கு சார். Due amount ₹{{dueAmount}} சார். Time-க்கு கட்டிடுங்க சார்.",
           "branches": [
             {
               "id": "will_pay",
@@ -26,8 +26,6 @@
                 "sure",
                 "ஆமா",
                 "ஆமாம்",
-                "நான் தான்",
-                "பேசுறேன்",
                 "yes",
                 "yeah",
                 "haan",
@@ -63,21 +61,6 @@
                 "later"
               ],
               "agentResponse": "புரிஞ்சது சார். Due date {{nextDueDate}} தேதிக்குள்ள pay பண்ணிட்டா penalty இல்ல சார். Convenient-ஆன நேரம் arrange பண்ணிக்கோங்க சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
-              "action": "end_call"
-            },
-            {
-              "id": "identity_no",
-              "label": "Wrong person or not available",
-              "expectedPhrases": [
-                "இல்ல",
-                "wrong",
-                "தப்பு",
-                "வேற ஆளு",
-                "நான் இல்ல",
-                "available இல்ல",
-                "வெளியில"
-              ],
-              "agentResponse": "மன்னிக்கணும் சார். Inconvenience-க்கு sorry சார். நன்றி சார். வணக்கம்.",
               "action": "end_call"
             },
             {
@@ -121,7 +104,7 @@
               "action": "escalate"
             }
           ],
-          "fallbackMessage": "ஒரு நிமிஷம் சார் — சரியா கேட்கல. {{customerName}} சார்ங்களா சார்? {{currentDue}}வது due ₹{{dueAmount}} பற்றி call பண்றேன் சார்.",
+          "fallbackMessage": "ஒரு நிமிஷம் சார் — சரியா கேட்கல. {{currentDue}}வது due ₹{{dueAmount}} பற்றி call பண்றேன் சார். Pay பண்றீங்களா சார்?",
           "maxRetries": 2
         },
         {
@@ -190,20 +173,18 @@
     "callType": "lottery_participation",
     "scriptFlow": {
       "enabled": true,
-      "startStep": "greeting_and_lottery",
+      "startStep": "lottery_invite",
       "steps": [
         {
-          "id": "greeting_and_lottery",
-          "agentMessage": "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்? சார், உங்க {{chitValue}} சீட்டோட அடுத்த குலுக்கல் {{nextDueDate}} தேதி இருக்கு சார். Due ₹{{dueAmount}} time-க்கு கட்டினா automatically include ஆகும் சார். Participate பண்ண விருப்பம் இருக்கா சார்?",
+          "id": "lottery_invite",
+          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்க {{chitValue}} சீட்டோட அடுத்த குலுக்கல் {{nextDueDate}} தேதி இருக்கு சார். Due ₹{{dueAmount}} time-க்கு கட்டினா automatically include ஆகும் சார். Participate பண்ண விருப்பம் இருக்கா சார்?",
           "branches": [
             {
               "id": "interested",
-              "label": "Customer is interested or confirms identity",
+              "label": "Customer is interested",
               "expectedPhrases": [
                 "ஆமா",
                 "ஆமாம்",
-                "நான் தான்",
-                "பேசுறேன்",
                 "interested",
                 "கலந்துக்கிறேன்",
                 "participate",
@@ -232,8 +213,8 @@
                 "அடுத்த தடவை",
                 "இப்போ வேண்டாம்"
               ],
-              "agentResponse": "சரி சார், அடுத்த தடவை பாக்கலாம்.",
-              "nextStep": "due_reminder_and_goodbye"
+              "agentResponse": "சரி சார், அடுத்த தடவை பாக்கலாம். Due amount ₹{{dueAmount}} time-க்கு கட்டிடுங்க சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
+              "action": "end_call"
             },
             {
               "id": "lottery_details",
@@ -261,20 +242,6 @@
               "action": "end_call"
             },
             {
-              "id": "identity_no",
-              "label": "Wrong person or not available",
-              "expectedPhrases": [
-                "இல்ல",
-                "wrong",
-                "தப்பு",
-                "வேற ஆளு",
-                "நான் இல்ல",
-                "available இல்ல"
-              ],
-              "agentResponse": "மன்னிக்கணும் சார். Wrong number-க்கு sorry. நல்ல நாள் சார். வணக்கம்.",
-              "action": "end_call"
-            },
-            {
               "id": "busy_now",
               "label": "Customer is busy",
               "expectedPhrases": [
@@ -288,47 +255,7 @@
               "action": "end_call"
             }
           ],
-          "fallbackMessage": "ஒரு நிமிஷம் சார், சரியா கேட்கல. {{customerName}} சார்ங்களா சார்? குலுக்கல்ல participate பண்ண விருப்பமா சார்?",
-          "maxRetries": 2
-        },
-        {
-          "id": "due_reminder_and_goodbye",
-          "agentMessage": "சார், due amount ₹{{dueAmount}} — {{nextDueDate}} தேதிக்குள்ள கட்டிடுங்க சார். Time-க்கு கட்டினா அடுத்த குலுக்கல்ல include ஆகும் சார். வேற ஏதாவது doubt இருக்கா சார்?",
-          "branches": [
-            {
-              "id": "ok_understood",
-              "label": "Customer acknowledges or says no questions",
-              "expectedPhrases": [
-                "ok",
-                "சரி",
-                "ஆமா",
-                "sure",
-                "கட்டுறேன்",
-                "noted",
-                "இல்ல",
-                "no",
-                "வேண்டாம்",
-                "nothing"
-              ],
-              "agentResponse": "நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
-              "action": "end_call"
-            },
-            {
-              "id": "payment_how",
-              "label": "Customer asks how to pay",
-              "expectedPhrases": [
-                "எப்படி",
-                "account",
-                "UPI",
-                "bank",
-                "online",
-                "cash"
-              ],
-              "agentResponse": "Cash-ஆ office-ல கட்டலாம், UPI/bank transfer-ம் okay சார். Account details-க்கு office-ஐ contact பண்ணுங்க சார். நன்றி சார்! வணக்கம்!",
-              "action": "end_call"
-            }
-          ],
-          "fallbackMessage": "சார், ₹{{dueAmount}} time-க்கு கட்டுங்க சார். Okay சார்?",
+          "fallbackMessage": "ஒரு நிமிஷம் சார், சரியா கேட்கல. குலுக்கல்ல participate பண்ண விருப்பமா சார்?",
           "maxRetries": 2
         }
       ]
@@ -343,11 +270,11 @@
     "callType": "payment_followup",
     "scriptFlow": {
       "enabled": true,
-      "startStep": "greeting_and_payment",
+      "startStep": "payment_status",
       "steps": [
         {
-          "id": "greeting_and_payment",
-          "agentMessage": "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்? சார், உங்க {{chitValue}} சீட்டோட {{currentDue}}வது due — ₹{{dueAmount}} pending-ல இருக்கு சார். எப்போ pay பண்ண plan சார்?",
+          "id": "payment_status",
+          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்க {{chitValue}} சீட்டோட {{currentDue}}வது due — ₹{{dueAmount}} pending-ல இருக்கு சார். எப்போ pay பண்ண plan சார்?",
           "branches": [
             {
               "id": "will_pay_soon",
@@ -363,8 +290,6 @@
                 "this week",
                 "ஆமா",
                 "ஆமாம்",
-                "நான் தான்",
-                "பேசுறேன்",
                 "yes",
                 "yeah",
                 "haan",
@@ -373,8 +298,8 @@
                 "சரி",
                 "sure"
               ],
-              "agentResponse": "நன்றி சார்! {{nextDueDate}} தேதிக்குள்ள கட்டிட்டா penalty இல்ல சார். Due time-க்கு கட்டினா அடுத்த குலுக்கல்ல-ம் include ஆகும் சார். வேற ஏதாவது doubt இருக்கா சார்?",
-              "nextStep": "final_questions"
+              "agentResponse": "நன்றி சார்! {{nextDueDate}} தேதிக்குள்ள கட்டிட்டா penalty இல்ல சார். Due time-க்கு கட்டினா அடுத்த குலுக்கல்ல-ம் include ஆகும் சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
+              "action": "end_call"
             },
             {
               "id": "already_paid",
@@ -407,20 +332,6 @@
               "action": "end_call"
             },
             {
-              "id": "identity_no",
-              "label": "Wrong person or not available",
-              "expectedPhrases": [
-                "இல்ல",
-                "wrong",
-                "தப்பு",
-                "வேற ஆளு",
-                "நான் இல்ல",
-                "available இல்ல"
-              ],
-              "agentResponse": "மன்னிக்கணும் சார். நன்றி சார். வணக்கம்.",
-              "action": "end_call"
-            },
-            {
               "id": "busy_now",
               "label": "Customer is busy",
               "expectedPhrases": [
@@ -430,45 +341,6 @@
                 "meeting"
               ],
               "agentResponse": "சரி சார், அப்புறம் call பண்றோம் சார். நன்றி சார்.",
-              "action": "end_call"
-            },
-            {
-              "id": "human_request",
-              "label": "Customer wants to speak to a person",
-              "expectedPhrases": [
-                "senior",
-                "manager",
-                "ஆளு",
-                "transfer",
-                "complaint",
-                "புகார்"
-              ],
-              "agentResponse": "சரி சார், உங்களை எங்க senior-கிட்ட transfer பண்றேன். ஒரு நிமிஷம் சார்.",
-              "action": "escalate"
-            }
-          ],
-          "fallbackMessage": "ஒரு நிமிஷம் சார், சரியா கேட்கல. {{customerName}} சார்ங்களா சார்? ₹{{dueAmount}} due pending பற்றி call பண்றேன் சார்.",
-          "maxRetries": 2
-        },
-        {
-          "id": "final_questions",
-          "agentMessage": "சார், வேற ஏதாவது doubt இருக்கா சார்?",
-          "branches": [
-            {
-              "id": "no_questions",
-              "label": "Customer has no questions",
-              "expectedPhrases": [
-                "இல்ல",
-                "no",
-                "nothing",
-                "வேண்டாம்",
-                "ok",
-                "சரி",
-                "போதும்",
-                "thanks",
-                "நன்றி"
-              ],
-              "agentResponse": "நன்றி சார்! ₹{{dueAmount}} time-க்கு கட்டுங்க சார். நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
             },
             {
@@ -487,22 +359,22 @@
               "action": "end_call"
             },
             {
-              "id": "other_chit_question",
-              "label": "Customer asks about other chits or dues",
+              "id": "human_request",
+              "label": "Customer wants to speak to a person",
               "expectedPhrases": [
-                "வேற சீட்டு",
-                "other chit",
-                "மத்த",
-                "total",
-                "எல்லா due",
-                "how many"
+                "senior",
+                "manager",
+                "ஆளு",
+                "transfer",
+                "complaint",
+                "புகார்"
               ],
-              "agentResponse": "சார், உங்க total dues ₹{{totalDues}} சார். எல்லா details-க்கும் எங்க office-ஐ contact பண்ணுங்க சார். நன்றி சார்! வணக்கம்!",
-              "action": "end_call"
+              "agentResponse": "சரி சார், உங்களை எங்க senior-கிட்ட transfer பண்றேன். ஒரு நிமிஷம் சார்.",
+              "action": "escalate"
             }
           ],
-          "fallbackMessage": "சார், வேற doubt இருக்கா? இல்லன்னா call முடிக்கலாம் சார்.",
-          "maxRetries": 1
+          "fallbackMessage": "ஒரு நிமிஷம் சார், சரியா கேட்கல. ₹{{dueAmount}} due pending பற்றி call பண்றேன் சார். Pay பண்றீங்களா சார்?",
+          "maxRetries": 2
         }
       ]
     },
