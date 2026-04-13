@@ -33,12 +33,29 @@
  */
 
 const OpenAI = require('openai');
+const fs = require('fs');
+const path = require('path');
 const logger = require('../utils/logger');
 
+const SETTINGS_FILE_SE = path.join(__dirname, '../../config/app-settings.json');
+
+function getOpenAIKey() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE_SE)) {
+      const s = JSON.parse(fs.readFileSync(SETTINGS_FILE_SE, 'utf-8'));
+      if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
+    }
+  } catch {}
+  return process.env.OPENAI_API_KEY || 'placeholder';
+}
+
 let _openai = null;
+let _openaiKey = null;
 function getOpenAI() {
-  if (!_openai) {
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'placeholder' });
+  const key = getOpenAIKey();
+  if (!_openai || key !== _openaiKey) {
+    _openai = new OpenAI({ apiKey: key });
+    _openaiKey = key;
   }
   return _openai;
 }
