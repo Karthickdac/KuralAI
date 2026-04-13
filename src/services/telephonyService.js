@@ -12,9 +12,9 @@ const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 function getProvider() {
   try {
     const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-    return (s.telephonyProvider || 'exotel').toLowerCase();
+    return (s.telephonyProvider || 'twilio').toLowerCase();
   } catch {}
-  return process.env.TELEPHONY_PROVIDER || 'exotel';
+  return process.env.TELEPHONY_PROVIDER || 'twilio';
 }
 
 function getService() {

@@ -13,8 +13,8 @@ KuralAI is a real-time AI voice calling platform that speaks and understands Tam
 ## External Services Required
 - **OpenAI**: GPT-4o (LLM) + Whisper (STT) — set `OPENAI_API_KEY`
 - **Telephony** (choose one, configurable in Settings → Telephony):
-  - **Exotel** (default): `EXOTEL_SID`, `EXOTEL_API_KEY`, `EXOTEL_API_TOKEN`, `EXOTEL_PHONE_NUMBER`
-  - **Twilio**: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+  - **Twilio** (default): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+  - **Exotel**: `EXOTEL_SID`, `EXOTEL_API_KEY`, `EXOTEL_API_TOKEN`, `EXOTEL_PHONE_NUMBER`
   - `EXOTEL_WEBHOOK_TOKEN` — shared secret appended to all webhook URLs (both providers)
 - **TTS** (choose one, configurable in Settings → AI & Voice):
   - **Azure Neural TTS** (default): `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`

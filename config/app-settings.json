@@ -1,5 +1,5 @@
 {
-  "telephonyProvider": "exotel",
+  "telephonyProvider": "twilio",
   "exotelSid": "kyro3602",
   "exotelApiKey": "acbb96a876b5f77649272f3cadda84ab85a1298e1ef1ceed",
   "exotelApiToken": "70f6c0c7ce0d5b45ac1ee31df49ba89160f16415611a413e",

@@ -23,7 +23,7 @@ const CREDENTIAL_FIELDS = [
 
 const DEFAULTS = {
   // Telephony provider
-  telephonyProvider:    process.env.TELEPHONY_PROVIDER || 'exotel',
+  telephonyProvider:    process.env.TELEPHONY_PROVIDER || 'twilio',
   // Exotel
   exotelSid:            process.env.EXOTEL_SID || '',
   exotelApiKey:         process.env.EXOTEL_API_KEY || '',
