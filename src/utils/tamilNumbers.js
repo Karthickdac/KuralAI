@@ -168,49 +168,157 @@ function ordinalVatu(n) {
   return numberToTamil(n) + 'ஆவது';
 }
 
+// ── Month name tables ─────────────────────────────────────────────────────────
+
+const ENGLISH_MONTHS_FULL = [
+  'january','february','march','april','may','june',
+  'july','august','september','october','november','december',
+];
+const ENGLISH_MONTHS_SHORT = [
+  'jan','feb','mar','apr','may','jun',
+  'jul','aug','sep','oct','nov','dec',
+];
+const TAMIL_MONTHS = [
+  'ஜனவரி','பிப்ரவரி','மார்ச்','ஏப்ரல்','மே','ஜூன்',
+  'ஜூலை','ஆகஸ்ட்','செப்டம்பர்','அக்டோபர்','நவம்பர்','டிசம்பர்',
+];
+// Tamil month names that may already appear in text
+const TAMIL_MONTH_NAMES = [
+  'ஜனவரி','பிப்ரவரி','மார்ச்','ஏப்ரல்','மே','ஜூன்',
+  'ஜூலை','ஆகஸ்ட்','செப்டம்பர்','அக்டோபர்','நவம்பர்','டிசம்பர்',
+];
+
+function englishMonthToTamil(monthStr) {
+  const m = monthStr.toLowerCase();
+  const fullIdx  = ENGLISH_MONTHS_FULL.indexOf(m);
+  if (fullIdx  >= 0) return TAMIL_MONTHS[fullIdx];
+  const shortIdx = ENGLISH_MONTHS_SHORT.indexOf(m.slice(0, 3));
+  if (shortIdx >= 0) return TAMIL_MONTHS[shortIdx];
+  return monthStr;
+}
+
 // ── Main text transformer ─────────────────────────────────────────────────────
 
 /**
- * Convert all numerals/currency in a Tamil sentence to Tamil spoken words.
- * Runs BEFORE ElevenLabs TTS so numbers are pronounced correctly.
+ * Convert all numerals, dates, and currency in a Tamil sentence to Tamil spoken words.
+ * Runs BEFORE ElevenLabs TTS so numbers and dates are pronounced correctly.
  *
- * Patterns handled:
- *   ₹2,500   →  இரண்டாயிரத்துஐந்நூறு ரூபாய்
- *   Rs.5000  →  ஐயாயிரம் ரூபாய்
- *   7ம் தேதி →  ஏழாம் தேதி
- *   1வது     →  முதல்
- *   50,000   →  ஐம்பதாயிரம்
+ * Date patterns handled:
+ *   2025-04-15        →  ஏப்ரல் பதினைந்தாம் தேதி
+ *   15/04/2025        →  ஏப்ரல் பதினைந்தாம் தேதி
+ *   15-04-2025        →  ஏப்ரல் பதினைந்தாம் தேதி
+ *   April 15          →  ஏப்ரல் பதினைந்தாம் தேதி
+ *   Apr 15, 2025      →  ஏப்ரல் பதினைந்தாம் தேதி
+ *   15 April 2025     →  ஏப்ரல் பதினைந்தாம் தேதி
+ *   மே 7              →  மே ஏழாம் தேதி
+ *   7ம் தேதி          →  ஏழாம் தேதி
+ *   7 தேதி            →  ஏழாம் தேதி
+ *   7ஆம் தேதி         →  ஏழாம் தேதி
+ * Number/currency patterns:
+ *   ₹2,500            →  இரண்டாயிரத்துஐந்நூறு ரூபாய்
+ *   Rs.5000           →  ஐயாயிரம் ரூபாய்
+ *   1வது              →  முதல்
+ *   50,000            →  ஐம்பதாயிரம்
  */
 function tamilizeText(text) {
   if (!text) return text;
   let t = text;
 
-  // 1. Currency with ₹ or Rs. (strip commas, parse, convert)
-  //    e.g. ₹2,500 → இரண்டாயிரத்துஐந்நூறு ரூபாய்
+  // ── Date conversions (must run before number conversions) ─────────────────
+
+  // 1a. ISO date: YYYY-MM-DD → "TamilMonth ordinalDay தேதி"
+  t = t.replace(/\b(20\d{2}|19\d{2})-(\d{2})-(\d{2})\b/g, (_, y, m, d) => {
+    const month = parseInt(m, 10);
+    const day   = parseInt(d, 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return _;
+    return `${TAMIL_MONTHS[month - 1]} ${ordinalDate(day)} தேதி`;
+  });
+
+  // 1b. DD/MM/YYYY or DD-MM-YYYY (ambiguous, assume D/M/Y for Indian locale)
+  t = t.replace(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](20\d{2}|19\d{2})\b/g, (_, d, m, y) => {
+    const day   = parseInt(d, 10);
+    const month = parseInt(m, 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return _;
+    return `${TAMIL_MONTHS[month - 1]} ${ordinalDate(day)} தேதி`;
+  });
+
+  // 1c. DD/MM (short — no year): e.g. "07/04" → "ஏப்ரல் ஏழாம் தேதி"
+  t = t.replace(/\b(\d{1,2})\/(\d{1,2})\b(?!\d*[\/\-]\d)/g, (_, d, m) => {
+    const day   = parseInt(d, 10);
+    const month = parseInt(m, 10);
+    if (month < 1 || month > 12 || day < 1 || day > 31) return _;
+    return `${TAMIL_MONTHS[month - 1]} ${ordinalDate(day)} தேதி`;
+  });
+
+  // 1d. English month full/short + day (+ optional year):
+  //     "April 15" / "Apr 15" / "April 15, 2025" / "Apr 15 2025"
+  const engMonthPattern = ENGLISH_MONTHS_FULL.concat(ENGLISH_MONTHS_SHORT)
+    .map(m => m[0].toUpperCase() + m.slice(1))
+    .join('|');
+  const engMonthRe = new RegExp(
+    `\\b(${engMonthPattern})\\.?\\s+(\\d{1,2})(?:[,\\s]+(20\\d{2}|19\\d{2}))?\\b`, 'gi'
+  );
+  t = t.replace(engMonthRe, (_, mon, d) => {
+    const day = parseInt(d, 10);
+    if (day < 1 || day > 31) return _;
+    return `${englishMonthToTamil(mon)} ${ordinalDate(day)} தேதி`;
+  });
+
+  // 1e. Day + English month (+ optional year): "15 April" / "15 April 2025"
+  const dayMonthRe = new RegExp(
+    `\\b(\\d{1,2})\\s+(${engMonthPattern})\\.?(?:[,\\s]+(20\\d{2}|19\\d{2}))?\\b`, 'gi'
+  );
+  t = t.replace(dayMonthRe, (_, d, mon) => {
+    const day = parseInt(d, 10);
+    if (day < 1 || day > 31) return _;
+    return `${englishMonthToTamil(mon)} ${ordinalDate(day)} தேதி`;
+  });
+
+  // 1f. Tamil month + bare day number: "மே 7" / "ஏப்ரல் 15"
+  const tamilMonthPat = TAMIL_MONTH_NAMES.join('|');
+  const tamilMonthDayRe = new RegExp(`(${tamilMonthPat})\\s+(\\d{1,2})(?!ம்|ஆம்|வது)`, 'g');
+  t = t.replace(tamilMonthDayRe, (_, mon, d) => {
+    const day = parseInt(d, 10);
+    if (day < 1 || day > 31) return _;
+    return `${mon} ${ordinalDate(day)} தேதி`;
+  });
+
+  // ── Ordinal date patterns ─────────────────────────────────────────────────
+
+  // 2a. "7ம் தேதி" → "ஏழாம் தேதி"
+  t = t.replace(/(\d+)ம்\s*தேதி/g, (_, d) => ordinalDate(parseInt(d, 10)) + ' தேதி');
+
+  // 2b. "7ஆம் தேதி" → "ஏழாம் தேதி"
+  t = t.replace(/(\d+)ஆம்\s*தேதி/g, (_, d) => ordinalDate(parseInt(d, 10)) + ' தேதி');
+
+  // 2c. "7 தேதி" (bare number before தேதி, no suffix) → "ஏழாம் தேதி"
+  t = t.replace(/\b(\d{1,2})\s+தேதி/g, (_, d) => {
+    const day = parseInt(d, 10);
+    if (day < 1 || day > 31) return _;
+    return ordinalDate(day) + ' தேதி';
+  });
+
+  // 3. Ordinal "வது": e.g. "1வது" → "முதல்"
+  t = t.replace(/(\d+)வது/g, (_, d) => ordinalVatu(parseInt(d, 10)));
+
+  // ── Number / currency conversions ─────────────────────────────────────────
+
+  // 4. Currency with ₹ or Rs.
   t = t.replace(/(?:₹|Rs\.?)\s*([\d,]+)/g, (_, numStr) => {
     const n = parseInt(numStr.replace(/,/g, ''), 10);
     return numberToTamil(n) + ' ரூபாய்';
   });
 
-  // 2. Ordinal date: e.g. "7ம் தேதி" → "ஏழாம் தேதி"
-  t = t.replace(/(\d+)ம்\s*தேதி/g, (_, d) => ordinalDate(parseInt(d, 10)) + ' தேதி');
-
-  // 3. Ordinal "வது": e.g. "1வது" → "முதல்"
-  t = t.replace(/(\d+)வது/g, (_, d) => ordinalVatu(parseInt(d, 10)));
-
-  // 4. Standalone numbers with commas: e.g. "50,000" → "ஐம்பதாயிரம்"
-  //    Only match if surrounded by non-digit chars to avoid partial replacement
+  // 5. Standalone numbers with commas: "50,000" → "ஐம்பதாயிரம்"
   t = t.replace(/(?<![₹\d])(\d{1,3}(?:,\d{3})+)(?!\d)/g, (_, numStr) => {
     const n = parseInt(numStr.replace(/,/g, ''), 10);
     return numberToTamil(n);
   });
 
-  // 5. Remaining plain numbers ≥ 100 (likely amounts, not phone/dates)
-  //    Avoid converting years, phone numbers (> 6 digits)
+  // 6. Remaining plain numbers ≥ 100 (amounts); skip years and phone numbers
   t = t.replace(/(?<![₹.\d])(\d{3,6})(?!\d)/g, (match, numStr) => {
     const n = parseInt(numStr, 10);
-    // Skip if it looks like a year (1900-2099)
-    if (n >= 1900 && n <= 2099) return match;
+    if (n >= 1900 && n <= 2099) return match; // skip years
     return numberToTamil(n);
   });
 
