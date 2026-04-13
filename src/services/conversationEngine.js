@@ -291,7 +291,7 @@ async function handleSilence(callId, turn) {
   // Ask user to repeat
   const silenceText = await getPromptText('FALLBACK_SILENCE', await getCallMeta(callId));
   const tts = await synthesizeSpeech(silenceText);
-  await saveTranscript(callId, turn, 'ai', silenceText, null, 'silence_handler', 1.0);
+  await saveTranscript(callId, turn, 'ai', silenceText, null, 'silence_handler', 1.0, tts.playableUrl);
 
   return generateConversationExoML(tts.playableUrl, callId, turn, silenceText);
 }
@@ -304,7 +304,7 @@ async function handleEndCall(callId, turn) {
 
   const goodbyeText = await getPromptText('GOODBYE', await getCallMeta(callId));
   const tts = await synthesizeSpeech(goodbyeText);
-  await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'end_call', 1.0);
+  await saveTranscript(callId, turn + 1, 'ai', goodbyeText, null, 'end_call', 1.0, tts.playableUrl);
 
   clearConversationContext(callId);
   scriptEngine.clearFlow(callId);
@@ -320,7 +320,7 @@ async function handleEscalation(callId, turn, reason) {
 
   const escalationText = await getPromptText('ESCALATION_MESSAGE', await getCallMeta(callId));
   const tts = await synthesizeSpeech(escalationText);
-  await saveTranscript(callId, turn + 1, 'ai', escalationText, null, 'escalation', 1.0);
+  await saveTranscript(callId, turn + 1, 'ai', escalationText, null, 'escalation', 1.0, tts.playableUrl);
 
   // Update call record
   await Call.update(

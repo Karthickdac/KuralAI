@@ -521,8 +521,9 @@ async function generateResponse(intent, userText, conversationHistory = [], call
 
     logger.info(`AI response generated in ${processingTime}ms, action: ${result.action}`);
 
+    const fallbackText = result.response ? null : await getPromptText('FALLBACK_LOW_CONFIDENCE', callMetadata);
     return {
-      response: result.response || TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE,
+      response: result.response || fallbackText,
       action: result.action || 'continue', // continue | escalate | end_call
       confidence: result.confidence || 0.7,
       intent: result.intent || intent,
@@ -533,9 +534,10 @@ async function generateResponse(intent, userText, conversationHistory = [], call
   } catch (error) {
     logger.error('LLM response generation error:', error.message);
 
-    // Return safe fallback
+    // Return safe fallback from DB (with hardcoded fallback if DB is down)
+    const fallbackResp = await getPromptText('FALLBACK_LOW_CONFIDENCE', callMetadata);
     return {
-      response: TAMIL_PROMPTS.FALLBACK_LOW_CONFIDENCE,
+      response: fallbackResp,
       action: 'continue',
       confidence: 0.3,
       intent,
@@ -665,7 +667,6 @@ function shouldEscalate(callId, currentConfidence) {
 
   if (ctx.lowConfidenceStreak >= 3) return { escalate: true, reason: 'repeated_low_confidence' };
   if (ctx.silenceCount >= 2) return { escalate: true, reason: 'repeated_silence' };
-  if (currentConfidence < CONFIDENCE_THRESHOLDS.ESCALATE) return { escalate: true, reason: 'very_low_confidence' };
 
   return { escalate: false };
 }
