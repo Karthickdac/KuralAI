@@ -88,8 +88,10 @@ function belowHundred(n) {
   const t = Math.floor(n / 10);
   const u = n % 10;
   if (u === 0) return TENS[t];
-  // compound tens: e.g. 21 = இருபத்தொன்று
-  const tenBase = TENS[t].endsWith('து') ? TENS[t].slice(0, -2) + 'த்து' : TENS[t];
+  // compound tens: e.g. 21 → இருபத்தொன்று, 91 → தொண்ணூத்தொன்று
+  let tenBase = TENS[t];
+  if (tenBase.endsWith('து')) tenBase = tenBase.slice(0, -2) + 'த்து';
+  else if (tenBase.endsWith('று')) tenBase = tenBase.slice(0, -2) + 'த்து';
   return tenBase + ONES[u];
 }
 
@@ -319,6 +321,15 @@ function tamilizeText(text) {
   t = t.replace(/(?<![₹.\d])(\d{3,6})(?!\d)/g, (match, numStr) => {
     const n = parseInt(numStr, 10);
     if (n >= 1900 && n <= 2099) return match; // skip years
+    return numberToTamil(n);
+  });
+
+  // 7. Small standalone numbers 1–99 not already converted.
+  //    Covers: "5 லட்சம்", "18 மாதம்", "50 பேர்", "10 நிமிஷம்", "2 தடவை" …
+  //    Negative lookbehind excludes ₹, digits, hyphen (avoids IDs like CG-2024-A).
+  t = t.replace(/(?<![₹\d\-\.])(\d{1,2})(?!\d)/g, (match, numStr) => {
+    const n = parseInt(numStr, 10);
+    if (n === 0) return 'பூஜ்யம்';
     return numberToTamil(n);
   });
 
