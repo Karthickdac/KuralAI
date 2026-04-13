@@ -193,28 +193,39 @@ function buildSystemPrompt(intent, metadata = {}) {
   let contextAddition = '';
 
   switch (intent) {
-    case 'order_status':
-      contextAddition = TAMIL_PROMPTS.ORDER_STATUS_CONTEXT;
-      if (metadata.orderId) contextAddition += `\nஆர்டர் எண்: ${metadata.orderId}`;
+    case 'seat_due_status':
+      contextAddition = TAMIL_PROMPTS.SEAT_DUE_CONTEXT;
       break;
-    case 'delivery_time':
-      contextAddition = TAMIL_PROMPTS.DELIVERY_TIME_CONTEXT;
+    case 'premature_withdrawal':
+      contextAddition = TAMIL_PROMPTS.PREMATURE_WITHDRAWAL_CONTEXT;
       break;
-    case 'complaint':
-      contextAddition = TAMIL_PROMPTS.COMPLAINT_CONTEXT;
+    case 'jamin_documents':
+      contextAddition = TAMIL_PROMPTS.JAMIN_CONTEXT;
       break;
-    case 'product_info':
-      contextAddition = TAMIL_PROMPTS.PRODUCT_INFO_CONTEXT;
+    case 'payment_complaint':
+      contextAddition = TAMIL_PROMPTS.PAYMENT_COMPLAINT_CONTEXT;
+      break;
+    case 'reduce_calls':
+      contextAddition = TAMIL_PROMPTS.REDUCE_CALLS_CONTEXT;
+      break;
+    case 'no_office_calls':
+      contextAddition = TAMIL_PROMPTS.NO_OFFICE_CALLS_CONTEXT;
+      break;
+    case 'lottery_participation':
+      contextAddition = TAMIL_PROMPTS.LOTTERY_PARTICIPATION_CONTEXT;
       break;
     case 'human_request':
-      return `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் மனித ஊழியர் வேண்டும் என்று கேட்கிறார். 
-action: "escalate" என்று திரும்பவும். 
+      return `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் senior / manager-கிட்ட பேசணும்னு கேக்குறாங்க.
+action: "escalate" என்று திரும்பவும்.
 response: "${TAMIL_PROMPTS.HUMAN_REQUESTED}"`;
+    case 'end_call':
+      return `${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் call முடிக்கணும்னு சொல்றாங்க.
+action: "end_call" என்று திரும்பவும்.
+response: "${TAMIL_PROMPTS.GOODBYE}"`;
     default:
       contextAddition = TAMIL_PROMPTS.GENERAL_HELP_CONTEXT;
   }
 
-  // Add customer context if available
   if (metadata.customerName) {
     contextAddition += `\nவாடிக்கையாளர் பெயர்: ${metadata.customerName}`;
   }

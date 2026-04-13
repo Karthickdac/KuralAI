@@ -466,30 +466,30 @@ export default function Simulate() {
         {/* Info cards */}
         <div className={styles.infoGrid}>
           <div className={styles.infoCard}>
-            <div className={styles.infoTitle}>How it works</div>
+            <div className={styles.infoTitle}>Scenario</div>
             <ul className={styles.infoList}>
-              <li>Tap mic → speak Tamil → tap again to send</li>
-              <li>Browser voice recognition transcribes (free, no quota)</li>
-              <li>GPT-4o generates a Tamil response</li>
-              <li>Azure TTS speaks it back to you</li>
+              <li>Agent: மகாலக்ஷ்மி (Chit Fund Company)</li>
+              <li>Customer: ரமேஷ் சார்</li>
+              <li>சீட்: ₹5 லட்சம் — அடுத்த மாசம் 7ம் தேதி</li>
+              <li>3வது due — ₹18,750 — குலுக்கல் invitation</li>
             </ul>
           </div>
           <div className={styles.infoCard}>
-            <div className={styles.infoTitle}>Requirements</div>
+            <div className={styles.infoTitle}>Customer questions to try</div>
             <ul className={styles.infoList}>
-              <li>Chrome or Edge browser (for voice input)</li>
-              <li>Azure Speech key (Settings → AI &amp; Voice)</li>
-              <li>OpenAI key for AI responses (Settings → AI &amp; Voice)</li>
-              <li>Microphone permission in browser</li>
+              <li>"இன்னொரு சீட் எத்தனாவது due?"</li>
+              <li>"இப்போ எடுத்தா எவ்ளோ அமௌன்ட் குடுப்பீங்க?"</li>
+              <li>"jamin என்ன என்ன குடுக்கணும்?"</li>
+              <li>"எத்தன பேரு கால் பண்ணுவீங்க?"</li>
             </ul>
           </div>
           <div className={styles.infoCard}>
-            <div className={styles.infoTitle}>Try saying (in Tamil)</div>
+            <div className={styles.infoTitle}>More scenarios</div>
             <ul className={styles.infoList}>
-              <li>"வணக்கம்" — Hello (greeting)</li>
-              <li>"agent வேணும்" — to test escalation</li>
-              <li>"வேண்டாம் நன்றி" — to end the call</li>
-              <li>Any question your callers might ask</li>
+              <li>"மாசம் மாசம் கேக்குறீங்க, amount குடுக்க மாட்டிங்க"</li>
+              <li>"ஆஃபீஸ்ல இருந்து call பண்ணாதீங்க"</li>
+              <li>"ஆமா கலந்துக்கிறேன்" — lottery accept</li>
+              <li>"நன்றி சார்" — to end the call</li>
             </ul>
           </div>
         </div>
