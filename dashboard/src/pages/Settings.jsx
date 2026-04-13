@@ -11,6 +11,9 @@ const AZURE_VOICE_OPTIONS = [
 ];
 
 const ELEVENLABS_VOICE_PRESETS = [
+  { value: 'mGboHvCVOXWYeFL8KTR0', label: 'யாழினி (Yazhini) — Tamil Female' },
+  { value: 'ewhDNMMyMBipnXXTYPwy', label: 'சமுத்ரா (Samuthra) — Tamil Female' },
+  { value: 'yt40uMsmnhVftG8ngHsz', label: 'அஸ்வின் (Ashwin) — Tamil Male' },
   { value: '21m00Tcm4TlvDq8ikWAM', label: 'Rachel — calm, professional (Female)' },
   { value: 'EXAVITQu4vr4xnSDxMaL', label: 'Bella — soft, warm (Female)' },
   { value: 'TxGEqnHWrfWFTfGW9XjX', label: 'Josh — deep, assured (Male)' },
@@ -298,8 +301,8 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
                 readOnly={elVoicePreset !== 'custom'}
               />
             </Field>
-            <Field label="Model" hint="eleven_multilingual_v2 supports Tamil + 28 languages">
-              <input className={styles.input} value="eleven_multilingual_v2" readOnly />
+            <Field label="Model" hint="eleven_flash_v2_5 — ultra-low latency, supports Tamil + 32 languages">
+              <input className={styles.input} value="eleven_flash_v2_5" readOnly />
             </Field>
           </div>
         )}
