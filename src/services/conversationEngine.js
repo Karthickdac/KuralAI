@@ -26,6 +26,7 @@ const {
   generateEscalationExoML,
 } = require('./exotelService');
 const { TAMIL_PROMPTS, CONFIDENCE_THRESHOLDS } = require('../config/tamilPrompts');
+const { applyTemplate } = require('../utils/templateEngine');
 const { notifyDashboard } = require('../websocket/wsServer');
 const { triggerEscalationWebhook } = require('./escalationService');
 const scriptEngine = require('./scriptEngine');
@@ -68,14 +69,17 @@ async function processCallAnswer(callId) {
 
   let greetingText;
 
+  const meta = call?.metadata || {};
+
   if (scriptFlow) {
-    // Script flow mode — start with the first step's agent message
     greetingText = scriptEngine.startFlow(callId, scriptFlow);
     await logEvent(callId, 'script_flow_started', 'info', `Script flow started at step: ${scriptFlow.startStep}`);
   } else {
-    // Free-form AI mode — use default greeting
     greetingText = TAMIL_PROMPTS.GREETING;
   }
+
+  // Replace {{customerName}} and other template variables
+  greetingText = applyTemplate(greetingText, meta);
 
   const tts = await synthesizeSpeech(greetingText);
   await saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0, tts.playableUrl);
@@ -142,7 +146,8 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     // ── Free-form AI mode ─────────────────────────────────────────────────
 
     // ── Step 2: Detect intent ─────────────────────────────────────────────
-    const { intent, confidence, keywords } = await detectIntent(userText);
+    const callMeta = call?.metadata || {};
+    const { intent, confidence, keywords } = await detectIntent(userText, callMeta);
 
     await logEvent(callId, 'intent_detected', 'info', `Intent: ${intent}`, {
       confidence,

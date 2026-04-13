@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
-import { simulateApi, workflowsApi } from '../api/client';
+import { simulateApi, workflowsApi, customersApi } from '../api/client';
 import styles from './Simulate.module.css';
 
 const IDLE        = 'idle';
@@ -17,7 +17,7 @@ function TurnBubble({ speaker, text, audioUrl, onPlay }) {
   return (
     <div className={`${styles.bubble} ${isAi ? styles.aiBubble : styles.userBubble}`}>
       <div className={styles.bubbleHeader}>
-        <span className={styles.bubbleSpeaker}>{isAi ? 'KuralAI' : 'You'}</span>
+        <span className={styles.bubbleSpeaker}>{isAi ? 'மகாலக்ஷ்மி' : 'நீங்கள்'}</span>
         {isAi && audioUrl && (
           <button className={styles.replayBtn} onClick={() => onPlay(audioUrl)} title="Replay audio">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -42,22 +42,100 @@ function WaveformBars() {
   );
 }
 
+// ─── Customer card ────────────────────────────────────────────────────────────
+function CustomerCard({ customer, selected, onSelect }) {
+  const meta = customer.metadata || {};
+  return (
+    <button
+      className={`${styles.customerCard} ${selected ? styles.customerCardSelected : ''}`}
+      onClick={() => onSelect(customer)}
+    >
+      <div className={styles.customerCardName}>{customer.name}</div>
+      <div className={styles.customerCardPhone}>{customer.phone}</div>
+      {meta.chitValue && (
+        <div className={styles.customerCardBadge}>₹{meta.chitValue} சீட்</div>
+      )}
+    </button>
+  );
+}
+
+// ─── Chit detail panel ────────────────────────────────────────────────────────
+function ChitPanel({ customer }) {
+  const meta = customer.metadata || {};
+  const pendingDues  = meta.pendingDues  ?? (meta.totalDues - meta.completedDues);
+  const currentDue   = meta.currentDue   ?? (meta.completedDues + 1);
+
+  return (
+    <div className={styles.chitPanel}>
+      <div className={styles.chitPanelHeader}>
+        <span className={styles.chitPanelName}>{customer.name}</span>
+        <span className={styles.chitPanelGroup}>{meta.chitGroup}</span>
+      </div>
+
+      <div className={styles.chitStats}>
+        <div className={styles.chitStat}>
+          <span className={styles.chitStatLabel}>சீட் Value</span>
+          <span className={`${styles.chitStatValue} ${styles.chitStatHighlight}`}>₹{meta.chitValue}</span>
+        </div>
+        <div className={styles.chitStat}>
+          <span className={styles.chitStatLabel}>Due Amount</span>
+          <span className={styles.chitStatValue}>₹{meta.dueAmount}</span>
+        </div>
+        <div className={styles.chitStat}>
+          <span className={styles.chitStatLabel}>Withdrawal</span>
+          <span className={styles.chitStatValue}>₹{meta.withdrawalAmount}</span>
+        </div>
+        <div className={styles.chitStat}>
+          <span className={styles.chitStatLabel}>Current Due</span>
+          <span className={`${styles.chitStatValue} ${styles.chitStatHighlight}`}>{currentDue}வது</span>
+        </div>
+        <div className={styles.chitStat}>
+          <span className={styles.chitStatLabel}>Completed</span>
+          <span className={styles.chitStatValue}>{meta.completedDues} / {meta.totalDues}</span>
+        </div>
+        <div className={styles.chitStat}>
+          <span className={styles.chitStatLabel}>Pending</span>
+          <span className={styles.chitStatValue}>{pendingDues} dues</span>
+        </div>
+      </div>
+
+      <div className={styles.chitDueRow}>
+        <span className={styles.chitDueLabel}>குலுக்கல் தேதி</span>
+        <span className={styles.chitDueValue}>{meta.nextDueDate}</span>
+      </div>
+      <div className={styles.chitDueRow}>
+        <span className={styles.chitDueLabel}>Jamin Documents</span>
+        <span className={styles.chitDueValue}>{meta.familyJamin} family + {meta.otherJamin} other + {meta.chequeLeaf} cheque leaf</span>
+      </div>
+      {meta.otherChitDues && (
+        <div className={styles.chitDueRow}>
+          <span className={styles.chitDueLabel}>இன்னொரு சீட் (other chit)</span>
+          <span className={styles.chitDueValue}>{meta.otherChitDues}வது due</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Check Web Speech API support
 const hasSpeechRecognition = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Simulate() {
-  const [phase, setPhase]           = useState(IDLE);
-  const [callId, setCallId]         = useState(null);
-  const [turn, setTurn]             = useState(0);
-  const [transcript, setTranscript] = useState([]);
-  const [textMode, setTextMode]     = useState(!hasSpeechRecognition);
-  const [userInput, setUserInput]   = useState('');
-  const [error, setError]           = useState('');
-  const [workflows, setWorkflows]   = useState([]);
-  const [selectedWf, setSelectedWf] = useState('');
-  const [statusLabel, setStatusLabel] = useState('');
-  const [liveText, setLiveText]     = useState('');
+  const [phase, setPhase]                   = useState(IDLE);
+  const [callId, setCallId]                 = useState(null);
+  const [turn, setTurn]                     = useState(0);
+  const [transcript, setTranscript]         = useState([]);
+  const [textMode, setTextMode]             = useState(!hasSpeechRecognition);
+  const [userInput, setUserInput]           = useState('');
+  const [error, setError]                   = useState('');
+  const [workflows, setWorkflows]           = useState([]);
+  const [selectedWf, setSelectedWf]         = useState('');
+  const [statusLabel, setStatusLabel]       = useState('');
+  const [liveText, setLiveText]             = useState('');
+  const [customers, setCustomers]           = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [loadingCustomers, setLoadingCustomers] = useState(true);
 
   const audioRef        = useRef(null);
   const recognitionRef  = useRef(null);
@@ -67,6 +145,14 @@ export default function Simulate() {
 
   useEffect(() => {
     workflowsApi.list().then(r => setWorkflows(r.data || [])).catch(() => {});
+    customersApi.list()
+      .then(r => {
+        const list = r.data || [];
+        setCustomers(list);
+        if (list.length > 0) setSelectedCustomer(list[0]);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingCustomers(false));
   }, []);
 
   useEffect(() => {
@@ -109,7 +195,8 @@ export default function Simulate() {
     setPhase(STARTING);
     setStatusLabel('Connecting…');
     try {
-      const res = await simulateApi.start(selectedWf || null);
+      const customerId = selectedCustomer?.id || null;
+      const res = await simulateApi.start(selectedWf || null, customerId);
       const { callId: cid, text, audioUrl, turn: t } = res.data;
       setCallId(cid);
       setTurn(t);
@@ -117,11 +204,11 @@ export default function Simulate() {
 
       if (audioUrl) {
         setPhase(AI_SPEAKING);
-        setStatusLabel('KuralAI is speaking…');
+        setStatusLabel('மகாலக்ஷ்மி பேசுகிறார்…');
         await playAudio(audioUrl);
       }
       setPhase(USER_TURN);
-      setStatusLabel('Your turn — speak or type');
+      setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
     } catch (e) {
       setError(e.response?.data?.error || e.message);
       setPhase(IDLE);
@@ -139,7 +226,7 @@ export default function Simulate() {
   // ─── Process AI response after user input ───────────────────────────────────
   async function processAiTurn(userText) {
     setPhase(AI_TURN);
-    setStatusLabel('KuralAI is thinking…');
+    setStatusLabel('KuralAI சிந்திக்கிறது…');
     setError('');
     try {
       const res = await simulateApi.turn(callId, turn, userText);
@@ -150,7 +237,7 @@ export default function Simulate() {
       if (ended) {
         if (audioUrl) {
           setPhase(AI_SPEAKING);
-          setStatusLabel('KuralAI is speaking…');
+          setStatusLabel('மகாலக்ஷ்மி பேசுகிறார்…');
           await playAudio(audioUrl);
         }
         setPhase(ENDED);
@@ -158,16 +245,16 @@ export default function Simulate() {
       } else {
         if (audioUrl) {
           setPhase(AI_SPEAKING);
-          setStatusLabel('KuralAI is speaking…');
+          setStatusLabel('மகாலக்ஷ்மி பேசுகிறார்…');
           await playAudio(audioUrl);
         }
         setPhase(USER_TURN);
-        setStatusLabel('Your turn — speak or type');
+        setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
       }
     } catch (e) {
       setError(e.response?.data?.error || e.message);
       setPhase(USER_TURN);
-      setStatusLabel('Your turn — speak or type');
+      setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
     }
   }
 
@@ -210,7 +297,7 @@ export default function Simulate() {
       if (!spoken) {
         setError('Nothing heard. Please try again or type your response.');
         setPhase(USER_TURN);
-        setStatusLabel('Your turn — speak or type');
+        setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
         return;
       }
       pushTurn('user', spoken, null);
@@ -228,18 +315,16 @@ export default function Simulate() {
         setError(`Voice recognition error: ${event.error}. Please try again or type.`);
       }
       setPhase(USER_TURN);
-      setStatusLabel('Your turn — speak or type');
+      setStatusLabel('உங்கள் முறை — பேசுங்கள் அல்லது டைப் செய்யுங்கள்');
     };
 
     recognition.start();
     setPhase(RECORDING);
-    setStatusLabel('Listening… tap mic to send');
+    setStatusLabel('கேட்கிறேன்… mic-ஐ tap செய்யுங்கள்');
   }
 
   function stopSpeechRecognition() {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
+    if (recognitionRef.current) recognitionRef.current.stop();
   }
 
   // ─── Hang up ────────────────────────────────────────────────────────────────
@@ -271,6 +356,9 @@ export default function Simulate() {
   const canRecord   = phase === USER_TURN;
   const isRecording = phase === RECORDING;
 
+  // Build dynamic info cards from selected customer
+  const meta = selectedCustomer?.metadata || {};
+
   return (
     <div className={styles.layout}>
       <Sidebar />
@@ -281,7 +369,7 @@ export default function Simulate() {
           <div>
             <h1 className={styles.title}>Call Simulator</h1>
             <p className={styles.subtitle}>
-              Full audio test — speak Tamil into your mic, hear KuralAI respond in Tamil.
+              Customer data load பண்ணி, Tamil-ல் KuralAI-யோட பேசுங்கள்.
             </p>
           </div>
           <div className={styles.badge}>
@@ -301,22 +389,51 @@ export default function Simulate() {
                   <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.64A2 2 0 012 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
                 </svg>
               </div>
-              <h2 className={styles.setupTitle}>Ready to simulate a call</h2>
-              <p className={styles.setupText}>
-                Speak Tamil into your microphone and hear KuralAI respond.
-                {!hasSpeechRecognition && ' Voice input requires Chrome or Edge — text mode enabled.'}
-                {hasSpeechRecognition && ' Uses your browser\'s built-in voice recognition — no API key needed.'}
-              </p>
+
+              {/* Customer selector */}
+              <div className={styles.customerSection}>
+                <div className={styles.customerSectionTitle}>
+                  Customer தேர்வு செய்யுங்கள்
+                </div>
+
+                {loadingCustomers ? (
+                  <div className={styles.spinner} style={{ alignSelf: 'center' }} />
+                ) : (
+                  <div className={styles.customerGrid}>
+                    {customers.map(c => (
+                      <CustomerCard
+                        key={c.id}
+                        customer={c}
+                        selected={selectedCustomer?.id === c.id}
+                        onSelect={setSelectedCustomer}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Chit data panel for selected customer */}
+                {selectedCustomer && (
+                  <ChitPanel customer={selectedCustomer} />
+                )}
+              </div>
+
               {workflows.length > 0 && (
                 <select className={styles.wfSelect} value={selectedWf} onChange={e => setSelectedWf(e.target.value)}>
                   <option value="">Free-form AI mode (no script)</option>
                   {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                 </select>
               )}
+
               <button className={styles.startBtn} onClick={startCall}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-                Start Simulated Call
+                {selectedCustomer ? `${selectedCustomer.name}-க்கு Call செய்யுங்கள்` : 'Start Simulated Call'}
               </button>
+
+              {!hasSpeechRecognition && (
+                <p className={styles.setupText} style={{ color: '#F59E0B', marginTop: 4 }}>
+                  Voice input requires Chrome or Edge — text mode enabled.
+                </p>
+              )}
             </div>
           )}
 
@@ -324,7 +441,7 @@ export default function Simulate() {
           {phase === STARTING && (
             <div className={styles.centreWrap}>
               <div className={styles.spinner}/>
-              <p className={styles.statusText}>Connecting…</p>
+              <p className={styles.statusText}>Connecting to {selectedCustomer?.name || 'customer'}…</p>
             </div>
           )}
 
@@ -335,13 +452,11 @@ export default function Simulate() {
                 {transcript.map((t, i) => (
                   <TurnBubble key={i} speaker={t.speaker} text={t.text} audioUrl={t.audioUrl} onPlay={playAudio} />
                 ))}
-                {/* Live interim text while recording */}
                 {isRecording && liveText && (
                   <div className={`${styles.bubble} ${styles.userBubble} ${styles.liveText}`}>
                     <p className={styles.bubbleText}>{liveText}</p>
                   </div>
                 )}
-                {/* AI thinking indicator */}
                 {phase === AI_TURN && (
                   <div className={`${styles.bubble} ${styles.aiBubble} ${styles.thinking}`}>
                     <span className={styles.dot}/><span className={styles.dot}/><span className={styles.dot}/>
@@ -366,11 +481,10 @@ export default function Simulate() {
             </div>
           )}
 
-          {/* Audio controls (shown when call is active) */}
+          {/* Audio controls */}
           {isActive && (
             <div className={styles.controls}>
 
-              {/* Primary: mic button */}
               {!textMode && (
                 <div className={styles.micSection}>
                   {isRecording ? (
@@ -404,7 +518,6 @@ export default function Simulate() {
                 </div>
               )}
 
-              {/* Fallback: text input */}
               {textMode && phase === USER_TURN && (
                 <div className={styles.textRow}>
                   {hasSpeechRecognition && (
@@ -418,7 +531,7 @@ export default function Simulate() {
                   <input
                     ref={textInputRef}
                     className={styles.textInput}
-                    placeholder="Type in Tamil or English…"
+                    placeholder="Tamil அல்லது English-ல் type செய்யுங்கள்…"
                     value={userInput}
                     onChange={e => setUserInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitText(userInput); }}}
@@ -433,7 +546,6 @@ export default function Simulate() {
                 </div>
               )}
 
-              {/* Hang up */}
               {isActive && (
                 <button className={styles.hangupBtn} onClick={hangUp} title="End call">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -463,32 +575,35 @@ export default function Simulate() {
           )}
         </div>
 
-        {/* Info cards */}
+        {/* Dynamic info cards */}
         <div className={styles.infoGrid}>
           <div className={styles.infoCard}>
-            <div className={styles.infoTitle}>Scenario</div>
+            <div className={styles.infoTitle}>
+              {selectedCustomer ? `${selectedCustomer.name} — Scenario` : 'Scenario'}
+            </div>
             <ul className={styles.infoList}>
-              <li>Agent: மகாலக்ஷ்மி (Chit Fund Company)</li>
-              <li>Customer: ரமேஷ் சார்</li>
-              <li>சீட்: ₹5 லட்சம் — அடுத்த மாசம் 7ம் தேதி</li>
-              <li>3வது due — ₹18,750 — குலுக்கல் invitation</li>
+              <li>Agent: மகாலக்ஷ்மி (Automystic Chit Fund)</li>
+              {meta.chitValue    && <li>சீட்: ₹{meta.chitValue} — {meta.chitGroup}</li>}
+              {meta.currentDue  && <li>{meta.currentDue}வது due — ₹{meta.dueAmount}</li>}
+              {meta.nextDueDate && <li>குலுக்கல்: {meta.nextDueDate}</li>}
+              {!selectedCustomer && <li>Customer தேர்வு செய்யவில்லை — default data</li>}
             </ul>
           </div>
           <div className={styles.infoCard}>
-            <div className={styles.infoTitle}>Customer questions to try</div>
+            <div className={styles.infoTitle}>Try these questions</div>
             <ul className={styles.infoList}>
+              <li>"ஆமா சார், நான் {meta.customerName || 'பேசுறேன்'}"</li>
               <li>"இன்னொரு சீட் எத்தனாவது due?"</li>
-              <li>"இப்போ எடுத்தா எவ்ளோ அமௌன்ட் குடுப்பீங்க?"</li>
-              <li>"jamin என்ன என்ன குடுக்கணும்?"</li>
-              <li>"எத்தன பேரு கால் பண்ணுவீங்க?"</li>
+              <li>"இப்போ எடுத்தா எவ்ளோ அமௌன்ட்?"</li>
+              <li>"jamin என்ன குடுக்கணும்?"</li>
             </ul>
           </div>
           <div className={styles.infoCard}>
             <div className={styles.infoTitle}>More scenarios</div>
             <ul className={styles.infoList}>
-              <li>"மாசம் மாசம் கேக்குறீங்க, amount குடுக்க மாட்டிங்க"</li>
-              <li>"ஆஃபீஸ்ல இருந்து call பண்ணாதீங்க"</li>
               <li>"ஆமா கலந்துக்கிறேன்" — lottery accept</li>
+              <li>"மாசம் மாசம் கேக்குறீங்க" — complaint</li>
+              <li>"ஆஃபீஸ்ல இருந்து call பண்ணாதீங்க"</li>
               <li>"நன்றி சார்" — to end the call</li>
             </ul>
           </div>

@@ -18,8 +18,8 @@ const upload = multer({
  */
 router.post('/start', authenticateToken, async (req, res) => {
   try {
-    const { workflowId } = req.body;
-    const result = await startSimulatedCall(workflowId || null);
+    const { workflowId, customerId } = req.body;
+    const result = await startSimulatedCall(workflowId || null, customerId || null);
     res.json(result);
   } catch (err) {
     logger.error('[SIM] /start error:', err);

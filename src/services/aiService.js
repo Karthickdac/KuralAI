@@ -8,6 +8,7 @@ const OpenAI = require('openai');
 const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
+const { applyTemplate } = require('../utils/templateEngine');
 const {
   TAMIL_PROMPTS,
   CONFIDENCE_THRESHOLDS,
@@ -67,9 +68,9 @@ const QA_PAIRS = [
       'எத்தனாவது', 'எத்தன', 'எத்தனை', 'எத்தனவது',
     ],
     responses: [
-      '6வது due சார்.',
-      'அந்த சீட்ல 6வது due சார்.',
-      '6 due போய்ட்டு இருக்கு சார்.',
+      '{{otherChitDues}}வது due சார்.',
+      'அந்த சீட்ல {{otherChitDues}}வது due சார்.',
+      'இன்னொரு சீட்ல {{otherChitDues}}வது due போய்ட்டு இருக்கு சார்.',
     ],
     action: 'continue',
   },
@@ -94,9 +95,9 @@ const QA_PAIRS = [
       'எடுத்தா', 'எடுக்கணும்',
     ],
     responses: [
-      'இப்போ எடுத்தா ₹3,55,000 சார்.',
-      'Premature-ஆ எடுத்தா ₹3,55,000 கிடைக்கும் சார்.',
-      '₹3,55,000 சார் — இப்போ surrender பண்ணா.',
+      'இப்போ எடுத்தா ₹{{withdrawalAmount}} சார்.',
+      'Premature-ஆ எடுத்தா ₹{{withdrawalAmount}} கிடைக்கும் சார்.',
+      '₹{{withdrawalAmount}} சார் — இப்போ surrender பண்ணா.',
     ],
     action: 'continue',
   },
@@ -119,9 +120,9 @@ const QA_PAIRS = [
       'security', 'guarantee', 'collateral',
     ],
     responses: [
-      '2 family jamin, 2 other jamin, 4 cheque leaf குடுக்கணும் சார்.',
-      'Documents: 2 family jamin, 2 other property jamin, 4 cheque leaf சார்.',
-      '2 family, 2 other property jamin — அதோட 4 cheque leaf வேணும் சார்.',
+      '{{familyJamin}} family jamin, {{otherJamin}} other jamin, {{chequeLeaf}} cheque leaf குடுக்கணும் சார்.',
+      'Documents: {{familyJamin}} family jamin, {{otherJamin}} other property jamin, {{chequeLeaf}} cheque leaf சார்.',
+      '{{familyJamin}} family, {{otherJamin}} other property jamin — அதோட {{chequeLeaf}} cheque leaf வேணும் சார்.',
     ],
     action: 'continue',
   },
@@ -211,9 +212,9 @@ const QA_PAIRS = [
       'கலந்துக்கிறேன்', 'கலந்துக்கிறோம்', 'interested',
     ],
     responses: [
-      'நல்லது சார்! அடுத்த மாசம் 7ம் தேதி குலுக்கல் சார். Due amount ₹18,750 ready-ஆ வைங்க சார். நன்றி சார்!',
-      'Super சார்! 7ம் தேதி lottery சார். ₹18,750 due amount time-க்கு குடுங்க சார். நன்றி சார்!',
-      'நல்லது சார். Next month 7th குலுக்கல். ₹18,750 due prepare பண்ணுங்க சார். நன்றி!',
+      'நல்லது {{customerName}} சார்! {{nextDueDate}} குலுக்கல் சார். Due amount ₹{{dueAmount}} ready-ஆ வைங்க சார். நன்றி சார்!',
+      'Super {{customerName}} சார்! {{nextDueDate}} lottery சார். ₹{{dueAmount}} due amount time-க்கு குடுங்க சார். நன்றி சார்!',
+      'நல்லது சார். {{nextDueDate}} குலுக்கல். ₹{{dueAmount}} due prepare பண்ணுங்க சார். நன்றி!',
     ],
     action: 'continue',
   },
@@ -223,16 +224,16 @@ const QA_PAIRS = [
     intent: 'identity_confirm',
     minScore: 2,
     phraseKeywords: [
-      'ஆமா நான் ரமேஷ்', 'ஆமா சார்', 'ஆமாம் சார்', 'yes சார்', 'ஆமா',
-      'நான் தான் ரமேஷ்', 'ரமேஷ் சார் பேசுறேன்', 'ரமேஷ் தான்',
+      'ஆமா நான்', 'ஆமா சார்', 'ஆமாம் சார்', 'yes சார்',
+      'நான் தான்', 'பேசுறேன்', 'நான் பேசுறேன்',
       'ஆமாண்டா', 'yeah', 'yes',
     ],
     tokenKeywords: [
-      'ஆமா', 'ஆமாம்', 'yes', 'ரமேஷ்',
+      'ஆமா', 'ஆமாம்', 'yes',
     ],
     responses: [
-      'நல்லது சார்! சார், அடுத்த மாசம் 7ம் தேதி உங்களுக்கு 5 லட்சம் சீட் இருக்கு சார். 3வது due, amount ₹18,750 சார். குலுக்கல்ல கலந்துகிறதுக்கு விருப்பம் இருக்கா சார்?',
-      'ரமேஷ் சார் தான்ல சார்! சார், 5 லட்சம் சீட் — அடுத்த மாசம் 7ம் தேதி. 3rd due ₹18,750 சார். குலுக்கல்ல participate பண்ண விரும்புறீங்களா சார்?',
+      'நல்லது {{customerName}} சார்! சார், {{nextDueDate}} உங்களுக்கு {{chitValue}} சீட் இருக்கு சார். {{currentDue}}வது due, amount ₹{{dueAmount}} சார். குலுக்கல்ல கலந்துகிறதுக்கு விருப்பம் இருக்கா சார்?',
+      '{{customerName}} சார் தான்ல சார்! சார், {{chitValue}} சீட் — {{nextDueDate}}. {{currentDue}}வது due ₹{{dueAmount}} சார். குலுக்கல்ல participate பண்ண விரும்புறீங்களா சார்?',
     ],
     action: 'continue',
   },
@@ -285,10 +286,12 @@ function pickResponse(qa) {
 
 /**
  * Find the best-matching Q&A answer for user text.
+ * @param {string} userText
+ * @param {Object} metadata  — customer/chit data for template substitution
  * Returns null if no pair reaches its minScore.
  * Runs before LLM — zero API calls needed.
  */
-function findExactAnswer(userText) {
+function findExactAnswer(userText, metadata = {}) {
   const normalized = userText.toLowerCase().trim();
 
   let bestMatch = null;
@@ -304,7 +307,8 @@ function findExactAnswer(userText) {
   }
 
   if (bestMatch) {
-    const response = pickResponse(bestMatch);
+    const rawResponse = pickResponse(bestMatch);
+    const response    = applyTemplate(rawResponse, metadata);
     logger.info(`Q&A match: intent="${bestMatch.intent}" score=${bestScore} → "${response}"`);
     return {
       response,
@@ -326,13 +330,13 @@ function findExactAnswer(userText) {
  * @param {string} userText - Tamil text from STT
  * @returns {Object} { intent, confidence, keywords }
  */
-async function detectIntent(userText) {
+async function detectIntent(userText, metadata = {}) {
   if (!userText || userText.trim().length < 2) {
     return { intent: 'unknown', confidence: 0.0, keywords: [] };
   }
 
   // Step 0: Exact Q&A match → high confidence, no LLM needed
-  const exact = findExactAnswer(userText);
+  const exact = findExactAnswer(userText, metadata);
   if (exact) {
     return { intent: exact.intent, confidence: 0.95, keywords: [] };
   }
@@ -424,7 +428,7 @@ async function generateResponse(intent, userText, conversationHistory = [], call
   const startTime = Date.now();
 
   // ── Step 0: Check exact Q&A lookup (no LLM needed) ──────────────────────
-  const exact = findExactAnswer(userText);
+  const exact = findExactAnswer(userText, callMetadata);
   if (exact) {
     return { ...exact, processingTimeMs: Date.now() - startTime };
   }

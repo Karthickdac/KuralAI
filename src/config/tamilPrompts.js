@@ -44,7 +44,8 @@ JSON format-ல பதில் கொடு:
 }`,
 
   // ─── Greeting ──────────────────────────────────────────────────────────────
-  GREETING: "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Company-யிட இருந்து. ரமேஷ் சார்ங்களா சார்?",
+  // Uses {{customerName}} — resolved at call time from customer metadata.
+  GREETING: "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?",
 
   GREETING_REPEAT: "ஒரு நிமிஷம் சார் — சரியா கேட்கல. மறுபடியும் சொல்லுங்களா சார்?",
 

@@ -1,44 +1,73 @@
 /**
  * Simulate Service
  * Drives the full KuralAI conversation pipeline in-process —
- * no Exotel account required. Audio is synthesized by Azure TTS and
- * served locally so the browser can play it directly.
+ * no Exotel account required. Supports customer selection so
+ * the AI greets by name and uses that customer's real chit data.
  */
 
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const fs = require('fs');
 const Call = require('../models/Call');
 const Transcript = require('../models/Transcript');
+const Customer = require('../models/Customer');
+const ChitAccount = require('../models/ChitAccount');
 const { processCallAnswer, processSpeechInput } = require('./conversationEngine');
+const { buildChitMetadata } = require('../controllers/customerController');
 const logger = require('../utils/logger');
 
 /**
- * Start a new simulated call.
- * Creates a Call row, runs the greeting, returns structured {callId, text, audioUrl, turn}.
+ * Load a customer's chit metadata from DB.
+ * Falls back gracefully if the customer isn't found.
  */
-async function startSimulatedCall(workflowId = null) {
+async function loadCustomerMetadata(customerId) {
+  if (!customerId) return {};
+  try {
+    const c = await Customer.findByPk(customerId);
+    if (!c) return {};
+    const chits   = await ChitAccount.findAll({
+      where: { customerId: c.id },
+      order: [['isPrimary', 'DESC']],
+    });
+    const primary = chits.find(ch => ch.isPrimary) || chits[0];
+    const others  = chits.filter(ch => !ch.isPrimary);
+    if (!primary) return { customerName: c.name, phone: c.phone };
+    return buildChitMetadata(c, primary, others[0] || null);
+  } catch (err) {
+    logger.error('[SIM] loadCustomerMetadata error:', err.message);
+    return {};
+  }
+}
+
+/**
+ * Start a new simulated call.
+ * @param {string|null} workflowId
+ * @param {string|null} customerId - If provided, loads that customer's chit data
+ */
+async function startSimulatedCall(workflowId = null, customerId = null) {
   const callSid = `SIM-${uuidv4()}`;
 
-  const metadata = { simulated: true };
+  // Build metadata: start with chit data, then overlay workflow + sim flag
+  const chitMeta = await loadCustomerMetadata(customerId);
+  const metadata = {
+    simulated: true,
+    ...chitMeta,
+  };
   if (workflowId) metadata.workflowId = workflowId;
 
   const call = await Call.create({
     callSid,
-    toPhone: '+91SIMULATOR',
-    fromPhone: '+91SIMULATOR',
+    toPhone: chitMeta.phone || '+91SIMULATOR',
+    fromPhone: '+91AUTOMYSTIC',
     status: 'in-progress',
     startedAt: new Date(),
     metadata,
   });
 
   const callId = call.id;
-  logger.info(`[SIM] Started simulated call ${callId}`);
+  logger.info(`[SIM] Started call ${callId} for customer="${chitMeta.customerName || 'unknown'}"`);
 
   // Run the greeting through the full pipeline
   await processCallAnswer(callId);
 
-  // Retrieve the greeting transcript from DB (speaker=ai, turn=0)
   const greeting = await Transcript.findOne({
     where: { callId, speaker: 'ai', turnNumber: 0 },
     order: [['createdAt', 'ASC']],
@@ -50,33 +79,26 @@ async function startSimulatedCall(workflowId = null) {
     text: greeting?.text || '',
     audioUrl: greeting?.audioUrl || null,
     ended: false,
+    customerName: chitMeta.customerName || null,
   };
 }
 
 /**
  * Process one user turn in a simulated call.
- * @param {string} callId
- * @param {number} turn      - Current turn number (0-indexed, starts at 0 after greeting)
- * @param {string} userText  - Text typed or transcribed by the user
  */
 async function simulateTurn(callId, turn, userText) {
   logger.info(`[SIM] callId=${callId} turn=${turn} userText="${userText}"`);
 
-  // Run through the full conversation engine (speech text passed directly — no STT needed)
   const exoml = await processSpeechInput(callId, turn, null, userText);
-
-  // Detect end-of-call from ExoML
   const ended = exoml.includes('<Hangup/>') || exoml.includes('</Dial>');
 
   if (ended) {
-    // Mark the call complete in DB
     await Call.update(
       { status: 'completed', endedAt: new Date() },
       { where: { id: callId } }
     );
   }
 
-  // Fetch the latest AI transcript entry (the response just generated)
   const nextTurn = turn + 1;
   const aiEntry = await Transcript.findOne({
     where: { callId, speaker: 'ai', turnNumber: nextTurn },
@@ -94,14 +116,14 @@ async function simulateTurn(callId, turn, userText) {
 }
 
 /**
- * End a simulated call early (user clicked "Hang Up").
+ * End a simulated call early (user clicked Hang Up).
  */
 async function endSimulatedCall(callId) {
   await Call.update(
     { status: 'completed', endedAt: new Date() },
     { where: { id: callId } }
   );
-  logger.info(`[SIM] Ended simulated call ${callId}`);
+  logger.info(`[SIM] Ended call ${callId}`);
 }
 
 module.exports = { startSimulatedCall, simulateTurn, endSimulatedCall };
