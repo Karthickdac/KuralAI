@@ -121,6 +121,7 @@ export default function Calls() {
                   <th>Direction</th>
                   <th>Status</th>
                   <th>Duration</th>
+                  <th>Recording</th>
                   <th>Escalated</th>
                   <th>Time</th>
                   <th style={{ paddingRight: 16 }}></th>
