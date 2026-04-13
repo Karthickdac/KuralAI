@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { workflowsApi, ttsApi } from '../api/client';
+import { workflowsApi, ttsApi, templatesApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './Workflows.module.css';
 
@@ -174,6 +174,80 @@ function ScriptPreview({ script }) {
   );
 }
 
+/* ─── Intent label map for Q&A picker ─────────────────────────────────── */
+const INTENT_LABELS = {
+  identity_confirm:     { label: 'அடையாளம் உறுதி', desc: 'Customer confirms identity' },
+  seat_due_status:      { label: 'Due Status', desc: 'Customer asks about due amount / installment' },
+  premature_withdrawal: { label: 'சீட் முன்கூட்டியே எடுக்கல்', desc: 'Premature withdrawal inquiry' },
+  jamin_documents:      { label: 'Jamin ஆவணங்கள்', desc: 'Documents needed for withdrawal' },
+  payment_complaint:    { label: 'Payment Complaint', desc: 'Customer says they cannot pay' },
+  reduce_calls:         { label: 'Calls குறைக்கவும்', desc: 'Customer wants fewer callers' },
+  no_office_calls:      { label: 'Office-க்கு Call வேண்டாம்', desc: 'Do not call at workplace' },
+  lottery_participation:{ label: 'Lottery பங்கேற்பு', desc: 'Customer confirms lottery participation' },
+  end_call:             { label: 'Call முடிக்க', desc: 'Customer wants to end the call' },
+};
+
+const INTENT_DEFAULT_QUESTION = {
+  identity_confirm:      '{{customerName}} சார் பேசுறீங்களா?',
+  seat_due_status:       '{{currentDue}}வது due ₹{{dueAmount}} பத்தி பேசலாமா சார்?',
+  premature_withdrawal:  'இப்போ சீட் close பண்ணி ₹{{withdrawalAmount}} எடுக்கணும்னா ஆசை இருக்கா சார்?',
+  jamin_documents:       'Jamin documents ready-ஆ இருக்கா சார்?',
+  payment_complaint:     'Due amount இந்த மாசம் கட்ட முடியுமா சார்?',
+  reduce_calls:          'Call-ல சிக்கல் இருக்கா சார்?',
+  no_office_calls:       'Personal number-ல call பண்ணலாமா சார்?',
+  lottery_participation: 'குலுக்கல்ல கலந்துகிறீங்களா சார்?',
+  end_call:              'நன்றி சார்! வேற ஏதாவது கேள்வி இருக்கா?',
+};
+
+/* ─── Q&A Picker Modal ─────────────────────────────────────────────────── */
+function QaPickerModal({ onClose, onPick }) {
+  const [qaList, setQaList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    templatesApi.listQa()
+      .then(r => setQaList(r.data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className={styles.qaPickerOverlay} onClick={onClose}>
+      <div className={styles.qaPickerModal} onClick={e => e.stopPropagation()}>
+        <div className={styles.qaPickerHead}>
+          <span className={styles.qaPickerTitle}>Q&amp;A இருந்து Step சேர்க்கவும்</span>
+          <button className={styles.closeBtn} onClick={onClose}>✕</button>
+        </div>
+        <p className={styles.qaPickerSub}>
+          Select an intent — the agent question and branch phrases will be pre-filled from the Q&amp;A template.
+        </p>
+        {loading ? (
+          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading…</div>
+        ) : (
+          <div className={styles.qaPickerGrid}>
+            {qaList.map(qa => {
+              const info = INTENT_LABELS[qa.intent] || { label: qa.intent, desc: '' };
+              return (
+                <button
+                  key={qa.id}
+                  className={styles.qaPickerCard}
+                  onClick={() => onPick(qa)}
+                >
+                  <div className={styles.qaPickerCardLabel}>{info.label}</div>
+                  <div className={styles.qaPickerCardDesc}>{info.desc}</div>
+                  <div className={styles.qaPickerCardPhraseCount}>
+                    {qa.phraseKeywords?.length || 0} phrases · {qa.responses?.length || 0} responses
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Helpers for scriptFlow state ─────────────────────────────────────── */
 const uid = () => `id_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
@@ -236,6 +310,7 @@ function serializeScriptFlow(sf) {
 /* ─── Script Flow Builder Component ────────────────────────────────────── */
 function ScriptFlowBuilder({ value, onChange }) {
   const [expandedSteps, setExpandedSteps] = useState({});
+  const [showQaPicker, setShowQaPicker] = useState(false);
 
   function toggleStep(stepId) {
     setExpandedSteps(prev => ({ ...prev, [stepId]: !prev[stepId] }));
@@ -253,6 +328,28 @@ function ScriptFlowBuilder({ value, onChange }) {
       steps,
       startStep: value.startStep || steps[0].id,
     });
+  }
+
+  function addStepFromQa(qa) {
+    setShowQaPicker(false);
+    const info  = INTENT_LABELS[qa.intent] || { label: qa.intent };
+    const top5  = (qa.phraseKeywords || []).slice(0, 5).join(', ');
+    const firstResponse = (qa.responses || [])[0] || '';
+    const branch = {
+      ...emptyBranch(),
+      label:           info.label,
+      expectedPhrases: top5,
+      agentResponse:   firstResponse,
+      action:          qa.action || 'continue',
+    };
+    const step = {
+      ...emptyStep(),
+      agentMessage: INTENT_DEFAULT_QUESTION[qa.intent] || '',
+      branches:     [branch],
+    };
+    const steps = [...value.steps, step];
+    setExpandedSteps(prev => ({ ...prev, [step.id]: true }));
+    updateFlow({ steps, startStep: value.startStep || steps[0].id });
   }
 
   function removeStep(stepId) {
@@ -515,10 +612,22 @@ function ScriptFlowBuilder({ value, onChange }) {
             </div>
           )}
 
-          <button type="button" className={styles.sfAddStepBtn} onClick={addStep}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add step
-          </button>
+          <div className={styles.sfAddRow}>
+            <button type="button" className={styles.sfAddStepBtn} onClick={addStep}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add blank step
+            </button>
+            <button type="button" className={styles.sfAddFromQaBtn} onClick={() => setShowQaPicker(true)}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h6M9 16h6M17 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z"/><polyline points="13 2 13 8 17 8"/></svg>
+              Add from Q&amp;A
+            </button>
+          </div>
+          {showQaPicker && (
+            <QaPickerModal
+              onClose={() => setShowQaPicker(false)}
+              onPick={addStepFromQa}
+            />
+          )}
         </>
       )}
     </div>

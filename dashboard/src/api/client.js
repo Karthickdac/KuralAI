@@ -88,7 +88,9 @@ export const ttsApi = {
 
 export const customersApi = {
   list: () => api.get('/api/customers'),
-  get: (id) => api.get(`/api/customers/${id}`),
+  get:  (id) => api.get(`/api/customers/${id}`),
+  setPreference:   (id, key, value) => api.patch(`/api/customers/${id}/preferences`, { key, value }),
+  clearPreference: (id, key)        => api.delete(`/api/customers/${id}/preferences/${key}`),
 };
 
 export const simulateApi = {

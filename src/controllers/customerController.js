@@ -6,6 +6,7 @@
 const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { toIndianFormat } = require('../utils/templateEngine');
+const { setPreference, clearPreference } = require('../services/preferenceService');
 const logger = require('../utils/logger');
 
 /**
@@ -61,13 +62,14 @@ async function listCustomers(req, res) {
       const meta    = primary ? buildChitMetadata(c, primary, others[0] || null) : {};
 
       results.push({
-        id:       c.id,
-        name:     c.name,
-        phone:    c.phone,
-        address:  c.address,
-        notes:    c.notes,
+        id:          c.id,
+        name:        c.name,
+        phone:       c.phone,
+        address:     c.address,
+        notes:       c.notes,
+        preferences: c.preferences || {},
         chits,
-        metadata: meta,
+        metadata:    meta,
       });
     }
 
@@ -95,11 +97,41 @@ async function getCustomer(req, res) {
     const others  = chits.filter(ch => !ch.isPrimary);
     const meta    = primary ? buildChitMetadata(c, primary, others[0] || null) : {};
 
-    res.json({ id: c.id, name: c.name, phone: c.phone, address: c.address, notes: c.notes, chits, metadata: meta });
+    res.json({ id: c.id, name: c.name, phone: c.phone, address: c.address, notes: c.notes, preferences: c.preferences || {}, chits, metadata: meta });
   } catch (err) {
     logger.error('getCustomer error:', err);
     res.status(500).json({ error: err.message });
   }
 }
 
-module.exports = { listCustomers, getCustomer, buildChitMetadata };
+/**
+ * PATCH /api/customers/:id/preferences
+ * Set a preference key: { key, value }
+ */
+async function updatePreference(req, res) {
+  try {
+    const { key, value } = req.body;
+    if (!key) return res.status(400).json({ error: 'key is required' });
+    const updated = await setPreference(req.params.id, key, value);
+    res.json({ success: true, preferences: updated });
+  } catch (err) {
+    logger.error('updatePreference error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+/**
+ * DELETE /api/customers/:id/preferences/:key
+ * Clear a specific preference key.
+ */
+async function deletePreference(req, res) {
+  try {
+    const updated = await clearPreference(req.params.id, req.params.key);
+    res.json({ success: true, preferences: updated });
+  } catch (err) {
+    logger.error('deletePreference error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { listCustomers, getCustomer, buildChitMetadata, updatePreference, deletePreference };

@@ -96,6 +96,30 @@ Set in Replit Secrets:
 - `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` (auto-set by Replit DB)
 - External API keys added by user
 
+## Customer Preference Capture (New)
+When a call ends (naturally or via hang-up), the system automatically scans the transcript for detected intents and saves key customer preferences to the `customers.preferences` JSONB column:
+
+| Intent detected | Preference saved |
+|---|---|
+| `lottery_participation` | `lotteryConfirmed: true` + timestamp |
+| `no_office_calls` | `doNotCallOffice: true` + timestamp |
+| `reduce_calls` | `preferSingleCaller: true` + timestamp |
+| `payment_complaint` | `paymentIssueReported: true` + timestamp |
+| `premature_withdrawal` | `withdrawalInterest: true` + timestamp |
+
+- `src/services/preferenceService.js` — extraction + CRUD
+- `PATCH /api/customers/:id/preferences` — set a key
+- `DELETE /api/customers/:id/preferences/:key` — clear a key
+- Preferences shown as colored badges in Simulator (CustomerCard) and ChitPanel, with a clear button
+- Simulator automatically refreshes customer card after call ends to show updated preferences
+
+## Workflow Builder — Q&A Import (New)
+In the Workflows Q&A Script tab, the "Add from Q&A" button opens a picker that shows all available Q&A intents. Selecting one creates a pre-filled workflow step with:
+- Default agent question for that intent (in Tamil)
+- Branch expected phrases pre-filled from top 5 phraseKeywords
+- Branch agent response from first Q&A response
+- Correct action (continue / end_call)
+
 ## Notable Technical Decisions
 - Exotel replaces Twilio — ExoML XML-based, `<Gather input="speech">` for speech input
 - **`<Gather>` must NOT have a `language=` attribute** — confirmed to cause silent call failure on this account

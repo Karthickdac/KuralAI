@@ -12,6 +12,7 @@ const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { processCallAnswer, processSpeechInput } = require('./conversationEngine');
 const { buildChitMetadata } = require('../controllers/customerController');
+const { extractAndSavePreferences } = require('./preferenceService');
 const logger = require('../utils/logger');
 
 /**
@@ -123,6 +124,7 @@ async function endSimulatedCall(callId) {
     { status: 'completed', endedAt: new Date() },
     { where: { id: callId } }
   );
+  extractAndSavePreferences(callId).catch(() => {});
   logger.info(`[SIM] Ended call ${callId}`);
 }
 

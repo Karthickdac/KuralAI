@@ -31,6 +31,7 @@ const { applyTemplate } = require('../utils/templateEngine');
 const { notifyDashboard } = require('../websocket/wsServer');
 const { triggerEscalationWebhook } = require('./escalationService');
 const scriptEngine = require('./scriptEngine');
+const { extractAndSavePreferences } = require('./preferenceService');
 const logger = require('../utils/logger');
 
 const WORKFLOWS_FILE = path.join(__dirname, '../../config/workflows.json');
@@ -309,6 +310,9 @@ async function handleEndCall(callId, turn) {
   clearConversationContext(callId);
   scriptEngine.clearFlow(callId);
 
+  await Call.update({ status: 'completed', endedAt: new Date() }, { where: { id: callId } });
+  extractAndSavePreferences(callId).catch(() => {});
+
   return generateEndCallExoML(tts.playableUrl);
 }
 
@@ -333,6 +337,7 @@ async function handleEscalation(callId, turn, reason) {
   await notifyDashboard({ type: 'CALL_ESCALATED', callId, reason });
 
   clearConversationContext(callId);
+  extractAndSavePreferences(callId).catch(() => {});
 
   return generateEscalationExoML(tts.playableUrl, escalationText);
 }

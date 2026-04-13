@@ -3,6 +3,14 @@ import Sidebar from '../components/Sidebar';
 import { simulateApi, workflowsApi, customersApi } from '../api/client';
 import styles from './Simulate.module.css';
 
+const PREF_BADGES = [
+  { key: 'doNotCallOffice',   label: 'Office DND',      cls: 'prefDanger'  },
+  { key: 'preferSingleCaller',label: 'Single Caller',   cls: 'prefWarning' },
+  { key: 'lotteryConfirmed',  label: 'Lottery ✓',       cls: 'prefSuccess' },
+  { key: 'paymentIssueReported', label: 'Payment Issue', cls: 'prefWarning' },
+  { key: 'withdrawalInterest',label: 'Withdrawal ↗',   cls: 'prefInfo'    },
+];
+
 const IDLE        = 'idle';
 const STARTING    = 'starting';
 const AI_SPEAKING = 'ai_speaking';
@@ -44,7 +52,9 @@ function WaveformBars() {
 
 // ─── Customer card ────────────────────────────────────────────────────────────
 function CustomerCard({ customer, selected, onSelect }) {
-  const meta = customer.metadata || {};
+  const meta  = customer.metadata  || {};
+  const prefs = customer.preferences || {};
+  const activeBadges = PREF_BADGES.filter(b => prefs[b.key]);
   return (
     <button
       className={`${styles.customerCard} ${selected ? styles.customerCardSelected : ''}`}
@@ -54,6 +64,13 @@ function CustomerCard({ customer, selected, onSelect }) {
       <div className={styles.customerCardPhone}>{customer.phone}</div>
       {meta.chitValue && (
         <div className={styles.customerCardBadge}>₹{meta.chitValue} சீட்</div>
+      )}
+      {activeBadges.length > 0 && (
+        <div className={styles.prefBadgeRow}>
+          {activeBadges.map(b => (
+            <span key={b.key} className={`${styles.prefBadge} ${styles[b.cls]}`}>{b.label}</span>
+          ))}
+        </div>
       )}
     </button>
   );
@@ -113,6 +130,55 @@ function ChitPanel({ customer }) {
           <span className={styles.chitDueValue}>{meta.otherChitDues}வது due</span>
         </div>
       )}
+      <PreferencePanel customer={customer} />
+    </div>
+  );
+}
+
+// ─── Preference panel (shows inside ChitPanel) ─────────────────────────────────
+function PreferencePanel({ customer }) {
+  const [prefs, setPrefs] = useState(customer.preferences || {});
+  const [clearing, setClearing] = useState(null);
+
+  useEffect(() => { setPrefs(customer.preferences || {}); }, [customer]);
+
+  const activePrefs = PREF_BADGES.filter(b => prefs[b.key]);
+  if (activePrefs.length === 0) return null;
+
+  function fmt(dateStr) {
+    if (!dateStr) return '';
+    try { return new Date(dateStr).toLocaleDateString('ta-IN', { day: 'numeric', month: 'short' }); }
+    catch { return ''; }
+  }
+
+  async function clear(key) {
+    setClearing(key);
+    try {
+      const res = await customersApi.clearPreference(customer.id, key);
+      setPrefs(res.data.preferences || {});
+    } catch {}
+    setClearing(null);
+  }
+
+  return (
+    <div className={styles.prefPanel}>
+      <div className={styles.prefPanelTitle}>Captured Preferences</div>
+      {activePrefs.map(b => (
+        <div key={b.key} className={styles.prefRow}>
+          <span className={`${styles.prefBadge} ${styles[b.cls]}`}>{b.label}</span>
+          {prefs[b.key + 'At'] && (
+            <span className={styles.prefDate}>{fmt(prefs[b.key + 'At'])}</span>
+          )}
+          <button
+            className={styles.prefClearBtn}
+            onClick={() => clear(b.key)}
+            disabled={clearing === b.key}
+            title="Clear this preference"
+          >
+            {clearing === b.key ? '…' : '✕'}
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -152,10 +218,24 @@ export default function Simulate() {
       .then(r => {
         const list = r.data || [];
         setCustomers(list);
-        if (list.length > 0) setSelectedCustomer(list[0]);
+        if (list.length > 0) setSelectedCustomer(prev => {
+          const fresh = list.find(c => c.id === prev?.id) || list[0];
+          return fresh;
+        });
       })
       .catch(() => setCustomersError(true))
       .finally(() => setLoadingCustomers(false));
+  }, []);
+
+  const refreshSelectedCustomer = useCallback((customerId) => {
+    if (!customerId) return;
+    customersApi.get(customerId)
+      .then(r => {
+        const fresh = r.data;
+        setSelectedCustomer(fresh);
+        setCustomers(prev => prev.map(c => c.id === fresh.id ? fresh : c));
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -253,6 +333,7 @@ export default function Simulate() {
         }
         setPhase(ENDED);
         setStatusLabel('');
+        setTimeout(() => refreshSelectedCustomer(selectedCustomer?.id), 1800);
       } else {
         if (audioUrl) {
           setPhase(AI_SPEAKING);
@@ -353,6 +434,7 @@ export default function Simulate() {
     setPhase(ENDED);
     setStatusLabel('');
     setLiveText('');
+    setTimeout(() => refreshSelectedCustomer(selectedCustomer?.id), 2000);
   }
 
   function reset() {

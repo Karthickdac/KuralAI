@@ -703,3 +703,74 @@
   color: var(--text-primary);
   line-height: 1.4;
 }
+
+/* ─── Preference badges ──────────────────────────────────────────────────── */
+.prefBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.prefBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.prefDanger  { background: #FEE2E2; color: #B91C1C; }
+.prefWarning { background: #FEF3C7; color: #92400E; }
+.prefSuccess { background: #D1FAE5; color: #065F46; }
+.prefInfo    { background: #DBEAFE; color: #1E40AF; }
+
+/* ─── Preference panel (in ChitPanel) ────────────────────────────────────── */
+.prefPanel {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.prefPanelTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.prefRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.prefDate {
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.prefClearBtn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1.6;
+  transition: all 0.12s;
+}
+.prefClearBtn:hover:not(:disabled) {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border-color: #FCA5A5;
+}
+.prefClearBtn:disabled { opacity: 0.5; cursor: default; }

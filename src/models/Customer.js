@@ -30,6 +30,11 @@ const Customer = sequelize.define('Customer', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  preferences: {
+    type: DataTypes.JSONB,
+    defaultValue: {},
+    comment: 'Stored customer preferences captured from call transcripts',
+  },
 }, {
   tableName: 'customers',
   indexes: [{ fields: ['phone'] }],

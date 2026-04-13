@@ -465,3 +465,106 @@
   border-radius: var(--radius-full); background: var(--primary-light);
   color: var(--primary-text);
 }
+
+/* ─── Q&A "Add from" row ──────────────────────────────────────────────── */
+.sfAddRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.sfAddFromQaBtn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--success-text);
+  background: var(--success-bg); border: 1.5px solid rgba(16,185,129,0.25);
+  border-radius: var(--radius-md); padding: 11px 16px;
+  cursor: pointer; transition: all 0.12s;
+}
+.sfAddFromQaBtn:hover { background: rgba(16,185,129,0.12); }
+
+/* ─── Q&A Picker Modal ────────────────────────────────────────────────── */
+.qaPickerOverlay {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1200;
+  backdrop-filter: blur(2px);
+}
+
+.qaPickerModal {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.qaPickerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.qaPickerTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.qaPickerSub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 8px 20px 4px;
+  margin: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.qaPickerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px 20px 20px;
+  overflow-y: auto;
+}
+
+.qaPickerCard {
+  background: #F8FAFC;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 14px 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.qaPickerCard:hover {
+  background: var(--primary-light);
+  border-color: rgba(79,70,229,0.35);
+}
+
+.qaPickerCardLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.qaPickerCardDesc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.qaPickerCardPhraseCount {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary);
+  letter-spacing: 0.02em;
+}
