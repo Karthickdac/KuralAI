@@ -329,12 +329,18 @@ const HARDCODED_QA_PAIRS = [
  */
 function scoreQaPair(qa, normalizedInput) {
   let score = 0;
+  let phraseHits = 0;
   for (const phrase of qa.phraseKeywords || []) {
-    if (normalizedInput.includes(phrase.toLowerCase())) score += 3;
+    if (normalizedInput.includes(phrase.toLowerCase())) {
+      score += 3;
+      phraseHits++;
+    }
   }
   for (const token of qa.tokenKeywords || []) {
-    if (normalizedInput.includes(token.toLowerCase())) score += 1;
+    if (token.length >= 2 && normalizedInput.includes(token.toLowerCase())) score += 1;
   }
+  // Bonus: multiple phrase hits → stronger signal
+  if (phraseHits >= 2) score += 2;
   return score;
 }
 
@@ -347,14 +353,22 @@ function pickResponse(qa) {
 }
 
 /**
- * Find the best-matching Q&A answer for user text.
- * Loads Q&A pairs from DB (with TTL cache) — no LLM call needed.
- * @param {string} userText
- * @param {Object} metadata  — customer/chit data for template substitution
- * Returns null if no pair reaches its minScore.
+ * Normalize input for Q&A matching:
+ * - lowercase + trim
+ * - remove punctuation characters common in STT output
+ * - collapse repeated spaces
  */
+function normalizeForQA(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[.,!?;:'"(){}\[\]]/g, ' ') // strip punctuation
+    .replace(/\s+/g, ' ')                 // collapse spaces
+    .trim();
+}
+
 async function findExactAnswer(userText, metadata = {}, silent = false) {
-  const normalized = userText.toLowerCase().trim();
+  const normalized = normalizeForQA(userText);
   const pairs = await loadQaPairs();
 
   let bestMatch = null;
