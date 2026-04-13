@@ -25,7 +25,7 @@ const {
   generateConversationExoML,
   generateEndCallExoML,
   generateEscalationExoML,
-} = require('./exotelService');
+} = require('./telephonyService');
 const { TAMIL_PROMPTS, CONFIDENCE_THRESHOLDS } = require('../config/tamilPrompts');
 const { applyTemplate } = require('../utils/templateEngine');
 const { notifyDashboard } = require('../websocket/wsServer');

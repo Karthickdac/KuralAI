@@ -1,15 +1,10 @@
 /**
- * Exotel Webhook Validation Middleware
+ * Webhook Validation Middleware
  *
- * Security approach:
- *  1. Shared-secret token in the webhook URL query (?wt=<token>) — checked here.
- *  2. In production, also whitelist Exotel IP ranges in your hosting firewall.
- *     Exotel IP ranges: https://developer.exotel.com/api/#ip-whitelist
- *
- * Set EXOTEL_WEBHOOK_TOKEN to a long random secret in your env vars.
+ * Supports both Exotel (shared-secret token) and Twilio (HMAC-SHA1 or shared token).
+ * Security: shared-secret ?wt=<token> in webhook URL query string.
  */
 
-const { validateWebhookToken } = require('../services/exotelService');
 const logger = require('../utils/logger');
 
 function validateExotelWebhook(req, res, next) {
@@ -17,8 +12,10 @@ function validateExotelWebhook(req, res, next) {
     return next();
   }
 
-  if (!validateWebhookToken(req)) {
-    logger.warn(`Invalid Exotel webhook token from ${req.ip} on ${req.originalUrl}`);
+  // Lazy-load so telephonyService picks up current settings at runtime
+  const telephonyService = require('../services/telephonyService');
+  if (!telephonyService.validateWebhookToken(req)) {
+    logger.warn(`Invalid webhook token from ${req.ip} on ${req.originalUrl}`);
     return res.status(403).json({ error: 'Forbidden — invalid webhook token' });
   }
 
@@ -46,7 +43,6 @@ function webhookRateLimit(req, res, next) {
 
   _counts.set(ip, entry);
 
-  // Periodic cleanup
   if (Math.random() < 0.001) {
     for (const [k, v] of _counts) {
       if (now - v.windowStart > 60000) _counts.delete(k);

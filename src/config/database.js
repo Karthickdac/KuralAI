@@ -4,6 +4,7 @@
  */
 
 const { Sequelize } = require('sequelize');
+const path = require('path');
 const logger = require('../utils/logger');
 
 // Use SQLite for tests — no real database needed
@@ -41,9 +42,13 @@ async function initDatabase() {
   require('../models/ChitAccount');
   require('../models/QaTemplate');
   require('../models/PromptTemplate');
+  require('../models/AppSetting');
 
   // Sync schema (create tables if they don't exist)
   await sequelize.sync({ force: false });
+
+  // Migrate settings from file → DB (one-time, on first boot)
+  await migrateSettingsToDb();
 
   // Seed data if tables are empty
   await seedCustomers();
@@ -432,6 +437,22 @@ async function seedPromptTemplates() {
     await PromptTemplate.create(p);
   }
   logger.info(`✅ Prompt templates seeded (${prompts.length} prompts)`);
+}
+
+async function migrateSettingsToDb() {
+  try {
+    const AppSetting = require('../models/AppSetting');
+    const existing = await AppSetting.findByPk('main');
+    if (!existing) {
+      const settingsFile = path.join(__dirname, '../../config/app-settings.json');
+      let data = {};
+      try { data = JSON.parse(require('fs').readFileSync(settingsFile, 'utf-8')); } catch {}
+      await AppSetting.create({ key: 'main', data });
+      logger.info('✅ App settings migrated from file to DB');
+    }
+  } catch (err) {
+    logger.warn('Settings DB migration skipped:', err.message);
+  }
 }
 
 module.exports = { sequelize, initDatabase };

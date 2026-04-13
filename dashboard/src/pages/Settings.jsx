@@ -3,6 +3,8 @@ import { settingsApi, workflowsApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './Settings.module.css';
 
+// ── Constants ──────────────────────────────────────────────────────────────────
+
 const AZURE_VOICE_OPTIONS = [
   { value: 'ta-IN-PallaviNeural', label: 'Pallavi (Female)' },
   { value: 'ta-IN-ValluvarNeural', label: 'Valluvar (Male)' },
@@ -22,32 +24,24 @@ const MODEL_OPTIONS = [
   { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
 ];
 
-// Fields returned as '••••••••' from the API when they have a value
 const CREDENTIAL_KEYS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
+  'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
   'elevenLabsApiKey',
 ];
 
-/* ─── Reusable section wrapper ─── */
-function Section({ title, description, badge, children }) {
-  return (
-    <div className={styles.section}>
-      <div className={styles.sectionHead}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h2 className={styles.sectionTitle}>{title}</h2>
-            {badge && <span className={styles.badge}>{badge}</span>}
-          </div>
-          {description && <p className={styles.sectionDesc}>{description}</p>}
-        </div>
-      </div>
-      <div className={styles.sectionBody}>{children}</div>
-    </div>
-  );
-}
+const NAV_ITEMS = [
+  { id: 'telephony', label: 'Telephony',   icon: '📞' },
+  { id: 'ai',        label: 'AI & Voice',  icon: '🤖' },
+  { id: 'storage',   label: 'Storage',     icon: '🗄️' },
+  { id: 'behaviour', label: 'Behaviour',   icon: '⚙️' },
+  { id: 'escalation',label: 'Escalation',  icon: '↗️' },
+  { id: 'inbound',   label: 'Inbound',     icon: '📲' },
+];
 
-/* ─── Field wrapper ─── */
+// ── Reusable UI atoms ──────────────────────────────────────────────────────────
+
 function Field({ label, hint, children, wide }) {
   return (
     <div className={`${styles.field} ${wide ? styles.fieldWide : ''}`}>
@@ -58,11 +52,9 @@ function Field({ label, hint, children, wide }) {
   );
 }
 
-/* ─── Secret input (masked, show/hide toggle) ─── */
 function SecretInput({ value, onChange, placeholder, name, alreadySaved }) {
   const [show, setShow] = useState(false);
-  const showSavedBadge = alreadySaved && !value; // saved on server, field currently empty
-  const showNewBadge   = !alreadySaved && value;  // newly typed
+  const showSavedBadge = alreadySaved && !value;
   return (
     <div className={styles.secretWrap}>
       <input
@@ -75,23 +67,11 @@ function SecretInput({ value, onChange, placeholder, name, alreadySaved }) {
         autoComplete="new-password"
         style={{ paddingRight: showSavedBadge ? 74 : 36 }}
       />
-      <button
-        type="button"
-        className={styles.secretToggle}
-        onClick={() => setShow(s => !s)}
-        title={show ? 'Hide' : 'Show'}
-      >
+      <button type="button" className={styles.secretToggle} onClick={() => setShow(s => !s)} title={show ? 'Hide' : 'Show'}>
         {show ? (
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-            <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-            <line x1="1" y1="1" x2="23" y2="23"/>
-          </svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         ) : (
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         )}
       </button>
       {showSavedBadge && <span className={styles.secretSet}>✓ Saved</span>}
@@ -99,25 +79,55 @@ function SecretInput({ value, onChange, placeholder, name, alreadySaved }) {
   );
 }
 
-/* ─── Webhook URL display ─── */
-function WebhookUrls({ appUrl, webhookToken }) {
-  const base = appUrl?.replace(/\/$/, '') || 'https://your-domain.com';
-  const wt = webhookToken ? `?wt=${webhookToken}` : '?wt=<token>';
-  const urls = [
-    { label: 'Voice', url: `${base}/webhook/voice${wt}` },
-    { label: 'Status', url: `${base}/webhook/status${wt}` },
-    { label: 'Recording', url: `${base}/webhook/recording${wt}` },
-  ];
+function Card({ label, badge, optional, children }) {
+  return (
+    <div className={styles.card}>
+      <div className={styles.cardHead}>
+        <span className={styles.cardHeadLabel}>{label}</span>
+        {badge && <span className={`${styles.cardHeadBadge} ${optional ? styles.cardHeadBadgeOptional : ''}`}>{badge}</span>}
+      </div>
+      <div className={styles.cardBody}>{children}</div>
+    </div>
+  );
+}
 
-  function copy(text) {
-    navigator.clipboard.writeText(text).catch(() => {});
-  }
+function ProviderCard({ icon, bgClass, name, hint, active, onClick }) {
+  return (
+    <button type="button" className={`${styles.providerCard} ${active ? styles.providerCardActive : ''}`} onClick={onClick}>
+      <div className={`${styles.providerLogo} ${bgClass}`}>{icon}</div>
+      <div className={styles.providerInfo}>
+        <div className={styles.providerName}>{name}</div>
+        <div className={styles.providerHint}>{hint}</div>
+      </div>
+    </button>
+  );
+}
+
+function WebhookUrls({ provider, appUrl, token }) {
+  const base = (appUrl || 'https://your-domain.com').replace(/\/$/, '');
+  const wt   = token ? `?wt=${token}` : '?wt=<token>';
+
+  const urls = provider === 'twilio'
+    ? [
+        { label: 'Answer',      url: `${base}/webhook/call/answer${wt}` },
+        { label: 'Status',      url: `${base}/webhook/call/status${wt}` },
+        { label: 'Incoming',    url: `${base}/webhook/call/incoming${wt}` },
+      ]
+    : [
+        { label: 'Voice',       url: `${base}/webhook/voice${wt}` },
+        { label: 'Answer',      url: `${base}/webhook/call/answer${wt}` },
+        { label: 'Status',      url: `${base}/webhook/call/status${wt}` },
+        { label: 'Recording',   url: `${base}/webhook/recording/status${wt}` },
+        { label: 'Incoming',    url: `${base}/webhook/call/incoming${wt}` },
+      ];
+
+  function copy(text) { navigator.clipboard.writeText(text).catch(() => {}); }
 
   return (
     <div className={styles.webhookBox}>
-      <div className={styles.webhookTitle}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        Exotel Webhook URLs — paste these into your Exotel campaign settings
+      <div className={styles.webhookBoxTitle}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Paste these URLs in your {provider === 'twilio' ? 'Twilio Console → Phone Numbers → Webhooks' : 'Exotel Dashboard → Campaign settings'}
       </div>
       {urls.map(({ label, url }) => (
         <div key={label} className={styles.webhookRow}>
@@ -134,39 +144,319 @@ function WebhookUrls({ appUrl, webhookToken }) {
   );
 }
 
-/* ─── Main component ─── */
+// ── Section renderers ──────────────────────────────────────────────────────────
+
+function TelephonySection({ s, savedCreds, onChange }) {
+  const provider = s.telephonyProvider || 'exotel';
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Telephony</h2>
+      <p className={styles.sectionSub}>Choose your calling provider and enter the credentials.</p>
+
+      <div className={styles.providerRow}>
+        <ProviderCard
+          icon="E" bgClass={styles.providerLogoExotel}
+          name="Exotel" hint="Indian telephony"
+          active={provider === 'exotel'}
+          onClick={() => onChange('telephonyProvider', 'exotel')}
+        />
+        <ProviderCard
+          icon="T" bgClass={styles.providerLogoTwilio}
+          name="Twilio" hint="Global, trial-friendly"
+          active={provider === 'twilio'}
+          onClick={() => onChange('telephonyProvider', 'twilio')}
+        />
+      </div>
+
+      {provider === 'exotel' && (
+        <Card label="Exotel Credentials" badge="Required">
+          <div className={styles.grid}>
+            <Field label="Account SID" hint="Settings → API Keys in Exotel Dashboard">
+              <SecretInput name="exotelSid" value={s.exotelSid || ''} onChange={e => onChange('exotelSid', e.target.value)} placeholder="Your Exotel Account SID" alreadySaved={savedCreds.has('exotelSid')} />
+            </Field>
+            <Field label="API Key" hint="Settings → API Keys in Exotel Dashboard">
+              <SecretInput name="exotelApiKey" value={s.exotelApiKey || ''} onChange={e => onChange('exotelApiKey', e.target.value)} placeholder="Exotel API Key" alreadySaved={savedCreds.has('exotelApiKey')} />
+            </Field>
+            <Field label="API Token" hint="Settings → API Keys in Exotel Dashboard">
+              <SecretInput name="exotelApiToken" value={s.exotelApiToken || ''} onChange={e => onChange('exotelApiToken', e.target.value)} placeholder="Exotel API Token" alreadySaved={savedCreds.has('exotelApiToken')} />
+            </Field>
+            <Field label="ExoPhone Number" hint="Virtual number in E.164 format (e.g. +918XXXXXXXXX)">
+              <input className={styles.input} value={s.exotelPhoneNumber || ''} onChange={e => onChange('exotelPhoneNumber', e.target.value)} placeholder="+918XXXXXXXXX" />
+            </Field>
+            <Field label="App URL" hint="Public URL of this server — used to build webhook URLs" wide>
+              <input className={styles.input} value={s.appUrl || ''} onChange={e => onChange('appUrl', e.target.value)} placeholder="https://your-app.replit.app" />
+            </Field>
+            <Field label="Webhook Token" hint="Secret string appended to all webhook URLs" wide>
+              <SecretInput name="exotelWebhookToken" value={s.exotelWebhookToken || ''} onChange={e => onChange('exotelWebhookToken', e.target.value)} placeholder="e.g. kural-wh-secret-abc123xyz" alreadySaved={savedCreds.has('exotelWebhookToken')} />
+            </Field>
+          </div>
+          <WebhookUrls provider="exotel" appUrl={s.appUrl} token={s.exotelWebhookToken} />
+        </Card>
+      )}
+
+      {provider === 'twilio' && (
+        <Card label="Twilio Credentials" badge="Required">
+          <div className={styles.grid}>
+            <Field label="Account SID" hint="From console.twilio.com → Dashboard (starts with AC…)">
+              <SecretInput name="twilioAccountSid" value={s.twilioAccountSid || ''} onChange={e => onChange('twilioAccountSid', e.target.value)} placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" alreadySaved={savedCreds.has('twilioAccountSid')} />
+            </Field>
+            <Field label="Auth Token" hint="From console.twilio.com → Dashboard (below Account SID)">
+              <SecretInput name="twilioAuthToken" value={s.twilioAuthToken || ''} onChange={e => onChange('twilioAuthToken', e.target.value)} placeholder="Your Twilio Auth Token" alreadySaved={savedCreds.has('twilioAuthToken')} />
+            </Field>
+            <Field label="Twilio Phone Number" hint="Your Twilio number in E.164 format (e.g. +1XXXXXXXXXX)">
+              <input className={styles.input} value={s.twilioPhoneNumber || ''} onChange={e => onChange('twilioPhoneNumber', e.target.value)} placeholder="+1XXXXXXXXXX" />
+            </Field>
+            <Field label="App URL" hint="Public URL of this server — used to build webhook URLs">
+              <input className={styles.input} value={s.appUrl || ''} onChange={e => onChange('appUrl', e.target.value)} placeholder="https://your-app.replit.app" />
+            </Field>
+            <Field label="Webhook Token" hint="Secret appended to all webhook URLs for security" wide>
+              <SecretInput name="exotelWebhookToken" value={s.exotelWebhookToken || ''} onChange={e => onChange('exotelWebhookToken', e.target.value)} placeholder="e.g. kural-wh-secret-abc123xyz" alreadySaved={savedCreds.has('exotelWebhookToken')} />
+            </Field>
+          </div>
+          <WebhookUrls provider="twilio" appUrl={s.appUrl} token={s.exotelWebhookToken} />
+        </Card>
+      )}
+    </>
+  );
+}
+
+function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePreset }) {
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>AI & Voice</h2>
+      <p className={styles.sectionSub}>Configure language model and text-to-speech provider.</p>
+
+      <Card label="OpenAI" badge="Required">
+        <div className={styles.grid}>
+          <Field label="API Key" hint="From platform.openai.com → API Keys">
+            <SecretInput name="openaiApiKey" value={s.openaiApiKey || ''} onChange={e => onChange('openaiApiKey', e.target.value)} placeholder="sk-..." alreadySaved={savedCreds.has('openaiApiKey')} />
+          </Field>
+          <Field label="Model" hint="Language model for Tamil conversation">
+            <select className={styles.input} value={s.openaiModel || 'gpt-4o'} onChange={e => onChange('openaiModel', e.target.value)}>
+              {MODEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </Field>
+        </div>
+      </Card>
+
+      <Card label="Text-to-Speech" badge="Required">
+        <div className={styles.providerRow}>
+          <ProviderCard
+            icon="A" bgClass={styles.providerLogoAzure}
+            name="Azure Neural TTS" hint="Tamil native voices"
+            active={(s.ttsProvider || 'azure') === 'azure'}
+            onClick={() => onChange('ttsProvider', 'azure')}
+          />
+          <ProviderCard
+            icon="E" bgClass={styles.providerLogoEllabs}
+            name="ElevenLabs" hint="Highly natural, multilingual"
+            active={s.ttsProvider === 'elevenlabs'}
+            onClick={() => onChange('ttsProvider', 'elevenlabs')}
+          />
+        </div>
+
+        {(s.ttsProvider || 'azure') === 'azure' && (
+          <div className={styles.grid}>
+            <Field label="Azure Speech Key" hint="Azure Portal → Speech resource → Keys and Endpoint">
+              <SecretInput name="azureSpeechKey" value={s.azureSpeechKey || ''} onChange={e => onChange('azureSpeechKey', e.target.value)} placeholder="Azure Speech subscription key" alreadySaved={savedCreds.has('azureSpeechKey')} />
+            </Field>
+            <Field label="Region" hint="e.g. centralindia, eastus, southeastasia">
+              <input className={styles.input} value={s.azureSpeechRegion || ''} onChange={e => onChange('azureSpeechRegion', e.target.value)} placeholder="e.g. centralindia" />
+            </Field>
+            <Field label="Tamil Voice" hint="Azure Neural TTS voice">
+              <select className={styles.input} value={s.azureSpeechVoice || 'ta-IN-PallaviNeural'} onChange={e => onChange('azureSpeechVoice', e.target.value)}>
+                {AZURE_VOICE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </Field>
+          </div>
+        )}
+
+        {s.ttsProvider === 'elevenlabs' && (
+          <div className={styles.grid}>
+            <Field label="ElevenLabs API Key" hint="elevenlabs.io → Profile → API Key">
+              <SecretInput name="elevenLabsApiKey" value={s.elevenLabsApiKey || ''} onChange={e => onChange('elevenLabsApiKey', e.target.value)} placeholder="sk_..." alreadySaved={savedCreds.has('elevenLabsApiKey')} />
+            </Field>
+            <Field label="Voice Preset" hint="Pick a built-in voice or enter a custom Voice ID">
+              <select className={styles.input} value={elVoicePreset} onChange={e => {
+                const v = e.target.value;
+                setElVoicePreset(v);
+                if (v !== 'custom') onChange('elevenLabsVoiceId', v);
+              }}>
+                {ELEVENLABS_VOICE_PRESETS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </Field>
+            <Field
+              label={elVoicePreset === 'custom' ? 'Custom Voice ID' : 'Voice ID'}
+              hint={elVoicePreset === 'custom' ? 'Paste the Voice ID from your ElevenLabs voice library' : 'Auto-filled from preset above'}
+            >
+              <input
+                className={styles.input}
+                value={s.elevenLabsVoiceId || ''}
+                onChange={e => { setElVoicePreset('custom'); onChange('elevenLabsVoiceId', e.target.value); }}
+                placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
+                readOnly={elVoicePreset !== 'custom'}
+              />
+            </Field>
+            <Field label="Model" hint="eleven_multilingual_v2 supports Tamil + 28 languages">
+              <input className={styles.input} value="eleven_multilingual_v2" readOnly />
+            </Field>
+          </div>
+        )}
+      </Card>
+    </>
+  );
+}
+
+function StorageSection({ s, savedCreds, onChange }) {
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Storage</h2>
+      <p className={styles.sectionSub}>Store call recordings in Amazon S3. Leave blank to skip.</p>
+      <Card label="AWS S3" badge="Optional" optional>
+        <div className={styles.grid}>
+          <Field label="Access Key ID">
+            <SecretInput name="awsAccessKeyId" value={s.awsAccessKeyId || ''} onChange={e => onChange('awsAccessKeyId', e.target.value)} placeholder="AKIA..." alreadySaved={savedCreds.has('awsAccessKeyId')} />
+          </Field>
+          <Field label="Secret Access Key">
+            <SecretInput name="awsSecretAccessKey" value={s.awsSecretAccessKey || ''} onChange={e => onChange('awsSecretAccessKey', e.target.value)} placeholder="Secret access key" alreadySaved={savedCreds.has('awsSecretAccessKey')} />
+          </Field>
+          <Field label="Bucket Name">
+            <input className={styles.input} value={s.s3BucketName || ''} onChange={e => onChange('s3BucketName', e.target.value)} placeholder="kuralai-recordings" />
+          </Field>
+          <Field label="AWS Region">
+            <input className={styles.input} value={s.awsRegion || ''} onChange={e => onChange('awsRegion', e.target.value)} placeholder="ap-south-1" />
+          </Field>
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function BehaviourSection({ s, onChange }) {
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Behaviour</h2>
+      <p className={styles.sectionSub}>Call duration, silence handling, and retry logic.</p>
+      <Card label="Call Timing">
+        <div className={styles.grid}>
+          <Field label="Max Call Duration (seconds)" hint="Maximum length of a single AI call">
+            <input className={styles.input} type="number" min={30} max={1800} value={s.maxCallDurationSeconds || 300} onChange={e => onChange('maxCallDurationSeconds', parseInt(e.target.value))} />
+          </Field>
+          <Field label="Silence Timeout (seconds)" hint="Wait time before treating silence as end of speech">
+            <input className={styles.input} type="number" min={1} max={30} value={s.silenceTimeoutSeconds || 5} onChange={e => onChange('silenceTimeoutSeconds', parseInt(e.target.value))} />
+          </Field>
+        </div>
+      </Card>
+      <Card label="Retry Logic">
+        <div className={styles.grid}>
+          <Field label="Max Retry Attempts" hint="Times to retry an unanswered or failed call">
+            <input className={styles.input} type="number" min={0} max={10} value={s.callRetryAttempts || 3} onChange={e => onChange('callRetryAttempts', parseInt(e.target.value))} />
+          </Field>
+          <Field label="Retry Delay (seconds)" hint="Seconds to wait between retry attempts">
+            <input className={styles.input} type="number" min={10} max={3600} value={s.callRetryDelaySeconds || 60} onChange={e => onChange('callRetryDelaySeconds', parseInt(e.target.value))} />
+          </Field>
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function EscalationSection({ s, onChange }) {
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Escalation</h2>
+      <p className={styles.sectionSub}>Configure how calls are transferred to human agents when needed.</p>
+      <Card label="Human Escalation" badge="Optional" optional>
+        <div className={styles.grid}>
+          <Field label="Escalation Phone Number" hint="Number to transfer the call to when a human is requested">
+            <input className={styles.input} value={s.escalationPhone || ''} onChange={e => onChange('escalationPhone', e.target.value)} placeholder="+91XXXXXXXXXX" />
+          </Field>
+          <Field label="Escalation Webhook URL" hint="CRM webhook triggered when a call is escalated">
+            <input className={styles.input} value={s.escalationWebhookUrl || ''} onChange={e => onChange('escalationWebhookUrl', e.target.value)} placeholder="https://your-crm.com/webhook/escalate" />
+          </Field>
+        </div>
+      </Card>
+    </>
+  );
+}
+
+function InboundSection({ s, workflows, onChange }) {
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Inbound Calls</h2>
+      <p className={styles.sectionSub}>When a customer calls your number, the system runs the selected workflow automatically.</p>
+      <Card label="Inbound Routing" badge="Auto-trigger">
+        <div className={styles.grid}>
+          <Field label="Inbound Workflow" hint="Q&A script flow that runs when a customer dials your number" wide>
+            <select className={styles.input} value={s.inboundWorkflowId || ''} onChange={e => onChange('inboundWorkflowId', e.target.value)}>
+              <option value="">Auto-detect (first active workflow with Q&A script)</option>
+              {workflows.map(wf => (
+                <option key={wf.id} value={wf.id}>
+                  {wf.name}
+                  {wf.scriptFlow?.enabled ? ` — Q&A (${wf.scriptFlow.steps?.length || 0} steps)` : ' — Free-form AI'}
+                  {wf.status === 'active' ? ' ✓ Active' : ` · ${wf.status}`}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+
+        {s.appUrl && (
+          <div className={styles.webhookBox} style={{ marginTop: 16 }}>
+            <div className={styles.webhookBoxTitle}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+              Paste this in your {(s.telephonyProvider || 'exotel') === 'twilio' ? 'Twilio Console → Phone Numbers → Incoming webhook' : 'Exotel Console → ExoPhones → Your Number → Incoming Webhook'}
+            </div>
+            <div className={styles.webhookRow}>
+              <span className={styles.webhookLabel}>Incoming</span>
+              <code className={styles.webhookUrl}>
+                {`${(s.appUrl || '').replace(/\/$/, '')}/webhook/call/incoming${s.exotelWebhookToken ? `?wt=${s.exotelWebhookToken}` : ''}`}
+              </code>
+              <button type="button" className={styles.copyBtn} onClick={() => navigator.clipboard.writeText(`${(s.appUrl || '').replace(/\/$/, '')}/webhook/call/incoming${s.exotelWebhookToken ? `?wt=${s.exotelWebhookToken}` : ''}`)}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </Card>
+    </>
+  );
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
+
 export default function Settings() {
-  const [settings, setSettings] = useState(null);
-  const [savedCreds, setSavedCreds] = useState(new Set()); // keys that already have a value on server
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
-  const [workflows, setWorkflows] = useState([]);
+  const [settings, setSettings]       = useState(null);
+  const [savedCreds, setSavedCreds]   = useState(new Set());
+  const [loading, setLoading]         = useState(true);
+  const [saving, setSaving]           = useState(false);
+  const [saved, setSaved]             = useState(false);
+  const [error, setError]             = useState('');
+  const [workflows, setWorkflows]     = useState([]);
+  const [activeSection, setActive]    = useState('telephony');
   const [elVoicePreset, setElVoicePreset] = useState('21m00Tcm4TlvDq8ikWAM');
 
   useEffect(() => {
     Promise.all([
       settingsApi.get(),
       workflowsApi.list().catch(() => ({ data: { workflows: [] } })),
-    ]).then(([settingsRes, workflowsRes]) => {
-        const s = { ...settingsRes.data.settings };
-        const alreadySaved = new Set();
-        for (const key of CREDENTIAL_KEYS) {
-          if (s[key] && /^•+$/.test(s[key])) {
-            alreadySaved.add(key);
-            s[key] = '';
-          }
+    ]).then(([sRes, wfRes]) => {
+      const s = { ...sRes.data.settings };
+      const alreadySaved = new Set();
+      for (const key of CREDENTIAL_KEYS) {
+        if (s[key] && /^•+$/.test(s[key])) {
+          alreadySaved.add(key);
+          s[key] = '';
         }
-        setSavedCreds(alreadySaved);
-        setSettings(s);
-        setWorkflows(workflowsRes.data.workflows || []);
-        // Init ElevenLabs preset picker
-        const knownPreset = ELEVENLABS_VOICE_PRESETS.find(p => p.value === (s.elevenLabsVoiceId || '21m00Tcm4TlvDq8ikWAM') && p.value !== 'custom');
-        setElVoicePreset(knownPreset ? knownPreset.value : 'custom');
-      })
-      .catch(() => setError('Failed to load settings'))
-      .finally(() => setLoading(false));
+      }
+      setSavedCreds(alreadySaved);
+      setSettings(s);
+      setWorkflows(wfRes.data.workflows || []);
+      const knownPreset = ELEVENLABS_VOICE_PRESETS.find(p => p.value === (s.elevenLabsVoiceId || '') && p.value !== 'custom');
+      setElVoicePreset(knownPreset ? knownPreset.value : 'custom');
+    })
+    .catch(() => setError('Failed to load settings'))
+    .finally(() => setLoading(false));
   }, []);
 
   function handleChange(key, value) {
@@ -196,358 +486,72 @@ export default function Settings() {
         <main className={styles.main}>
           <div className={styles.loadingState}>
             <div className={styles.spinner} />
-            <p>Loading settings...</p>
+            <p>Loading settings…</p>
           </div>
         </main>
       </div>
     );
   }
 
+  function renderSection() {
+    const props = { s: settings, savedCreds, onChange: handleChange };
+    switch (activeSection) {
+      case 'telephony':  return <TelephonySection  {...props} />;
+      case 'ai':         return <AiVoiceSection    {...props} elVoicePreset={elVoicePreset} setElVoicePreset={setElVoicePreset} />;
+      case 'storage':    return <StorageSection    {...props} />;
+      case 'behaviour':  return <BehaviourSection  {...props} />;
+      case 'escalation': return <EscalationSection {...props} />;
+      case 'inbound':    return <InboundSection    {...props} workflows={workflows} />;
+      default:           return null;
+    }
+  }
+
   return (
     <div className={styles.layout}>
       <Sidebar />
       <main className={styles.main}>
-        <div className={styles.header}>
+        <div className={styles.pageHeader}>
           <div>
             <h1 className={styles.pageTitle}>Settings</h1>
-            <p className={styles.pageSub}>Configure KuralAI behaviour, credentials and integrations</p>
+            <p className={styles.pageSub}>Configure KuralAI — telephony, AI, voice, storage and behaviour</p>
           </div>
           {saved && (
             <div className={styles.savedBadge}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              Settings saved
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Saved
             </div>
           )}
         </div>
 
-        <form onSubmit={handleSave}>
-          {error && <div className={styles.error}>{error}</div>}
-
-          {/* ── Exotel API Credentials ───────────────────────────────── */}
-          <Section
-            title="Exotel API Credentials"
-            badge="Required"
-            description="Your Exotel account credentials from dashboard.exotel.com → API Keys."
-          >
-            <div className={styles.grid}>
-              <Field label="Account SID" hint="Found under Settings → API Keys in Exotel Dashboard">
-                <SecretInput
-                  name="exotelSid"
-                  value={settings.exotelSid || ''}
-                  onChange={e => handleChange('exotelSid', e.target.value)}
-                  placeholder="Enter your Exotel Account SID"
-                  alreadySaved={savedCreds.has('exotelSid')}
-                />
-              </Field>
-              <Field label="ExoPhone Number" hint="Your virtual number in E.164 format">
-                <input
-                  className={styles.input}
-                  value={settings.exotelPhoneNumber || ''}
-                  onChange={e => handleChange('exotelPhoneNumber', e.target.value)}
-                  placeholder="+918XXXXXXXXX"
-                />
-              </Field>
-              <Field label="API Key" hint="From Exotel Dashboard → API Keys">
-                <SecretInput
-                  name="exotelApiKey"
-                  value={settings.exotelApiKey || ''}
-                  onChange={e => handleChange('exotelApiKey', e.target.value)}
-                  placeholder="Enter your Exotel API Key"
-                  alreadySaved={savedCreds.has('exotelApiKey')}
-                />
-              </Field>
-              <Field label="API Token" hint="From Exotel Dashboard → API Keys">
-                <SecretInput
-                  name="exotelApiToken"
-                  value={settings.exotelApiToken || ''}
-                  onChange={e => handleChange('exotelApiToken', e.target.value)}
-                  placeholder="Enter your Exotel API Token"
-                  alreadySaved={savedCreds.has('exotelApiToken')}
-                />
-              </Field>
-              <Field label="App URL" hint="Public URL of this server — used to build webhook URLs below" wide>
-                <input
-                  className={styles.input}
-                  value={settings.appUrl || ''}
-                  onChange={e => handleChange('appUrl', e.target.value)}
-                  placeholder="https://your-app.replit.app"
-                />
-              </Field>
-              <Field label="Webhook Token" hint="A secret string appended to webhook URLs for security — invent any long random value" wide>
-                <SecretInput
-                  name="exotelWebhookToken"
-                  value={settings.exotelWebhookToken || ''}
-                  onChange={e => handleChange('exotelWebhookToken', e.target.value)}
-                  placeholder="e.g. kural-wh-secret-abc123xyz"
-                  alreadySaved={savedCreds.has('exotelWebhookToken')}
-                />
-              </Field>
-            </div>
-            <WebhookUrls appUrl={settings.appUrl} webhookToken={settings.exotelWebhookToken} />
-          </Section>
-
-          {/* ── OpenAI Credentials ────────────────────────────────────── */}
-          <Section
-            title="OpenAI API"
-            badge="Required"
-            description="Used for Tamil conversation generation (GPT-4o) and speech transcription (Whisper)."
-          >
-            <div className={styles.grid}>
-              <Field label="OpenAI API Key" hint="From platform.openai.com → API Keys">
-                <SecretInput
-                  name="openaiApiKey"
-                  value={settings.openaiApiKey || ''}
-                  onChange={e => handleChange('openaiApiKey', e.target.value)}
-                  placeholder="sk-..."
-                  alreadySaved={savedCreds.has('openaiApiKey')}
-                />
-              </Field>
-              <Field label="Model" hint="Language model used for Tamil conversation">
-                <select className={styles.input} value={settings.openaiModel || 'gpt-4o'} onChange={e => handleChange('openaiModel', e.target.value)}>
-                  {MODEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </Field>
-            </div>
-          </Section>
-
-          {/* ── TTS Provider ─────────────────────────────────────────── */}
-          <Section
-            title="Text-to-Speech (TTS)"
-            badge="Required"
-            description="Choose your TTS provider and configure its credentials."
-          >
-            <div className={styles.grid}>
-              <Field label="TTS Provider" hint="Select which service generates the agent's voice" wide>
-                <select
-                  className={styles.input}
-                  value={settings.ttsProvider || 'azure'}
-                  onChange={e => handleChange('ttsProvider', e.target.value)}
+        <div className={styles.body}>
+          {/* ── Sidebar nav ── */}
+          <nav className={styles.nav}>
+            {NAV_ITEMS.map((item, i) => (
+              <React.Fragment key={item.id}>
+                {i === 4 && <div className={styles.navDivider} />}
+                <button
+                  type="button"
+                  className={`${styles.navItem} ${activeSection === item.id ? styles.navActive : ''}`}
+                  onClick={() => setActive(item.id)}
                 >
-                  <option value="azure">Azure Neural TTS (Tamil native voices)</option>
-                  <option value="elevenlabs">ElevenLabs (multilingual, highly natural)</option>
-                </select>
-              </Field>
+                  <span className={styles.navIcon}>{item.icon}</span>
+                  {item.label}
+                </button>
+              </React.Fragment>
+            ))}
+          </nav>
+
+          {/* ── Content ── */}
+          <form className={styles.content} onSubmit={handleSave}>
+            {error && <div className={styles.error}>{error}</div>}
+            {renderSection()}
+            <div className={styles.footer}>
+              <button type="submit" className={styles.saveBtn} disabled={saving}>
+                {saving ? 'Saving…' : 'Save Settings'}
+              </button>
             </div>
-
-            {/* Azure fields */}
-            {(settings.ttsProvider || 'azure') === 'azure' && (
-              <div className={styles.grid} style={{ marginTop: 16 }}>
-                <Field label="Azure Speech Key" hint="From Azure Portal → Speech resource → Keys and Endpoint">
-                  <SecretInput
-                    name="azureSpeechKey"
-                    value={settings.azureSpeechKey || ''}
-                    onChange={e => handleChange('azureSpeechKey', e.target.value)}
-                    placeholder="Enter your Azure Speech subscription key"
-                    alreadySaved={savedCreds.has('azureSpeechKey')}
-                  />
-                </Field>
-                <Field label="Azure Region" hint="e.g. eastus, southeastasia, centralindia">
-                  <input
-                    className={styles.input}
-                    value={settings.azureSpeechRegion || ''}
-                    onChange={e => handleChange('azureSpeechRegion', e.target.value)}
-                    placeholder="e.g. centralindia"
-                  />
-                </Field>
-                <Field label="Tamil TTS Voice" hint="Azure Neural TTS voice for Tamil speech synthesis">
-                  <select className={styles.input} value={settings.azureSpeechVoice || 'ta-IN-PallaviNeural'} onChange={e => handleChange('azureSpeechVoice', e.target.value)}>
-                    {AZURE_VOICE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </Field>
-              </div>
-            )}
-
-            {/* ElevenLabs fields */}
-            {settings.ttsProvider === 'elevenlabs' && (
-              <div className={styles.grid} style={{ marginTop: 16 }}>
-                <Field label="ElevenLabs API Key" hint="From elevenlabs.io → Profile → API Key">
-                  <SecretInput
-                    name="elevenLabsApiKey"
-                    value={settings.elevenLabsApiKey || ''}
-                    onChange={e => handleChange('elevenLabsApiKey', e.target.value)}
-                    placeholder="sk_..."
-                    alreadySaved={savedCreds.has('elevenLabsApiKey')}
-                  />
-                </Field>
-                <Field label="Voice Preset" hint="Pick a built-in ElevenLabs voice or enter a custom Voice ID">
-                  <select
-                    className={styles.input}
-                    value={elVoicePreset}
-                    onChange={e => {
-                      const v = e.target.value;
-                      setElVoicePreset(v);
-                      if (v !== 'custom') handleChange('elevenLabsVoiceId', v);
-                    }}
-                  >
-                    {ELEVENLABS_VOICE_PRESETS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                </Field>
-                <Field
-                  label={elVoicePreset === 'custom' ? 'Custom Voice ID' : 'Voice ID'}
-                  hint={elVoicePreset === 'custom'
-                    ? 'Paste the Voice ID from your ElevenLabs voice library'
-                    : 'Voice ID sent to ElevenLabs API — change Voice Preset above to override'}
-                >
-                  <input
-                    className={styles.input}
-                    value={settings.elevenLabsVoiceId || ''}
-                    onChange={e => {
-                      setElVoicePreset('custom');
-                      handleChange('elevenLabsVoiceId', e.target.value);
-                    }}
-                    placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
-                    readOnly={elVoicePreset !== 'custom'}
-                    style={elVoicePreset !== 'custom' ? { opacity: 0.6 } : {}}
-                  />
-                </Field>
-                <Field label="Model" hint="eleven_multilingual_v2 supports Tamil and 28 other languages">
-                  <input
-                    className={styles.input}
-                    value="eleven_multilingual_v2"
-                    readOnly
-                    style={{ opacity: 0.6 }}
-                  />
-                </Field>
-              </div>
-            )}
-          </Section>
-
-          {/* ── AWS S3 ───────────────────────────────────────────────── */}
-          <Section
-            title="AWS S3 (Recording Storage)"
-            badge="Optional"
-            description="Store call recordings in Amazon S3. Leave blank to skip recording storage."
-          >
-            <div className={styles.grid}>
-              <Field label="AWS Access Key ID">
-                <SecretInput
-                  name="awsAccessKeyId"
-                  value={settings.awsAccessKeyId || ''}
-                  onChange={e => handleChange('awsAccessKeyId', e.target.value)}
-                  placeholder="AKIA..."
-                  alreadySaved={savedCreds.has('awsAccessKeyId')}
-                />
-              </Field>
-              <Field label="AWS Secret Access Key">
-                <SecretInput
-                  name="awsSecretAccessKey"
-                  value={settings.awsSecretAccessKey || ''}
-                  onChange={e => handleChange('awsSecretAccessKey', e.target.value)}
-                  placeholder="Enter AWS secret access key"
-                  alreadySaved={savedCreds.has('awsSecretAccessKey')}
-                />
-              </Field>
-              <Field label="S3 Bucket Name" hint="Name of the S3 bucket for audio storage">
-                <input
-                  className={styles.input}
-                  value={settings.s3BucketName || ''}
-                  onChange={e => handleChange('s3BucketName', e.target.value)}
-                  placeholder="kuralai-recordings"
-                />
-              </Field>
-              <Field label="AWS Region" hint="e.g. ap-south-1, us-east-1">
-                <input
-                  className={styles.input}
-                  value={settings.awsRegion || ''}
-                  onChange={e => handleChange('awsRegion', e.target.value)}
-                  placeholder="ap-south-1"
-                />
-              </Field>
-            </div>
-          </Section>
-
-          {/* ── Call Behaviour ───────────────────────────────────────── */}
-          <Section title="Call Behaviour" description="Configure call duration, timeouts and retry logic.">
-            <div className={styles.grid}>
-              <Field label="Max Call Duration (seconds)" hint="Maximum length of a single AI call">
-                <input className={styles.input} type="number" min={30} max={1800} value={settings.maxCallDurationSeconds || 300} onChange={e => handleChange('maxCallDurationSeconds', parseInt(e.target.value))} />
-              </Field>
-              <Field label="Silence Timeout (seconds)" hint="Wait time before treating silence as end of speech">
-                <input className={styles.input} type="number" min={1} max={30} value={settings.silenceTimeoutSeconds || 5} onChange={e => handleChange('silenceTimeoutSeconds', parseInt(e.target.value))} />
-              </Field>
-              <Field label="Max Retry Attempts" hint="Times to retry an unanswered or failed call">
-                <input className={styles.input} type="number" min={0} max={10} value={settings.callRetryAttempts || 3} onChange={e => handleChange('callRetryAttempts', parseInt(e.target.value))} />
-              </Field>
-              <Field label="Retry Delay (seconds)" hint="Seconds to wait between retry attempts">
-                <input className={styles.input} type="number" min={10} max={3600} value={settings.callRetryDelaySeconds || 60} onChange={e => handleChange('callRetryDelaySeconds', parseInt(e.target.value))} />
-              </Field>
-            </div>
-          </Section>
-
-          {/* ── Human Escalation ─────────────────────────────────────── */}
-          <Section title="Human Escalation" description="Configure how calls are transferred to human agents.">
-            <div className={styles.grid}>
-              <Field label="Escalation Phone Number" hint="Number to transfer the call to when human is requested">
-                <input className={styles.input} value={settings.escalationPhone || ''} onChange={e => handleChange('escalationPhone', e.target.value)} placeholder="+91XXXXXXXXXX" />
-              </Field>
-              <Field label="Escalation Webhook URL" hint="CRM webhook triggered when a call is escalated">
-                <input className={styles.input} value={settings.escalationWebhookUrl || ''} onChange={e => handleChange('escalationWebhookUrl', e.target.value)} placeholder="https://your-crm.com/webhook/escalate" />
-              </Field>
-            </div>
-          </Section>
-
-          {/* ── Inbound Calls ─────────────────────────────────────────── */}
-          <Section
-            title="Inbound Calls"
-            badge="Auto-trigger"
-            description="When a customer calls your Exotel number, the system automatically runs the selected workflow. Configure the incoming webhook URL in Exotel Console."
-          >
-            <div className={styles.grid}>
-              <Field
-                label="Inbound Workflow"
-                hint="The Q&A script flow that runs when a customer dials your Exotel number"
-                wide
-              >
-                <select
-                  className={styles.input}
-                  value={settings.inboundWorkflowId || ''}
-                  onChange={e => handleChange('inboundWorkflowId', e.target.value)}
-                >
-                  <option value="">Auto-detect (first active workflow with Q&A script)</option>
-                  {workflows.map(wf => (
-                    <option key={wf.id} value={wf.id}>
-                      {wf.name}
-                      {wf.scriptFlow?.enabled ? ` — Q&A (${wf.scriptFlow.steps?.length || 0} steps)` : ' — Free-form AI'}
-                      {wf.status === 'active' ? ' ✓ Active' : ` · ${wf.status}`}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-
-            {/* Inbound webhook URL display */}
-            {settings.appUrl && (
-              <div className={styles.webhookBox} style={{ marginTop: 12 }}>
-                <div className={styles.webhookTitle}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                  Paste this URL in Exotel Console → ExoPhones → Your Number → Incoming Webhook
-                </div>
-                <div className={styles.webhookRow}>
-                  <span className={styles.webhookLabel}>Incoming</span>
-                  <code className={styles.webhookUrl}>
-                    {`${settings.appUrl.replace(/\/$/, '')}/webhook/call/incoming${settings.exotelWebhookToken ? `?wt=${settings.exotelWebhookToken}` : ''}`}
-                  </code>
-                  <button
-                    type="button"
-                    className={styles.copyBtn}
-                    onClick={() => navigator.clipboard.writeText(`${settings.appUrl.replace(/\/$/, '')}/webhook/call/incoming${settings.exotelWebhookToken ? `?wt=${settings.exotelWebhookToken}` : ''}`)}
-                    title="Copy"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
-          </Section>
-
-          <div className={styles.footer}>
-            <button type="submit" className={styles.saveBtn} disabled={saving}>
-              {saving ? 'Saving...' : 'Save All Settings'}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </main>
     </div>
   );

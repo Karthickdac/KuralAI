@@ -12,12 +12,29 @@ KuralAI is a real-time AI voice calling platform that speaks and understands Tam
 
 ## External Services Required
 - **OpenAI**: GPT-4o (LLM) + Whisper (STT) — set `OPENAI_API_KEY`
-- **Azure Cognitive Services**: Tamil Neural TTS — set `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`
-- **Exotel**: Outbound/inbound calling + webhooks
-  - `EXOTEL_SID`, `EXOTEL_API_KEY`, `EXOTEL_API_TOKEN`
-  - `EXOTEL_PHONE_NUMBER` — ExoPhone in E.164 format (e.g. +918XXXXXXXXX)
-  - `EXOTEL_WEBHOOK_TOKEN` — long random secret appended to all webhook URLs
-- **AWS S3**: Audio file storage — `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
+- **Telephony** (choose one, configurable in Settings → Telephony):
+  - **Exotel** (default): `EXOTEL_SID`, `EXOTEL_API_KEY`, `EXOTEL_API_TOKEN`, `EXOTEL_PHONE_NUMBER`
+  - **Twilio**: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+  - `EXOTEL_WEBHOOK_TOKEN` — shared secret appended to all webhook URLs (both providers)
+- **TTS** (choose one, configurable in Settings → AI & Voice):
+  - **Azure Neural TTS** (default): `AZURE_SPEECH_KEY`, `AZURE_SPEECH_REGION`
+  - **ElevenLabs**: `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID` — model `eleven_multilingual_v2`
+- **AWS S3** (optional): Audio file storage — `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `S3_BUCKET_NAME`
+
+## Settings Storage
+All application settings are stored as a single JSONB row in the `app_settings` PostgreSQL table (`key='main'`). On every write, `config/app-settings.json` is also updated for backward compatibility with service modules that read the file directly. On first boot, any existing file settings are automatically migrated to the DB.
+
+Key files:
+- `src/models/AppSetting.js` — Sequelize model (table: `app_settings`)
+- `src/routes/settings.routes.js` — REST API (GET/PUT `/api/settings`)
+- `src/config/database.js` — registers model + runs migration on startup
+
+## Telephony Architecture
+Provider-agnostic facade at `src/services/telephonyService.js`. Reads `telephonyProvider` from settings and routes to the appropriate provider:
+- `src/services/exotelService.js` — Exotel (ExoML, Indian telephony)
+- `src/services/twilioService.js` — Twilio (TwiML, global, trial-friendly, uses axios directly — no twilio npm package)
+
+All call code (`conversationEngine`, `webhookController`, `callController`) imports from the facade only.
 
 ## Startup
 Single workflow `Start application` runs `bash start.sh` which:

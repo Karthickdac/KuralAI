@@ -1,24 +1,29 @@
 /**
  * Settings Routes - /api/settings
- * Read and update application configuration including API credentials
+ * All settings are stored in the app_settings table (DB) as a single JSONB row.
+ * On every write, the file config/app-settings.json is also updated so that
+ * service modules that read the file directly continue to work without changes.
  */
 
 const express = require('express');
-const router = express.Router();
-const fs = require('fs');
-const path = require('path');
+const router  = express.Router();
+const fs      = require('fs');
+const path    = require('path');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 
-// Fields that are credentials — masked in GET response
+// Fields that are credentials — masked in GET response as '••••••••'
 const CREDENTIAL_FIELDS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
+  'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
   'elevenLabsApiKey',
 ];
 
 const DEFAULTS = {
+  // Telephony provider
+  telephonyProvider:    process.env.TELEPHONY_PROVIDER || 'exotel',
   // Exotel
   exotelSid:            process.env.EXOTEL_SID || '',
   exotelApiKey:         process.env.EXOTEL_API_KEY || '',
@@ -26,10 +31,14 @@ const DEFAULTS = {
   exotelPhoneNumber:    process.env.EXOTEL_PHONE_NUMBER || '',
   exotelWebhookToken:   process.env.EXOTEL_WEBHOOK_TOKEN || '',
   appUrl:               process.env.APP_URL || '',
+  // Twilio
+  twilioAccountSid:     process.env.TWILIO_ACCOUNT_SID || '',
+  twilioAuthToken:      process.env.TWILIO_AUTH_TOKEN || '',
+  twilioPhoneNumber:    process.env.TWILIO_PHONE_NUMBER || '',
   // OpenAI
   openaiApiKey:         process.env.OPENAI_API_KEY || '',
   openaiModel:          process.env.OPENAI_MODEL || 'gpt-4o',
-  // TTS Provider selection
+  // TTS Provider
   ttsProvider:          process.env.TTS_PROVIDER || 'azure',
   // Azure Speech
   azureSpeechKey:       process.env.AZURE_SPEECH_KEY || '',
@@ -55,7 +64,29 @@ const DEFAULTS = {
   inboundWorkflowId:       process.env.INBOUND_WORKFLOW_ID || '',
 };
 
-function readSettings() {
+// ── DB helpers ─────────────────────────────────────────────────────────────────
+
+async function readSettingsFromDb() {
+  try {
+    const AppSetting = require('../models/AppSetting');
+    const row = await AppSetting.findByPk('main');
+    return { ...DEFAULTS, ...(row ? row.data : {}) };
+  } catch {
+    return readSettingsFromFile();
+  }
+}
+
+async function writeSettingsToDb(data) {
+  const AppSetting = require('../models/AppSetting');
+  const [row] = await AppSetting.findOrBuild({ where: { key: 'main' } });
+  row.data = data;
+  row.changed('data', true);
+  await row.save();
+}
+
+// ── File helpers (backward compat for service modules reading the file) ─────────
+
+function readSettingsFromFile() {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       return { ...DEFAULTS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')) };
@@ -64,13 +95,14 @@ function readSettings() {
   return { ...DEFAULTS };
 }
 
-function writeSettings(data) {
+function writeSettingsToFile(data) {
   const dir = path.dirname(SETTINGS_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2));
 }
 
-// Mask credential fields in the response — return '••••••••' if set, '' if empty
+// ── Credential masking ─────────────────────────────────────────────────────────
+
 function maskCredentials(settings) {
   const masked = { ...settings };
   for (const field of CREDENTIAL_FIELDS) {
@@ -79,79 +111,94 @@ function maskCredentials(settings) {
   return masked;
 }
 
+// ── Env sync (so running services pick up new values immediately) ──────────────
+
+const ENV_MAP = {
+  telephonyProvider:    'TELEPHONY_PROVIDER',
+  exotelSid:            'EXOTEL_SID',
+  exotelApiKey:         'EXOTEL_API_KEY',
+  exotelApiToken:       'EXOTEL_API_TOKEN',
+  exotelPhoneNumber:    'EXOTEL_PHONE_NUMBER',
+  exotelWebhookToken:   'EXOTEL_WEBHOOK_TOKEN',
+  appUrl:               'APP_URL',
+  twilioAccountSid:     'TWILIO_ACCOUNT_SID',
+  twilioAuthToken:      'TWILIO_AUTH_TOKEN',
+  twilioPhoneNumber:    'TWILIO_PHONE_NUMBER',
+  openaiApiKey:         'OPENAI_API_KEY',
+  openaiModel:          'OPENAI_MODEL',
+  ttsProvider:          'TTS_PROVIDER',
+  azureSpeechKey:       'AZURE_SPEECH_KEY',
+  azureSpeechRegion:    'AZURE_SPEECH_REGION',
+  azureSpeechVoice:     'AZURE_SPEECH_VOICE',
+  elevenLabsApiKey:     'ELEVENLABS_API_KEY',
+  elevenLabsVoiceId:    'ELEVENLABS_VOICE_ID',
+  awsAccessKeyId:       'AWS_ACCESS_KEY_ID',
+  awsSecretAccessKey:   'AWS_SECRET_ACCESS_KEY',
+  s3BucketName:         'S3_BUCKET_NAME',
+  awsRegion:            'AWS_REGION',
+  maxCallDurationSeconds:  'MAX_CALL_DURATION_SECONDS',
+  callRetryAttempts:       'CALL_RETRY_ATTEMPTS',
+  callRetryDelaySeconds:   'CALL_RETRY_DELAY_SECONDS',
+  silenceTimeoutSeconds:   'SILENCE_TIMEOUT_SECONDS',
+  escalationPhone:         'ESCALATION_PHONE',
+  escalationWebhookUrl:    'ESCALATION_WEBHOOK_URL',
+  inboundWorkflowId:       'INBOUND_WORKFLOW_ID',
+};
+
+function syncEnv(updated) {
+  for (const [key, envKey] of Object.entries(ENV_MAP)) {
+    if (updated[key] !== undefined) {
+      process.env[envKey] = String(updated[key]);
+    }
+  }
+}
+
+// ── Routes ─────────────────────────────────────────────────────────────────────
+
 router.use(authenticateToken);
 
 // GET /api/settings
-router.get('/', (req, res) => {
-  const settings = readSettings();
-  res.json({ success: true, settings: maskCredentials(settings) });
+router.get('/', async (req, res) => {
+  try {
+    const settings = await readSettingsFromDb();
+    res.json({ success: true, settings: maskCredentials(settings) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // PUT /api/settings — admin only
-router.put('/', requireAdmin, (req, res) => {
+router.put('/', requireAdmin, async (req, res) => {
   try {
-    const current = readSettings();
+    const current = await readSettingsFromDb();
     const updated = { ...current };
+    const allowed = Object.keys(DEFAULTS);
 
-    const allAllowed = Object.keys(DEFAULTS);
-
-    for (const key of allAllowed) {
+    for (const key of allowed) {
       const val = req.body[key];
       if (val === undefined) continue;
 
-      // For credential fields: skip if value is empty or purely bullets (masked display value)
       if (CREDENTIAL_FIELDS.includes(key)) {
-        if (!val || /^•+$/.test(val)) continue; // keep existing — user left field blank
-        // Strip any leading bullet characters that might have been accidentally prepended
+        if (!val || /^•+$/.test(val)) continue;
         updated[key] = String(val).replace(/^•+/, '');
       } else {
         updated[key] = val;
       }
     }
 
-    // Also clean up any existing stored values that start with bullets (fix corrupted saves)
+    // Clean up any bullet-corrupted credential values
     for (const key of CREDENTIAL_FIELDS) {
       if (updated[key] && /^•/.test(updated[key])) {
         updated[key] = updated[key].replace(/^•+/, '');
       }
     }
 
-    writeSettings(updated);
+    // Write to DB (primary) and file (backward compat for services)
+    await writeSettingsToDb(updated);
+    writeSettingsToFile(updated);
 
-    // Sync all values back to process.env so running services pick them up immediately
-    const envMap = {
-      exotelSid:            'EXOTEL_SID',
-      exotelApiKey:         'EXOTEL_API_KEY',
-      exotelApiToken:       'EXOTEL_API_TOKEN',
-      exotelPhoneNumber:    'EXOTEL_PHONE_NUMBER',
-      exotelWebhookToken:   'EXOTEL_WEBHOOK_TOKEN',
-      appUrl:               'APP_URL',
-      openaiApiKey:         'OPENAI_API_KEY',
-      openaiModel:          'OPENAI_MODEL',
-      ttsProvider:          'TTS_PROVIDER',
-      azureSpeechKey:       'AZURE_SPEECH_KEY',
-      azureSpeechRegion:    'AZURE_SPEECH_REGION',
-      azureSpeechVoice:     'AZURE_SPEECH_VOICE',
-      elevenLabsApiKey:     'ELEVENLABS_API_KEY',
-      elevenLabsVoiceId:    'ELEVENLABS_VOICE_ID',
-      awsAccessKeyId:       'AWS_ACCESS_KEY_ID',
-      awsSecretAccessKey:   'AWS_SECRET_ACCESS_KEY',
-      s3BucketName:         'S3_BUCKET_NAME',
-      awsRegion:            'AWS_REGION',
-      maxCallDurationSeconds:  'MAX_CALL_DURATION_SECONDS',
-      callRetryAttempts:       'CALL_RETRY_ATTEMPTS',
-      callRetryDelaySeconds:   'CALL_RETRY_DELAY_SECONDS',
-      silenceTimeoutSeconds:   'SILENCE_TIMEOUT_SECONDS',
-      escalationPhone:         'ESCALATION_PHONE',
-      escalationWebhookUrl:    'ESCALATION_WEBHOOK_URL',
-      inboundWorkflowId:       'INBOUND_WORKFLOW_ID',
-    };
-
-    for (const [key, envKey] of Object.entries(envMap)) {
-      if (updated[key] !== undefined) {
-        process.env[envKey] = String(updated[key]);
-      }
-    }
+    // Sync to running process env
+    syncEnv(updated);
 
     res.json({ success: true, settings: maskCredentials(updated) });
   } catch (err) {

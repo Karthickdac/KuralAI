@@ -16,7 +16,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Call = require('../models/Call');
 const { processCallAnswer, processSpeechInput } = require('../services/conversationEngine');
-const { generateAnswerExoML } = require('../services/exotelService');
+const { generateAnswerExoML } = require('../services/telephonyService');
 const { notifyDashboard } = require('../websocket/wsServer');
 const logger = require('../utils/logger');
 
