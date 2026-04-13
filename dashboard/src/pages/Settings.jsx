@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { id: 'behaviour', label: 'Behaviour',   icon: '⚙️' },
   { id: 'escalation',label: 'Escalation',  icon: '↗️' },
   { id: 'inbound',   label: 'Inbound',     icon: '📲' },
+  { id: 'api',       label: 'API Access',  icon: '🔑' },
 ];
 
 // ── Reusable UI atoms ──────────────────────────────────────────────────────────
@@ -380,6 +381,100 @@ function EscalationSection({ s, onChange }) {
   );
 }
 
+function ApiSection({ s, onChange }) {
+  const [generating, setGenerating] = useState(false);
+  const [newKey, setNewKey]         = useState('');
+  const appUrl = (s.appUrl || 'https://your-app.replit.app').replace(/\/$/, '');
+
+  async function handleGenerate() {
+    setGenerating(true);
+    setNewKey('');
+    try {
+      const res = await fetch('/api/settings/generate-api-key', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewKey(data.apiKey);
+        onChange('apiKey', data.apiKey);
+      }
+    } catch {}
+    setGenerating(false);
+  }
+
+  const endpoints = [
+    { method: 'GET',  path: '/api/external/v1/customers',                      desc: 'List all customers with chit details' },
+    { method: 'GET',  path: '/api/external/v1/customers/:id',                  desc: 'Get customer by UUID' },
+    { method: 'GET',  path: '/api/external/v1/customers/phone/:phone',         desc: 'Get customer by phone number' },
+    { method: 'POST', path: '/api/external/v1/customers',                      desc: 'Create a new customer' },
+    { method: 'PUT',  path: '/api/external/v1/customers/:id',                  desc: 'Update customer name, phone, notes, chit' },
+    { method: 'POST', path: '/api/external/v1/customers/upsert',               desc: 'Create or update by phone (CRM sync)' },
+    { method: 'GET',  path: '/api/external/v1/customers/:id/calls',            desc: 'Get recent call history for customer' },
+  ];
+
+  const methodColor = { GET: '#2563EB', POST: '#059669', PUT: '#D97706', DELETE: '#DC2626' };
+
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>API Access</h2>
+      <p className={styles.sectionSub}>Connect your chit fund software to sync customer data automatically.</p>
+
+      <Card label="API Key" badge="External Access">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p className={styles.hint} style={{ margin: 0 }}>
+            Use the API key to read and update customers from any external system — no login required.
+            Pass it as <code style={{ background: '#F1F5F9', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>X-API-Key</code> header
+            or <code style={{ background: '#F1F5F9', padding: '1px 5px', borderRadius: 3, fontSize: 11 }}>?apiKey=</code> query param.
+          </p>
+
+          {newKey ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F0FDF4', border: '1.5px solid #86EFAC', borderRadius: 6, padding: '10px 14px' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <code style={{ flex: 1, fontSize: 12, fontFamily: 'monospace', color: '#15803D', wordBreak: 'break-all' }}>{newKey}</code>
+              <button type="button" className={styles.copyBtn} onClick={() => navigator.clipboard.writeText(newKey)} title="Copy">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ flex: 1, padding: '9px 12px', background: '#F8FAFC', border: '1.5px solid var(--border)', borderRadius: 6, fontSize: 13, color: s.apiKey ? 'var(--text-muted)' : 'var(--text-muted)', fontStyle: s.apiKey ? 'normal' : 'italic' }}>
+                {s.apiKey ? '••••••••••••  (key saved — regenerate to reveal)' : 'No API key generated yet'}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <button type="button" className={styles.saveBtn} style={{ padding: '8px 20px', fontSize: 13 }} onClick={handleGenerate} disabled={generating}>
+              {generating ? 'Generating…' : (s.apiKey ? 'Regenerate Key' : 'Generate API Key')}
+            </button>
+            {s.apiKey && !newKey && <span style={{ fontSize: 12, color: 'var(--success-text)' }}>✓ Key is active</span>}
+          </div>
+        </div>
+      </Card>
+
+      <Card label="Available Endpoints" badge={`Base: ${appUrl}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {endpoints.map((ep, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < endpoints.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: methodColor[ep.method] || '#6B7280', padding: '2px 6px', borderRadius: 3, minWidth: 38, textAlign: 'center', flexShrink: 0 }}>{ep.method}</span>
+              <code style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)', flex: 1, wordBreak: 'break-all' }}>{ep.path}</code>
+              <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0, maxWidth: 200, textAlign: 'right' }}>{ep.desc}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 14, background: '#F8FAFC', border: '1.5px solid var(--border)', borderRadius: 6, padding: '10px 14px' }}>
+          <p style={{ margin: 0, fontSize: 11, fontFamily: 'monospace', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+            <strong style={{ color: 'var(--text-primary)' }}>Example:</strong><br/>
+            curl {appUrl}/api/external/v1/customers \<br/>
+            {'  '}-H "X-API-Key: {'<your-key>'}"
+          </p>
+        </div>
+      </Card>
+    </>
+  );
+}
+
 function InboundSection({ s, workflows, onChange }) {
   return (
     <>
@@ -502,6 +597,7 @@ export default function Settings() {
       case 'behaviour':  return <BehaviourSection  {...props} />;
       case 'escalation': return <EscalationSection {...props} />;
       case 'inbound':    return <InboundSection    {...props} workflows={workflows} />;
+      case 'api':        return <ApiSection        {...props} />;
       default:           return null;
     }
   }

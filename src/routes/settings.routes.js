@@ -18,7 +18,7 @@ const CREDENTIAL_FIELDS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
   'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
-  'elevenLabsApiKey',
+  'elevenLabsApiKey', 'apiKey',
 ];
 
 const DEFAULTS = {
@@ -62,6 +62,8 @@ const DEFAULTS = {
   escalationWebhookUrl:    process.env.ESCALATION_WEBHOOK_URL || '',
   // Inbound call routing
   inboundWorkflowId:       process.env.INBOUND_WORKFLOW_ID || '',
+  // External API
+  apiKey:                  process.env.KURAL_API_KEY || '',
 };
 
 // ── DB helpers ─────────────────────────────────────────────────────────────────
@@ -143,6 +145,7 @@ const ENV_MAP = {
   escalationPhone:         'ESCALATION_PHONE',
   escalationWebhookUrl:    'ESCALATION_WEBHOOK_URL',
   inboundWorkflowId:       'INBOUND_WORKFLOW_ID',
+  apiKey:                  'KURAL_API_KEY',
 };
 
 function syncEnv(updated) {
@@ -156,6 +159,24 @@ function syncEnv(updated) {
 // ── Routes ─────────────────────────────────────────────────────────────────────
 
 router.use(authenticateToken);
+
+// POST /api/settings/generate-api-key — admin only — creates a new random API key
+router.post('/generate-api-key', requireAdmin, async (req, res) => {
+  try {
+    const crypto = require('crypto');
+    const newKey = 'kural_' + crypto.randomBytes(24).toString('hex');
+
+    const current = await readSettingsFromDb();
+    current.apiKey = newKey;
+    await writeSettingsToDb(current);
+    writeSettingsToFile(current);
+    syncEnv(current);
+
+    res.json({ success: true, apiKey: newKey });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // GET /api/settings
 router.get('/', async (req, res) => {

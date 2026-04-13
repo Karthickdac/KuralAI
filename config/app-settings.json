@@ -27,5 +27,6 @@
   "silenceTimeoutSeconds": 5,
   "escalationPhone": "",
   "escalationWebhookUrl": "",
-  "inboundWorkflowId": ""
+  "inboundWorkflowId": "",
+  "apiKey": "kural_07930f9f93d3fd374fda9c474c18b979e2b3fdbe1f60b23e"
 }
