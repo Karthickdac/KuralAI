@@ -378,7 +378,7 @@ async function synthesizeSpeechElevenLabs(text) {
   if (!cfg.apiKey) throw new Error('ElevenLabs API key is not configured. Add it in Settings.');
   if (!cfg.voiceId) throw new Error('ElevenLabs Voice ID is not configured. Add it in Settings.');
 
-  const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${cfg.voiceId}`;
+  const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${cfg.voiceId}?optimize_streaming_latency=3&output_format=mp3_22050_32`;
 
   const response = await axios.post(
     endpoint,
@@ -399,7 +399,7 @@ async function synthesizeSpeechElevenLabs(text) {
         Accept: 'audio/mpeg',
       },
       responseType: 'arraybuffer',
-      timeout: 30000,
+      timeout: 15000,
     }
   );
 

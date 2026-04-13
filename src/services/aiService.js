@@ -529,6 +529,8 @@ async function findExactAnswer(userText, metadata = {}, silent = false) {
  * @param {string} userText - Tamil text from STT
  * @returns {Object} { intent, confidence, keywords }
  */
+const _lastExactMatch = new Map();
+
 async function detectIntent(userText, metadata = {}) {
   if (!userText || userText.trim().length < 2) {
     return { intent: 'unknown', confidence: 0.0, keywords: [] };
@@ -537,6 +539,7 @@ async function detectIntent(userText, metadata = {}) {
   // Step 0: Exact Q&A match → high confidence, no LLM needed (silent=true to avoid double-logging)
   const exact = await findExactAnswer(userText, metadata, true);
   if (exact) {
+    _lastExactMatch.set(userText, exact);
     return { intent: exact.intent, confidence: 0.95, keywords: [] };
   }
 
@@ -549,12 +552,12 @@ async function detectIntent(userText, metadata = {}) {
     return keywordResult;
   }
 
-  // Step 3: Use LLM for nuanced intent detection
+  // Step 3: Use LLM for nuanced intent detection (fast model for classification)
   try {
     const prompt = TAMIL_PROMPTS.INTENT_DETECTION_PROMPT.replace('{USER_TEXT}', userText);
 
     const response = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o',
+      model: process.env.OPENAI_INTENT_MODEL || 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       max_tokens: 150,
@@ -626,7 +629,12 @@ function keywordDetect(text) {
 async function generateResponse(intent, userText, conversationHistory = [], callMetadata = {}) {
   const startTime = Date.now();
 
-  // ── Step 0: Check exact Q&A lookup (no LLM needed) ──────────────────────
+  // ── Step 0: Check exact Q&A lookup (use cache from detectIntent if available) ──
+  const cachedExact = _lastExactMatch.get(userText);
+  if (cachedExact) {
+    _lastExactMatch.delete(userText);
+    return { ...cachedExact, processingTimeMs: Date.now() - startTime };
+  }
   const exact = await findExactAnswer(userText, callMetadata);
   if (exact) {
     return { ...exact, processingTimeMs: Date.now() - startTime };

@@ -130,7 +130,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       );
       userText = sttResult.text;
 
-      await logEvent(callId, 'stt_completed', 'info', `Transcribed: "${userText}"`, {
+      logEvent(callId, 'stt_completed', 'info', `Transcribed: "${userText}"`, {
         confidence: sttResult.confidence,
         processingTimeMs: sttResult.processingTimeMs,
       });
@@ -140,8 +140,8 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       return handleSilence(callId, turn);
     }
 
-    // Save user speech to transcript
-    await saveTranscript(callId, turn, 'user', userText, userText, 'user_speech', 1.0);
+    // Save user speech to transcript (fire-and-forget)
+    saveTranscript(callId, turn, 'user', userText, userText, 'user_speech', 1.0);
 
     // ── Check if this call is running a Q&A script flow ───────────────────
     const call = await Call.findByPk(callId);
@@ -157,10 +157,8 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     const callMeta = call?.metadata || {};
     const { intent, confidence, keywords } = await detectIntent(userText, callMeta);
 
-    await logEvent(callId, 'intent_detected', 'info', `Intent: ${intent}`, {
-      confidence,
-      keywords,
-      userText,
+    logEvent(callId, 'intent_detected', 'info', `Intent: ${intent}`, {
+      confidence, keywords, userText,
     });
 
     // ── Step 3: Check escalation conditions ───────────────────────────────
@@ -184,13 +182,23 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       call?.metadata || {}
     );
 
-    // Update conversation context
     updateConversationContext(callId, userText, aiResult.response, intent, confidence);
 
-    await logEvent(callId, 'ai_response_generated', 'info', aiResult.response, {
-      action: aiResult.action,
-      processingTimeMs: aiResult.processingTimeMs,
+    // ── Step 5: Synthesize AI response to speech ──────────────────────────
+    const tts = await synthesizeSpeech(aiResult.response);
+
+    // Fire-and-forget: log, save transcript, notify — none block the response
+    logEvent(callId, 'ai_response_generated', 'info', aiResult.response, {
+      action: aiResult.action, processingTimeMs: aiResult.processingTimeMs,
     });
+    logEvent(callId, 'tts_generated', 'info', 'TTS audio created', {
+      audioUrl: tts.playableUrl, duration: tts.duration,
+    });
+    saveTranscript(
+      callId, turn + 1, 'ai', aiResult.response, null,
+      intent, aiResult.confidence, tts.playableUrl, Date.now() - startTime
+    );
+    notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent });
 
     // Check if AI decided to escalate/end
     if (aiResult.action === 'escalate') {
@@ -201,30 +209,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       return handleEndCall(callId, turn);
     }
 
-    // ── Step 5: Synthesize AI response to speech ──────────────────────────
-    const tts = await synthesizeSpeech(aiResult.response);
-
-    await logEvent(callId, 'tts_generated', 'info', 'TTS audio created', {
-      audioUrl: tts.playableUrl,
-      duration: tts.duration,
-    });
-
-    // Save AI turn to transcript
-    await saveTranscript(
-      callId,
-      turn + 1,
-      'ai',
-      aiResult.response,
-      null,
-      intent,
-      aiResult.confidence,
-      tts.playableUrl,
-      Date.now() - startTime
-    );
-
-    // ── Step 6: Return ExoML to play audio & continue ────────────────────
-    await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent });
-
+    // ── Step 6: Return TwiML to play audio & continue ────────────────────
     return generateConversationExoML(tts.playableUrl, callId, turn + 1, aiResult.response);
 
   } catch (error) {
@@ -242,13 +227,13 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
  * Handle a conversation turn using the predefined Q&A script flow.
  */
 async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTime) {
-  await logEvent(callId, 'script_flow_processing', 'info', `Matching: "${userText}"`);
+  logEvent(callId, 'script_flow_processing', 'info', `Matching: "${userText}"`);
 
   const meta = await getCallMeta(callId);
   const result = await scriptEngine.processStep(callId, userText, scriptFlow);
   const response = applyTemplate(result.response || '', meta);
 
-  await logEvent(callId, 'script_flow_matched', 'info', response, {
+  logEvent(callId, 'script_flow_matched', 'info', response, {
     done: result.done,
     escalate: result.escalate,
   });
@@ -283,7 +268,7 @@ async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTim
 async function handleSilence(callId, turn) {
   const silenceCount = incrementSilenceCount(callId);
 
-  await logEvent(callId, 'silence_detected', 'warn', `Silence count: ${silenceCount}`);
+  logEvent(callId, 'silence_detected', 'warn', `Silence count: ${silenceCount}`);
 
   if (silenceCount >= 2) {
     // Too many silences - end the call
@@ -302,7 +287,7 @@ async function handleSilence(callId, turn) {
  * Handle call end gracefully
  */
 async function handleEndCall(callId, turn, endIntent) {
-  await logEvent(callId, 'call_ending', 'info', `Ending call: ${endIntent || 'normal'}`);
+  logEvent(callId, 'call_ending', 'info', `Ending call: ${endIntent || 'normal'}`);
 
   const meta = await getCallMeta(callId);
   let goodbyeText;
@@ -333,7 +318,7 @@ async function handleEndCall(callId, turn, endIntent) {
  * Handle escalation to human agent
  */
 async function handleEscalation(callId, turn, reason) {
-  await logEvent(callId, 'escalating', 'warn', `Escalating: ${reason}`);
+  logEvent(callId, 'escalating', 'warn', `Escalating: ${reason}`);
 
   const escalationText = await getPromptText('ESCALATION_MESSAGE', await getCallMeta(callId));
   const tts = await synthesizeSpeech(escalationText);

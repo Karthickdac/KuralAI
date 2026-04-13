@@ -143,10 +143,13 @@ function generateConversationExoML(audioUrl, callId, turn, sayText) {
     : `<Say language="ta-IN">${_escapeXml(sayText || 'கேள்வி கேளுங்கள்.')}</Say>`;
 
   return _xml(`
-  <Gather input="speech" timeout="10" speechTimeout="auto"
+  <Gather input="speech" timeout="7" speechTimeout="auto"
           language="ta-IN"
           action="${speechUrl}"
-          method="POST">
+          method="POST"
+          speechModel="phone_call"
+          enhanced="true"
+          hints="ஆமா,இல்ல,சரி,தெரியும்,தெரியாது,கட்டிட்டேன்,கட்டுறேன்,நாளைக்கு,போன்,வேண்டாம்,சொல்லுங்க,ம்,ஹலோ,வணக்கம்,யாரு,எப்போ,எவ்வளவு,manager,ok,yes,no,paid,tomorrow,due,chit,lottery">
     ${spokenContent}
   </Gather>
   <Redirect method="POST">${silenceUrl}</Redirect>`);
