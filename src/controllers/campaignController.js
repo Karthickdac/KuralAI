@@ -84,7 +84,7 @@ async function createCampaign(req, res) {
     type,
     status: scheduledAt ? 'scheduled' : 'draft',
     customerIds,
-    concurrency: Math.min(Math.max(1, concurrency), 10),
+    concurrency: Math.min(Math.max(1, concurrency), 50),
     totalCalls: customerIds.length,
     scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
     metadata,
@@ -109,7 +109,7 @@ async function updateCampaign(req, res) {
   if (name !== undefined) update.name = name;
   if (type !== undefined) update.type = type;
   if (customerIds !== undefined) { update.customerIds = customerIds; update.totalCalls = customerIds.length; }
-  if (concurrency !== undefined) update.concurrency = Math.min(Math.max(1, concurrency), 10);
+  if (concurrency !== undefined) update.concurrency = Math.min(Math.max(1, concurrency), 50);
   if (scheduledAt !== undefined) update.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
   if (metadata !== undefined) update.metadata = metadata;
   if (workflowId !== undefined) update.workflowId = workflowId;

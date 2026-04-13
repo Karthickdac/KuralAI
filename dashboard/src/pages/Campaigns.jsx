@@ -281,8 +281,8 @@ export default function Campaigns() {
                     {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </Field>
-                <Field label="Concurrency (1-10)">
-                  <input className={styles.input} type="number" min={1} max={10} value={form.concurrency} onChange={e => setForm(p => ({ ...p, concurrency: e.target.value }))} />
+                <Field label="Concurrency (1-50)">
+                  <input className={styles.input} type="number" min={1} max={50} value={form.concurrency} onChange={e => setForm(p => ({ ...p, concurrency: e.target.value }))} />
                 </Field>
               </div>
 
