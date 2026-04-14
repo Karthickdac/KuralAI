@@ -378,20 +378,22 @@ function FlowMiniMap({ steps, startStep }) {
             <React.Fragment key={step.id}>
               <div className={`${styles.flowMapNode} ${i === 0 ? styles.flowMapNodeStart : ''}`}>
                 <div className={styles.flowMapNodeNum}>{i + 1}</div>
-                <div className={styles.flowMapNodeText}>
-                  {step.agentMessage?.slice(0, 45) || 'Empty step'}
-                  {step.agentMessage?.length > 45 ? '…' : ''}
-                </div>
-                {branchSummary.length > 0 && (
-                  <div className={styles.flowMapBranches}>
-                    {branchSummary.map((br, bi) => (
-                      <span key={bi} className={styles.flowMapBranchTag} style={{ background: br.ac.bg, color: br.ac.color }}>
-                        {br.ac.icon} {br.label?.slice(0, 20)}{br.label?.length > 20 ? '…' : ''}
-                        {br.targetLabel && ` → ${br.targetLabel}`}
-                      </span>
-                    ))}
+                <div className={styles.flowMapNodeBody}>
+                  <div className={styles.flowMapNodeText}>
+                    {step.agentMessage?.slice(0, 45) || 'Empty step'}
+                    {step.agentMessage?.length > 45 ? '…' : ''}
                   </div>
-                )}
+                  {branchSummary.length > 0 && (
+                    <div className={styles.flowMapBranches}>
+                      {branchSummary.map((br, bi) => (
+                        <span key={bi} className={styles.flowMapBranchTag} style={{ background: br.ac.bg, color: br.ac.color }}>
+                          {br.ac.icon} {br.label?.slice(0, 20)}{br.label?.length > 20 ? '…' : ''}
+                          {br.targetLabel && ` → ${br.targetLabel}`}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               {i < orderedSteps.length - 1 && (
                 <div className={styles.flowMapArrow}>
