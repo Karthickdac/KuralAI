@@ -47,10 +47,15 @@ Single workflow `Start application` runs `bash start.sh` which:
 
 ## Design System
 CSS variables defined in `dashboard/src/global.css`:
-- Sidebar: `--sidebar-bg: #0F172A` (dark navy), `--sidebar-width: 240px`
-- Primary: `--primary: #4F46E5` (indigo)
+- Sidebar: Dark gradient collapsible sidebar (260px expanded, 72px collapsed) with glowing active indicators
+- Primary: `--primary: #059669` (emerald), accent `#10B981`
 - Page background: `--page-bg: #F1F5F9`
 - Full token set: text, border, shadow, radius, status colours (success/warning/danger/info/purple)
+
+### Page Visual Identity
+- **Dashboard** (`Dashboard.module.css`): Dark command-center header with gradient (`#0c1222` → `#1a3a2a`), glass-style header buttons, body content uses per-section `margin: 0 32px` for spacing. Responsive breakpoints at 1100px and 768px.
+- **Reports** (`Reports.module.css`): Clean white analytics surface with `#F8FAFC` background, navy/slate accents (`#0F172A` for active tabs), no dark header. Responsive breakpoints at 1100px and 768px.
+- **Login**: Deep green gradient split-panel design.
 
 ## Frontend Pages & Components
 - **Shared**: `Sidebar.jsx` + `Sidebar.module.css` — shared across all pages (uses `useWebSocket` for live dot)
