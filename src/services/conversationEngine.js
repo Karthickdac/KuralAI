@@ -36,6 +36,25 @@ const logger = require('../utils/logger');
 
 const WORKFLOWS_FILE = path.join(__dirname, '../../config/workflows.json');
 
+const _greetingCache = new Map();
+const _GREETING_CACHE_TTL = 120_000;
+
+function setGreetingCache(callId, twiml, greetingText, audioUrl) {
+  _greetingCache.set(callId, { twiml, greetingText, audioUrl, ts: Date.now() });
+  setTimeout(() => _greetingCache.delete(callId), _GREETING_CACHE_TTL);
+}
+
+function getGreetingCache(callId) {
+  const entry = _greetingCache.get(callId);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > _GREETING_CACHE_TTL) {
+    _greetingCache.delete(callId);
+    return null;
+  }
+  _greetingCache.delete(callId);
+  return entry;
+}
+
 function loadWorkflow(workflowId) {
   try {
     if (!fs.existsSync(WORKFLOWS_FILE)) return null;
@@ -71,15 +90,30 @@ async function getCallMeta(callId) {
  * Returns TwiML to initiate the conversation
  */
 async function processCallAnswer(callId) {
+  const t0 = Date.now();
   logEvent(callId, 'call_answered', 'info', 'User answered the call');
   notifyDashboard({ type: 'CALL_STARTED', callId });
 
-  const call = await Call.findByPk(callId);
+  const cached = getGreetingCache(callId);
+  if (cached) {
+    logger.info(`Greeting cache HIT for ${callId} — returning pre-built TwiML in ${Date.now() - t0}ms`);
+    Call.update({ status: 'in-progress' }, { where: { id: callId } });
+    saveTranscript(callId, 0, 'ai', cached.greetingText, null, 'greeting', 1.0, cached.audioUrl);
 
-  Call.update(
-    { status: 'in-progress' },
-    { where: { id: callId } }
-  );
+    const call = await Call.findByPk(callId);
+    const scriptFlow = getScriptFlow(call);
+    if (scriptFlow) {
+      scriptEngine.startFlow(callId, scriptFlow);
+      logEvent(callId, 'script_flow_started', 'info', `Script flow started (pre-cached)`);
+    }
+    return cached.twiml;
+  }
+
+  logger.info(`Greeting cache MISS for ${callId} — building TwiML from scratch`);
+  const call = await Call.findByPk(callId);
+  const t1 = Date.now();
+
+  Call.update({ status: 'in-progress' }, { where: { id: callId } });
 
   const scriptFlow = getScriptFlow(call);
   let greetingText;
@@ -93,9 +127,12 @@ async function processCallAnswer(callId) {
     greetingText = await getPromptText('GREETING', meta);
   }
 
+  const t2 = Date.now();
   const tts = await synthesizeSpeech(greetingText);
-  saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0, tts.playableUrl);
+  const t3 = Date.now();
+  logger.info(`processCallAnswer timing: db=${t1-t0}ms script=${t2-t1}ms tts=${t3-t2}ms total=${t3-t0}ms`);
 
+  saveTranscript(callId, 0, 'ai', greetingText, null, 'greeting', 1.0, tts.playableUrl);
   return generateConversationExoML(tts.playableUrl, callId, 0, greetingText);
 }
 
@@ -377,4 +414,5 @@ module.exports = {
   processSpeechInput,
   handleEndCall,
   handleEscalation,
+  setGreetingCache,
 };
