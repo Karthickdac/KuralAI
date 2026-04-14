@@ -71,19 +71,18 @@ async function getCallMeta(callId) {
  * Returns TwiML to initiate the conversation
  */
 async function processCallAnswer(callId) {
-  // Fire-and-forget: status update + logging don't block response
-  Call.update(
-    { status: 'in-progress', startedAt: new Date() },
-    { where: { id: callId } }
-  );
   logEvent(callId, 'call_answered', 'info', 'User answered the call');
   notifyDashboard({ type: 'CALL_STARTED', callId });
 
   const call = await Call.findByPk(callId);
+
+  Call.update(
+    { status: 'in-progress' },
+    { where: { id: callId } }
+  );
+
   const scriptFlow = getScriptFlow(call);
-
   let greetingText;
-
   const meta = call?.metadata || {};
 
   if (scriptFlow) {

@@ -16,7 +16,6 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Call = require('../models/Call');
 const { processCallAnswer, processSpeechInput } = require('../services/conversationEngine');
-const { generateAnswerExoML } = require('../services/telephonyService');
 const { notifyDashboard } = require('../websocket/wsServer');
 const logger = require('../utils/logger');
 
@@ -57,10 +56,13 @@ async function handleCallAnswer(req, res) {
     const call = await Call.findByPk(callId);
     if (!call) return res.type('text/xml').send('<Response><Hangup/></Response>');
 
-    await call.update({ callSid: CallSid, status: 'answered', startedAt: new Date() });
+    call.callSid = CallSid;
+    call.status = 'answered';
+    call.startedAt = new Date();
+    call.save();
 
-    // Return the greeting + redirect to conversation start
-    res.type('text/xml').send(generateAnswerExoML(callId));
+    const exoml = await processCallAnswer(callId);
+    res.type('text/xml').send(exoml);
   } catch (error) {
     logger.error('handleCallAnswer error:', error);
     res.type('text/xml').send(_errorExoML());
@@ -303,11 +305,8 @@ async function handleIncomingCall(req, res) {
       }
     }
 
-    // Return the answer ExoML — plays greeting and redirects to conversation loop.
-    // NOTE: <Say> TTS requires the Exotel account to have TTS enabled (not available on Trial).
-    //       Complete KYC and upgrade to a paid plan for full audio functionality.
-    const exoml = generateAnswerExoML(call.id);
-    logger.info(`Returning answer ExoML for call ${call.id}`);
+    const exoml = await processCallAnswer(call.id);
+    logger.info(`Returning conversation ExoML directly for inbound call ${call.id}`);
     res.type('text/xml').send(exoml);
     return;
   } catch (error) {
