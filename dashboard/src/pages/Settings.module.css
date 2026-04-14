@@ -94,7 +94,7 @@
   background: var(--card-bg); display: flex; align-items: center; gap: 12px;
   position: relative;
 }
-.providerCard:hover { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.06); }
+.providerCard:hover { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.06); }
 .providerCardActive {
   border-color: var(--primary); background: var(--primary-light);
 }
@@ -163,7 +163,7 @@
   transition: border-color 0.15s, box-shadow 0.15s; background: var(--card-bg);
   width: 100%; box-sizing: border-box;
 }
-.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
 .input:read-only { opacity: 0.6; cursor: default; background: #F8FAFC; }
 select.input { cursor: pointer; }
 

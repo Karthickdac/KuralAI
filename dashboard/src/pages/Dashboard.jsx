@@ -17,7 +17,7 @@ const INTENT_LABELS = {
   general_greeting: 'பொதுவான', human_request: 'மனித ஊழியர்', unknown: 'தெரியாத',
 };
 
-const PIE_COLORS = ['#4F46E5', '#DC2626', '#D97706', '#059669', '#7C3AED'];
+const PIE_COLORS = ['#059669', '#DC2626', '#D97706', '#0284C7', '#7C3AED'];
 
 const WS_ICONS = {
   CALL_COMPLETED: '✓', CALL_STARTED: '→', CALL_ESCALATED: '⚠',
@@ -156,7 +156,7 @@ export default function Dashboard() {
             {/* KPI Cards */}
             <div className={styles.kpiGrid}>
               <KpiCard label="Total Calls" value={stats?.totalCalls?.toLocaleString() ?? '—'}
-                sub={`Last ${days} days`} color="#4F46E5"
+                sub={`Last ${days} days`} color="#059669"
                 icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.64A2 2 0 012 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>}
               />
               <KpiCard label="Success Rate" value={`${stats?.successRate ?? 0}%`}
@@ -188,8 +188,8 @@ export default function Dashboard() {
                   <AreaChart data={timeline} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#059669" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="completedGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#059669" stopOpacity={0.1}/>
@@ -200,7 +200,7 @@ export default function Dashboard() {
                     <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="total" stroke="#4F46E5" strokeWidth={2} fill="url(#totalGrad)" name="Total" dot={false} />
+                    <Area type="monotone" dataKey="total" stroke="#059669" strokeWidth={2} fill="url(#totalGrad)" name="Total" dot={false} />
                     <Area type="monotone" dataKey="completed" stroke="#059669" strokeWidth={2} fill="url(#completedGrad)" name="Completed" dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -237,7 +237,7 @@ export default function Dashboard() {
                     <XAxis type="number" tick={{ fontSize: 11, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
                     <YAxis type="category" dataKey="label" tick={{ fontSize: 11.5, fill: '#475569' }} tickLine={false} axisLine={false} width={110} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="count" fill="#4F46E5" radius={[0, 4, 4, 0]} name="Calls" />
+                    <Bar dataKey="count" fill="#059669" radius={[0, 4, 4, 0]} name="Calls" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -152,8 +152,8 @@ export default function CallRow({ call, onView }) {
   const hasRecording = !!call.recordingUrl;
 
   return (
-    <tr style={{ transition: 'background 0.1s' }}
-      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+    <tr style={{ transition: 'background 0.15s' }}
+      onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
       onMouseLeave={e => e.currentTarget.style.background = ''}
     >
       <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-secondary)', paddingLeft: 16 }}>

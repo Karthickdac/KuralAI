@@ -8,65 +8,65 @@
   position: sticky;
   top: 0;
   overflow: hidden;
+  border-right: 1px solid var(--sidebar-border);
 }
 
 /* Logo */
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 20px 18px;
-  border-bottom: 1px solid var(--sidebar-border);
+  gap: 12px;
+  padding: 20px 20px 16px;
 }
 
 .logoMark {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: var(--primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(5,150,105,0.3);
 }
 
 .logoName {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: #F8FAFC;
-  letter-spacing: -0.01em;
+  color: var(--sidebar-text-bright);
+  letter-spacing: -0.02em;
 }
 
 .logoSub {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--sidebar-section);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.01em;
   margin-top: 1px;
 }
 
 /* Nav */
 .nav {
   flex: 1;
-  padding: 12px 10px;
+  padding: 8px 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .navGroup {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .navSection {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--sidebar-section);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 8px 8px 4px;
+  letter-spacing: 0.06em;
+  padding: 12px 8px 6px;
 }
 
 .navItem {
@@ -74,7 +74,7 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
@@ -82,8 +82,9 @@
   font-size: 13.5px;
   font-weight: 500;
   text-align: left;
-  transition: background 0.12s, color 0.12s;
+  transition: all 0.15s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .navItem:hover {
@@ -94,11 +95,27 @@
 .navItem.active {
   background: var(--sidebar-active-bg);
   color: var(--sidebar-active-text);
+  font-weight: 600;
+}
+
+.navItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--primary);
 }
 
 .navIcon {
   flex-shrink: 0;
-  opacity: 0.8;
+  opacity: 0.7;
+}
+
+.navItem:hover .navIcon {
+  opacity: 0.9;
 }
 
 .navItem.active .navIcon {
@@ -107,7 +124,7 @@
 
 /* Bottom */
 .bottom {
-  padding: 12px 10px;
+  padding: 12px;
   border-top: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
@@ -117,25 +134,26 @@
 .liveStatus {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 6px;
+  gap: 7px;
+  padding: 0 8px;
 }
 
 .liveDot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .liveOn {
-  background: #34D399;
-  box-shadow: 0 0 0 2px rgba(52,211,153,0.25);
+  background: #059669;
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
   animation: pulse 2s infinite;
 }
 
 .liveOff {
-  background: #F87171;
+  background: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
 }
 
 @keyframes pulse {
@@ -144,26 +162,28 @@
 }
 
 .liveLabel {
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--sidebar-text);
 }
 
 .userRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 10px;
+  padding: 10px 10px;
   border-radius: var(--radius-sm);
-  background: rgba(255,255,255,0.04);
+  background: #F9FAFB;
+  border: 1px solid #F3F4F6;
 }
 
 .avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--primary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -177,7 +197,7 @@
 }
 
 .userName {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--sidebar-text-bright);
   white-space: nowrap;
@@ -186,7 +206,7 @@
 }
 
 .userEmail {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--sidebar-text);
   white-space: nowrap;
   overflow: hidden;
@@ -198,14 +218,15 @@
   border: none;
   color: var(--sidebar-text);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 5px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  transition: color 0.12s;
+  transition: all 0.15s;
   flex-shrink: 0;
 }
 
 .logoutBtn:hover {
-  color: #F87171;
+  color: #DC2626;
+  background: #FEF2F2;
 }

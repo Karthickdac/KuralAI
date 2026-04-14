@@ -101,7 +101,7 @@
   font-size: 13px; color: var(--text-primary); outline: none; transition: border-color 0.15s;
   background: var(--card-bg);
 }
-.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
 .input:disabled { background: var(--page-bg); cursor: not-allowed; }
 .error {
   background: var(--danger-bg); color: var(--danger-text);

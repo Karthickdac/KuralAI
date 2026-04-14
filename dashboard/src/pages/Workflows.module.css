@@ -117,7 +117,7 @@
   font-size: 13px; color: var(--text-primary); outline: none;
   transition: border-color 0.15s; background: var(--card-bg);
 }
-.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
 .error {
   background: var(--danger-bg); color: var(--danger-text);
   border: 1px solid rgba(220,38,38,0.15); padding: 10px 14px;
@@ -396,7 +396,7 @@
   font-size: 12.5px; color: var(--text-primary); background: var(--card-bg);
   outline: none; transition: border-color 0.15s;
 }
-.sfInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+.sfInput:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5,150,105,0.08); }
 .sfTextarea { resize: vertical; min-height: 72px; line-height: 1.6; font-family: var(--font); }
 .sfInputSmall { font-size: 12px; padding: 6px 10px; }
 
@@ -436,20 +436,20 @@
 .sfAddBranchBtn {
   display: flex; align-items: center; gap: 5px;
   font-size: 12px; font-weight: 600; color: var(--primary);
-  background: var(--primary-light); border: 1.5px dashed rgba(79,70,229,0.3);
+  background: var(--primary-light); border: 1.5px dashed rgba(5,150,105,0.3);
   border-radius: var(--radius-sm); padding: 7px 14px;
   cursor: pointer; width: 100%; justify-content: center; transition: all 0.12s;
 }
-.sfAddBranchBtn:hover { background: rgba(79,70,229,0.12); }
+.sfAddBranchBtn:hover { background: rgba(5,150,105,0.12); }
 
 .sfAddStepBtn {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600; color: var(--primary);
-  background: var(--primary-light); border: 1.5px solid rgba(79,70,229,0.25);
+  background: var(--primary-light); border: 1.5px solid rgba(5,150,105,0.25);
   border-radius: var(--radius-md); padding: 11px 16px;
   cursor: pointer; width: 100%; justify-content: center; transition: all 0.12s;
 }
-.sfAddStepBtn:hover { background: rgba(79,70,229,0.12); }
+.sfAddStepBtn:hover { background: rgba(5,150,105,0.12); }
 
 /* Start step selector */
 .sfStartRow {
@@ -545,7 +545,7 @@
 }
 .qaPickerCard:hover {
   background: var(--primary-light);
-  border-color: rgba(79,70,229,0.35);
+  border-color: rgba(5,150,105,0.35);
 }
 
 .qaPickerCardLabel {
@@ -682,7 +682,7 @@
 }
 .flowMapNodeStart {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.08);
 }
 .flowMapNodeNum {
   width: 20px;
@@ -749,7 +749,7 @@
   text-align: left;
 }
 .guideToggle:hover {
-  background: rgba(79,70,229,0.04);
+  background: rgba(5,150,105,0.04);
 }
 .guideChevron {
   margin-left: auto;
@@ -853,7 +853,7 @@
 /* ─── Enhanced Step Styles ─────────────────────────────────────────────── */
 .sfStepStart {
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(79,70,229,0.06);
+  box-shadow: 0 0 0 2px rgba(5,150,105,0.06);
 }
 .sfStepNumStart {
   background: var(--success) !important;
