@@ -9,11 +9,12 @@
   flex: 1;
   background: #020617;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 40px 48px;
   position: relative;
   overflow: hidden;
+  overflow-y: auto;
 }
 
 .bgOrbs .orb1,
@@ -70,7 +71,8 @@
 }
 
 .leftContent {
-  max-width: 500px;
+  max-width: 520px;
+  width: 100%;
   position: relative;
   z-index: 1;
 }
@@ -341,9 +343,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 40px 48px;
   background: #FFFFFF;
   position: relative;
+  overflow-y: auto;
 }
 
 .card {
