@@ -1,7 +1,8 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  overflow: hidden;
 }
 
 /* ─── LEFT PANEL ─── */
@@ -9,12 +10,11 @@
   flex: 2;
   background: #020617;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-  padding: 40px 56px;
+  padding: 32px 48px;
   position: relative;
   overflow: hidden;
-  overflow-y: auto;
 }
 
 .bgOrbs .orb1,
@@ -71,14 +71,10 @@
 }
 
 .leftContent {
-  max-width: 600px;
+  max-width: 560px;
   width: 100%;
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 20px;
 }
 
 /* ─── BRAND ─── */
@@ -86,13 +82,13 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .brandIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
   color: #fff;
   display: flex;
@@ -102,7 +98,7 @@
 }
 
 .brandName {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   color: #FFFFFF;
   letter-spacing: -0.03em;
@@ -121,21 +117,21 @@
 
 /* ─── TAGLINE ─── */
 .tagline {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1.15;
   letter-spacing: -0.04em;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .taglineSmall {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #34d399;
   letter-spacing: 0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .gradient {
@@ -146,10 +142,10 @@
 }
 
 .description {
-  font-size: 15px;
+  font-size: 14px;
   color: rgba(255,255,255,0.55);
-  line-height: 1.7;
-  margin-bottom: 24px;
+  line-height: 1.6;
+  margin-bottom: 16px;
 }
 
 /* ─── INDUSTRY ROTATOR ─── */
@@ -157,11 +153,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 28px;
-  padding: 10px 16px;
+  margin-bottom: 16px;
+  padding: 8px 14px;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .industryLabel {
@@ -173,7 +169,7 @@
 
 .industrySlider {
   position: relative;
-  height: 24px;
+  height: 22px;
   overflow: hidden;
   flex: 1;
 }
@@ -199,16 +195,16 @@
 /* ─── STATS ─── */
 .statsRow {
   display: flex;
-  gap: 14px;
-  margin-bottom: 28px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .stat {
   flex: 1;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 14px;
-  padding: 16px 12px;
+  border-radius: 12px;
+  padding: 12px 10px;
   text-align: center;
   transition: all 0.3s;
 }
@@ -220,20 +216,20 @@
 }
 
 .statEmoji {
-  font-size: 18px;
+  font-size: 16px;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .statValue {
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 800;
   color: #FFFFFF;
   letter-spacing: -0.03em;
 }
 
 .statLabel {
-  font-size: 11px;
+  font-size: 10px;
   color: rgba(255,255,255,0.45);
   margin-top: 2px;
   font-weight: 500;
@@ -243,18 +239,18 @@
 .features {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .featureCard {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 12px;
+  padding: 10px 14px;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s;
   cursor: default;
 }
@@ -266,9 +262,9 @@
 }
 
 .featureIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(6,182,212,0.12));
   color: #34d399;
   display: flex;
@@ -281,11 +277,11 @@
   font-size: 13px;
   font-weight: 700;
   color: #FFFFFF;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .featureDesc {
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(255,255,255,0.45);
   line-height: 1.4;
 }
@@ -302,13 +298,13 @@
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #fff;
   border: 2px solid #020617;
@@ -320,8 +316,8 @@
 }
 
 .avatarMore {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: rgba(255,255,255,0.1);
   border: 2px solid #020617;
@@ -329,7 +325,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: rgba(255,255,255,0.6);
 }
@@ -344,42 +340,40 @@
 .right {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 32px 40px;
   background: #FFFFFF;
   position: relative;
-  overflow-y: auto;
 }
 
 .card {
   width: 100%;
-  max-width: 380px;
+  max-width: 360px;
 }
 
 .cardHeader {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .headerLogo {
-  height: 200px;
+  height: 140px;
   object-fit: contain;
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
   display: block;
 }
 
 .heading {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.04em;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .subheading {
-  font-size: 14px;
+  font-size: 13px;
   color: #94a3b8;
 }
 
@@ -387,13 +381,13 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .label {
@@ -417,7 +411,7 @@
 
 .input {
   width: 100%;
-  padding: 12px 14px 12px 42px;
+  padding: 11px 14px 11px 42px;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   font-size: 14px;
@@ -451,7 +445,7 @@
 }
 
 .btn {
-  padding: 13px 20px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: #fff;
   border: none;
@@ -460,7 +454,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s;
-  margin-top: 4px;
+  margin-top: 2px;
   box-shadow: 0 4px 14px rgba(5,150,105,0.3);
   display: flex;
   align-items: center;
@@ -504,7 +498,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .footerText {
-  margin-top: 24px;
+  margin-top: 20px;
   text-align: center;
   font-size: 12px;
   color: #94a3b8;
@@ -516,28 +510,30 @@
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 1100px) {
-  .left { padding: 32px; }
-  .tagline { font-size: 30px; }
-  .right { padding: 28px 32px; }
-  .headerLogo { height: 90px; }
+  .left { padding: 28px 32px; }
+  .tagline { font-size: 28px; }
+  .right { padding: 24px 32px; }
+  .headerLogo { height: 110px; }
+  .heading { font-size: 22px; }
 }
 
 @media (max-width: 900px) {
   .left { padding: 24px; }
-  .tagline { font-size: 26px; }
-  .statsRow { gap: 10px; }
-  .stat { padding: 12px 8px; }
-  .statValue { font-size: 22px; }
-  .right { padding: 24px; }
-  .headerLogo { height: 80px; }
+  .tagline { font-size: 24px; }
+  .statsRow { gap: 8px; }
+  .stat { padding: 10px 8px; }
+  .statValue { font-size: 20px; }
+  .right { padding: 20px 24px; }
+  .headerLogo { height: 90px; }
+  .heading { font-size: 20px; }
 }
 
 @media (max-width: 768px) {
-  .container { flex-direction: column; }
+  .container { flex-direction: column; height: auto; min-height: 100vh; }
   .left { display: none; }
   .right {
     width: 100%;
-    min-height: 100vh;
+    flex: 1;
     padding: 32px 24px;
     background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
   }
