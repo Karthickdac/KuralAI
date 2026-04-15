@@ -19,7 +19,7 @@ export default function Billing() {
   const [showRecharge, setShowRecharge] = useState(false);
   const [rechargeMinutes, setRechargeMinutes] = useState(60);
 
-  const RATE_PER_MIN = 15;
+  const RATE_PER_MIN = balance?.rechargeRatePerMinute || 15;
 
   const load = useCallback(async () => {
     setLoading(true);

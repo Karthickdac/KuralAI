@@ -19,11 +19,13 @@ async function getPaymentSettings() {
     _settingsCache = {
       keyId: data.razorpayKeyId || process.env.RAZORPAY_KEY_ID || '',
       keySecret: data.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET || '',
+      rechargeRatePerMinute: Number(data.rechargeRatePerMinute) || 15,
     };
   } catch {
     _settingsCache = {
       keyId: process.env.RAZORPAY_KEY_ID || '',
       keySecret: process.env.RAZORPAY_KEY_SECRET || '',
+      rechargeRatePerMinute: 15,
     };
   }
   _settingsCacheTime = Date.now();
@@ -66,7 +68,7 @@ router.post('/create-order', authenticateToken, requireOrgAccess, async (req, re
       description = `KuralAI ${plan.name} Plan — ${plan.billingCycle}`;
       notes = { type: 'plan', planId, orgId };
     } else if (type === 'recharge') {
-      const SERVER_RATE_PER_MIN = 15;
+      const SERVER_RATE_PER_MIN = paymentCreds.rechargeRatePerMinute || 15;
       const minutes = parseInt(rechargeMinutes) || 0;
       if (minutes < 10) return res.status(400).json({ error: 'Minimum recharge is 10 minutes' });
       if (minutes > 10000) return res.status(400).json({ error: 'Maximum recharge is 10,000 minutes' });
@@ -162,7 +164,8 @@ router.post('/verify', authenticateToken, requireOrgAccess, async (req, res) => 
         description: `Plan: ${plan.name} — ${plan.creditMinutes} minutes`,
       });
     } else if (notes.type === 'recharge') {
-      const SERVER_RATE_PER_MIN = 15;
+      const paySettings = await getPaymentSettings();
+      const SERVER_RATE_PER_MIN = paySettings.rechargeRatePerMinute || 15;
       const minutes = parseInt(notes.minutes) || 0;
       const amountPaid = order.amount / 100;
       const expectedAmount = minutes * SERVER_RATE_PER_MIN;
@@ -192,7 +195,8 @@ router.post('/verify', authenticateToken, requireOrgAccess, async (req, res) => 
 router.get('/balance', authenticateToken, requireOrgAccess, async (req, res) => {
   try {
     const balance = await creditService.getBalance(req.user.organizationId);
-    res.json(balance);
+    const paySettings = await getPaymentSettings();
+    res.json({ ...balance, rechargeRatePerMinute: paySettings.rechargeRatePerMinute || 15 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

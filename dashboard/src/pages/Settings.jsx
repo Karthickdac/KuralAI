@@ -329,10 +329,10 @@ function PaymentGatewaySection({ s, savedCreds, onChange }) {
         </div>
       </Card>
 
-      <Card label="Pricing Configuration" badge="Info">
+      <Card label="Pricing Configuration" badge="Editable">
         <div className={styles.grid}>
-          <Field label="Recharge Rate" hint="Fixed per-minute rate for pay-as-you-go credit recharge">
-            <input className={styles.input} value="₹15 / minute" readOnly />
+          <Field label="Recharge Rate (₹ per minute)" hint="Per-minute rate charged for pay-as-you-go credit recharge">
+            <input className={styles.input} type="number" min="1" step="0.5" value={s.rechargeRatePerMinute || 15} onChange={e => onChange('rechargeRatePerMinute', Number(e.target.value))} />
           </Field>
           <Field label="Payment Currency" hint="All payments are processed in Indian Rupees">
             <input className={styles.input} value="INR (₹)" readOnly />
