@@ -21,10 +21,11 @@ import SuperAdminPlans from './pages/SuperAdminPlans';
 import SuperAdminUsage from './pages/SuperAdminUsage';
 import SuperAdminRevenue from './pages/SuperAdminRevenue';
 import Billing from './pages/Billing';
+import CreditsBadge from './components/CreditsBadge';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  return isAuthenticated ? <>{children}<CreditsBadge /></> : <Navigate to="/login" replace />;
 }
 
 function SuperAdminRoute({ children }) {
