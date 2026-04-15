@@ -774,3 +774,8 @@
   border-color: #FCA5A5;
 }
 .prefClearBtn:disabled { opacity: 0.5; cursor: default; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

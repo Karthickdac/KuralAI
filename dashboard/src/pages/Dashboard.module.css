@@ -384,6 +384,8 @@
   .bottomRow { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .main { padding: 0; }
   .kpiGrid, .skeletonGrid { grid-template-columns: repeat(2, 1fr); margin-left: 16px; margin-right: 16px; }
   .chartsRow, .bottomRow, .tableCard { margin-left: 16px; margin-right: 16px; }
   .header { padding: 20px 16px 16px; }

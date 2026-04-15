@@ -149,3 +149,8 @@
 .summaryOk .summaryCount { color: #16a34a; }
 .summaryError .summaryCount { color: #dc2626; }
 .summaryPending .summaryCount { color: #94a3b8; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

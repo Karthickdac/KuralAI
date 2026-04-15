@@ -243,3 +243,8 @@ select.input { cursor: pointer; }
   animation: spin 0.8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

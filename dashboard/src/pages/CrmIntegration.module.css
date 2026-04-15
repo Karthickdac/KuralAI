@@ -203,3 +203,8 @@
 .sampleLabelOut { background: #fce7f3; color: #9d174d; }
 .sampleSection { margin-bottom: 16px; }
 .sampleSection:last-child { margin-bottom: 0; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

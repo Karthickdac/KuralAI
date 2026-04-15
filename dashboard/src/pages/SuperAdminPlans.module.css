@@ -101,3 +101,8 @@
   font-size: 10px; font-weight: 500; padding: 2px 8px;
   background: #F0FDF4; color: #059669; border-radius: 10px; text-transform: capitalize;
 }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

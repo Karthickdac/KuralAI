@@ -92,3 +92,8 @@ a { text-decoration: none; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+  html, body { font-size: 13px; }
+}

@@ -46,9 +46,9 @@ export default function CreditsBadge() {
       onMouseLeave={() => setHover(false)}
       style={{
         position: 'fixed',
-        top: 14,
-        right: 20,
-        zIndex: 1000,
+        top: window.innerWidth <= 768 ? 68 : 14,
+        right: window.innerWidth <= 768 ? 12 : 20,
+        zIndex: 999,
         display: 'flex',
         alignItems: 'center',
         gap: 10,

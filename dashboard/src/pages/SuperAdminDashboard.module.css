@@ -67,3 +67,8 @@
 .statusDot.inactive { background: #EF4444; }
 
 .empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

@@ -15,6 +15,16 @@
   width: 72px;
 }
 
+/* ─── Mobile Header (top bar) ─── */
+.mobileHeader {
+  display: none;
+}
+
+/* ─── Overlay ─── */
+.overlay {
+  display: none;
+}
+
 /* ─── Top Section ───────────────────────────────────── */
 .topSection {
   flex-shrink: 0;
@@ -340,4 +350,73 @@
 
 .collapsed .logoutBtn {
   margin: 0 auto;
+}
+
+/* ─── Mobile Logo ─── */
+.mobileLogoWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.mobileLogoName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #F1F5F9;
+  letter-spacing: -0.02em;
+}
+
+/* ─── MOBILE RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(180deg, #0c1222 0%, #162032 100%);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .hamburger {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    color: #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    z-index: 1001;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.mobileOpen {
+    left: 0;
+  }
+
+  .collapsed {
+    width: 280px;
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
 }

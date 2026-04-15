@@ -522,3 +522,8 @@
   transition: background 0.1s;
 }
 .varChip:hover { background: #e0f2fe; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }

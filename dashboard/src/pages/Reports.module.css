@@ -145,6 +145,8 @@
   .twoCol { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .main { padding: 0; }
   .main { padding: 20px 16px; }
   .metricsGrid { grid-template-columns: repeat(2, 1fr); }
   .summaryGrid { grid-template-columns: 1fr; }

@@ -71,3 +71,8 @@
   background: #DC2626; color: #fff; border: none; border-radius: 4px;
   padding: 4px 12px; font-size: 12px; cursor: pointer;
 }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .main { padding: 0; }
+  }
