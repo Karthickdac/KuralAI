@@ -155,85 +155,45 @@ export default function Billing() {
                     <ul className={styles.featureList}>
                       <li className={styles.featureHighlight}>
                         <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.creditMinutes)}</strong> included minutes, then <strong>₹{plan.extraMinuteRate || 15}</strong> / extra minute</span>
+                        <span><strong>{fmt(plan.creditMinutes)}</strong> min, then ₹{plan.extraMinuteRate || RATE_PER_MIN}/extra min</span>
                       </li>
                       <li>
                         <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxAssistants)}</strong> assistant{plan.maxAssistants !== 1 ? 's' : ''}</span>
+                        <span><strong>{fmt(plan.maxParallelCalls)}</strong> parallel calls &middot; <strong>{fmt(plan.maxCampaigns)}</strong> campaigns</span>
                       </li>
                       <li>
                         <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxCampaigns)}</strong> outbound campaign{plan.maxCampaigns !== 1 ? 's' : ''}</span>
+                        <span><strong>{fmt(plan.maxCustomers)}</strong> customers &middot; <strong>{fmt(plan.maxUsersPerOrg)}</strong> team members</span>
                       </li>
                       <li>
                         <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxParallelCalls)}</strong> calls in parallel</span>
+                        <span><strong>{fmt(plan.maxPhoneNumbers)}</strong> phone no. &middot; <strong>{fmt(plan.maxAssistants)}</strong> assistants</span>
                       </li>
-                      <li>
-                        <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxClonedVoices)}</strong> cloned voice{plan.maxClonedVoices !== 1 ? 's' : ''}</span>
-                      </li>
-                      <li>
-                        <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxWorkflows)}</strong> workflows</span>
-                      </li>
-                      {plan.maxKnowledgebases === 0 ? (
-                        <li className={styles.featureDisabled}>
-                          <span className={styles.checkX}>✕</span>
-                          <span>Knowledgebases</span>
-                        </li>
+                      {plan.maxClonedVoices > 0 || plan.maxClonedVoices === -1 ? (
+                        <li><span className={styles.checkGreen}>✓</span><span>Voice cloning ({fmt(plan.maxClonedVoices)})</span></li>
                       ) : (
-                        <li>
-                          <span className={styles.checkGreen}>✓</span>
-                          <span><strong>{fmt(plan.maxKnowledgebases)}</strong> knowledgebase{plan.maxKnowledgebases !== 1 ? 's' : ''}</span>
-                        </li>
+                        <li className={styles.featureDisabled}><span className={styles.checkX}>✕</span><span>Voice cloning</span></li>
                       )}
-                      {plan.features?.midCallTools ? (
-                        <li>
-                          <span className={styles.checkGreen}>✓</span>
-                          <span>Mid-call tools</span>
-                        </li>
+                      {plan.maxKnowledgebases > 0 || plan.maxKnowledgebases === -1 ? (
+                        <li><span className={styles.checkGreen}>✓</span><span>Knowledgebases ({fmt(plan.maxKnowledgebases)})</span></li>
                       ) : (
-                        <li className={styles.featureDisabled}>
-                          <span className={styles.checkX}>✕</span>
-                          <span>Mid-call tools</span>
-                        </li>
+                        <li className={styles.featureDisabled}><span className={styles.checkX}>✕</span><span>Knowledgebases</span></li>
                       )}
-                      <li>
-                        <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxPhoneNumbers)}</strong> own phone number{plan.maxPhoneNumbers !== 1 ? 's' : ''}</span>
-                      </li>
-                      <li>
-                        <span className={styles.checkGreen}>✓</span>
-                        <span>Up to <strong>{fmt(plan.maxCustomers)}</strong> customers</span>
-                      </li>
-                      <li>
-                        <span className={styles.checkGreen}>✓</span>
-                        <span><strong>{fmt(plan.maxUsersPerOrg)}</strong> team member{plan.maxUsersPerOrg !== 1 ? 's' : ''}</span>
-                      </li>
-                      {plan.features?.voiceGenderSelection && (
-                        <li><span className={styles.checkGreen}>✓</span><span>Voice setup (Male/Female)</span></li>
+                      {plan.features?.crmIntegration ? (
+                        <li><span className={styles.checkGreen}>✓</span><span>CRM &amp; templates</span></li>
+                      ) : (
+                        <li className={styles.featureDisabled}><span className={styles.checkX}>✕</span><span>CRM &amp; templates</span></li>
                       )}
-                      {plan.features?.voiceCloning && (
-                        <li><span className={styles.checkGreen}>✓</span><span>Voice cloning</span></li>
-                      )}
-                      {plan.features?.slangCustomization && (
-                        <li><span className={styles.checkGreen}>✓</span><span>Natural slang customization</span></li>
-                      )}
-                      {plan.features?.crmIntegration && (
-                        <li><span className={styles.checkGreen}>✓</span><span>CRM integration</span></li>
+                      {plan.features?.apiConfig ? (
+                        <li><span className={styles.checkGreen}>✓</span><span>API access &amp; bulk import</span></li>
+                      ) : (
+                        <li className={styles.featureDisabled}><span className={styles.checkX}>✕</span><span>API access &amp; bulk import</span></li>
                       )}
                       {plan.features?.prioritySupport && (
                         <li><span className={styles.checkGreen}>✓</span><span>Priority support</span></li>
                       )}
-                      {plan.features?.apiConfig && (
-                        <li><span className={styles.checkGreen}>✓</span><span>API access</span></li>
-                      )}
-                      {plan.features?.dedicatedSupport && (
-                        <li><span className={styles.checkGreen}>✓</span><span>Dedicated support</span></li>
-                      )}
                       {plan.features?.whiteLabel && (
-                        <li><span className={styles.checkGreen}>✓</span><span>White-label</span></li>
+                        <li><span className={styles.checkGreen}>✓</span><span>White-label &amp; SLA</span></li>
                       )}
                     </ul>
                   </div>
