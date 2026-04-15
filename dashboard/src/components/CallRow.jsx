@@ -102,6 +102,10 @@ function RecordingPlayer({ callId }) {
     audio.currentTime = pct * audio.duration;
   }
 
+  if (error) {
+    return <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{'\u2014'}</span>;
+  }
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 140 }} onClick={e => e.stopPropagation()}>
       <audio
@@ -117,21 +121,17 @@ function RecordingPlayer({ callId }) {
       />
       <button
         onClick={togglePlay}
-        title={error ? 'Recording unavailable' : playing ? 'Pause' : 'Play recording'}
+        title={playing ? 'Pause' : 'Play recording'}
         style={{
           width: 26, height: 26, borderRadius: '50%', border: 'none',
-          background: error ? '#F1F5F9' : playing ? 'var(--primary)' : 'var(--primary-light)',
-          color: error ? '#94A3B8' : playing ? '#fff' : 'var(--primary)',
-          cursor: error ? 'not-allowed' : 'pointer',
+          background: playing ? 'var(--primary)' : 'var(--primary-light)',
+          color: playing ? '#fff' : 'var(--primary)',
+          cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0, transition: 'all 0.15s',
         }}
       >
-        {error ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        ) : playing ? (
+        {playing ? (
           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
             <rect x="5" y="3" width="5" height="18" rx="1"/><rect x="14" y="3" width="5" height="18" rx="1"/>
           </svg>
