@@ -1,17 +1,9 @@
-/**
- * Customer Controller
- * CRUD for customers + their chit accounts.
- */
-
 const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { toIndianFormat } = require('../utils/templateEngine');
 const { setPreference, clearPreference } = require('../services/preferenceService');
 const logger = require('../utils/logger');
 
-/**
- * Build the rich metadata object used in call.metadata and template substitution.
- */
 function buildChitMetadata(customer, primaryChit, otherChit) {
   const pendingDues = primaryChit.totalDues - primaryChit.completedDues;
   const currentDue  = primaryChit.completedDues + 1;
@@ -43,13 +35,10 @@ function buildChitMetadata(customer, primaryChit, otherChit) {
   };
 }
 
-/**
- * GET /api/customers
- * Returns all customers with their chit accounts.
- */
 async function listCustomers(req, res) {
   try {
-    const customers = await Customer.findAll({ order: [['name', 'ASC']] });
+    const orgFilter = req.tenantScope || {};
+    const customers = await Customer.findAll({ where: { ...orgFilter }, order: [['name', 'ASC']] });
     const results = [];
 
     for (const c of customers) {
@@ -80,13 +69,10 @@ async function listCustomers(req, res) {
   }
 }
 
-/**
- * GET /api/customers/:id
- * Returns one customer with full chit detail + metadata map.
- */
 async function getCustomer(req, res) {
   try {
-    const c = await Customer.findByPk(req.params.id);
+    const orgFilter = req.tenantScope || {};
+    const c = await Customer.findOne({ where: { id: req.params.id, ...orgFilter } });
     if (!c) return res.status(404).json({ error: 'Customer not found' });
 
     const chits   = await ChitAccount.findAll({
@@ -104,19 +90,19 @@ async function getCustomer(req, res) {
   }
 }
 
-/**
- * POST /api/customers
- * Create a new customer (optionally with a chit account).
- */
 async function createCustomer(req, res) {
   try {
     const { name, phone, address, notes, chit } = req.body;
     if (!name || !phone) return res.status(400).json({ error: 'name and phone are required' });
 
-    const existing = await Customer.findOne({ where: { phone } });
+    const orgId = req.user?.organizationId || null;
+    const uniqueWhere = { phone };
+    if (orgId) uniqueWhere.organizationId = orgId;
+
+    const existing = await Customer.findOne({ where: uniqueWhere });
     if (existing) return res.status(409).json({ error: 'A customer with this phone number already exists' });
 
-    const c = await Customer.create({ name, phone, address: address || '', notes: notes || '', preferences: {} });
+    const c = await Customer.create({ name, phone, address: address || '', notes: notes || '', preferences: {}, organizationId: orgId });
 
     if (chit) {
       await ChitAccount.create({
@@ -139,13 +125,10 @@ async function createCustomer(req, res) {
   }
 }
 
-/**
- * PUT /api/customers/:id
- * Update customer name, phone, address, notes.
- */
 async function updateCustomer(req, res) {
   try {
-    const c = await Customer.findByPk(req.params.id);
+    const orgFilter = req.tenantScope || {};
+    const c = await Customer.findOne({ where: { id: req.params.id, ...orgFilter } });
     if (!c) return res.status(404).json({ error: 'Customer not found' });
 
     const { name, phone, address, notes } = req.body;
@@ -162,13 +145,10 @@ async function updateCustomer(req, res) {
   }
 }
 
-/**
- * DELETE /api/customers/:id
- * Remove customer and their chit accounts.
- */
 async function deleteCustomer(req, res) {
   try {
-    const c = await Customer.findByPk(req.params.id);
+    const orgFilter = req.tenantScope || {};
+    const c = await Customer.findOne({ where: { id: req.params.id, ...orgFilter } });
     if (!c) return res.status(404).json({ error: 'Customer not found' });
     await ChitAccount.destroy({ where: { customerId: c.id } });
     await c.destroy();
@@ -179,12 +159,11 @@ async function deleteCustomer(req, res) {
   }
 }
 
-/**
- * PATCH /api/customers/:id/preferences
- * Set a preference key: { key, value }
- */
 async function updatePreference(req, res) {
   try {
+    const orgFilter = req.tenantScope || {};
+    const c = await Customer.findOne({ where: { id: req.params.id, ...orgFilter } });
+    if (!c) return res.status(404).json({ error: 'Customer not found' });
     const { key, value } = req.body;
     if (!key) return res.status(400).json({ error: 'key is required' });
     const updated = await setPreference(req.params.id, key, value);
@@ -195,12 +174,11 @@ async function updatePreference(req, res) {
   }
 }
 
-/**
- * DELETE /api/customers/:id/preferences/:key
- * Clear a specific preference key.
- */
 async function deletePreference(req, res) {
   try {
+    const orgFilter = req.tenantScope || {};
+    const c = await Customer.findOne({ where: { id: req.params.id, ...orgFilter } });
+    if (!c) return res.status(404).json({ error: 'Customer not found' });
     const updated = await clearPreference(req.params.id, req.params.key);
     res.json({ success: true, preferences: updated });
   } catch (err) {

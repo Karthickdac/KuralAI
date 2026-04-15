@@ -61,7 +61,10 @@ function validateUrl(url) {
   } catch { return false; }
 }
 
+const { tenantScope } = require('../middleware/tenant');
+
 router.use(authenticateToken, requireAdmin);
+router.use(tenantScope);
 
 router.get('/config', async (req, res) => {
   const s = await loadSettings();
@@ -141,13 +144,17 @@ router.post('/fetch-customers', async (req, res) => {
 
     let created = 0, updated = 0, skipped = 0, errors = [];
 
+    const orgId = req.user?.organizationId || null;
+
     for (const cust of customers) {
       try {
         const phone = normalizePhone(cust.phone || cust.mobile || cust.phoneNumber || cust.contact);
         const name = cust.name || cust.customerName || cust.fullName || '';
         if (!phone) { skipped++; continue; }
 
-        let existing = await Customer.findOne({ where: { phone } });
+        const custWhere = { phone };
+        if (orgId) custWhere.organizationId = orgId;
+        let existing = await Customer.findOne({ where: custWhere });
 
         if (!existing) {
           if (!name) { skipped++; continue; }
@@ -157,6 +164,7 @@ router.post('/fetch-customers', async (req, res) => {
             address: cust.address || '',
             notes: cust.notes || cust.remarks || '',
             preferences: {},
+            organizationId: orgId,
           });
           created++;
         } else {
@@ -210,7 +218,8 @@ router.get('/calls', async (req, res) => {
   try {
     const { sequelize } = require('../config/database');
     const { status, pushed, limit: lim } = req.query;
-    const where = { recordingUrl: { [Op.ne]: null } };
+    const orgFilter = req.tenantScope || {};
+    const where = { ...orgFilter, recordingUrl: { [Op.ne]: null } };
     if (status) where.status = status;
     if (pushed === 'true') {
       where[Op.and] = [
@@ -246,7 +255,8 @@ router.get('/calls', async (req, res) => {
 
 router.post('/push-recording/:callId', async (req, res) => {
   try {
-    const call = await Call.findByPk(req.params.callId);
+    const orgFilter = req.tenantScope || {};
+    const call = await Call.findOne({ where: { id: req.params.callId, ...orgFilter } });
     if (!call) return res.status(404).json({ success: false, error: 'Call not found' });
     if (!call.recordingUrl) return res.status(400).json({ success: false, error: 'No recording available for this call' });
 
@@ -309,8 +319,10 @@ router.post('/push-all', async (req, res) => {
     if (!targetUrl) return res.status(400).json({ success: false, error: 'Push URL not configured. Set it in the Configuration tab.' });
     if (!validateUrl(targetUrl)) return res.status(400).json({ success: false, error: 'Invalid Push URL' });
 
+    const orgFilter = req.tenantScope || {};
     const calls = await Call.findAll({
       where: {
+        ...orgFilter,
         recordingUrl: { [Op.ne]: null },
         status: 'completed',
       },

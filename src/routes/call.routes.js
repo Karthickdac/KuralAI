@@ -1,11 +1,8 @@
-/**
- * Call Routes - /api/calls
- */
-
 const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const { authenticateToken } = require('../middleware/auth');
+const { tenantScope } = require('../middleware/tenant');
 const { validate } = require('../middleware/validate');
 const {
   initiateCallController,
@@ -15,10 +12,9 @@ const {
   retryCall,
 } = require('../controllers/callController');
 
-// All call routes require JWT auth
 router.use(authenticateToken);
+router.use(tenantScope);
 
-// POST /api/calls/initiate
 router.post('/initiate',
   [
     body('toPhone').isMobilePhone().withMessage('Valid phone number required (E.164 format)'),
@@ -29,7 +25,6 @@ router.post('/initiate',
   initiateCallController
 );
 
-// POST /api/calls/bulk
 router.post('/bulk',
   [
     body('phones').optional().isArray(),
@@ -41,7 +36,6 @@ router.post('/bulk',
   bulkCallController
 );
 
-// GET /api/calls
 router.get('/',
   [
     query('page').optional().isInt({ min: 1 }),
@@ -52,13 +46,13 @@ router.get('/',
   listCalls
 );
 
-// GET /api/calls/export — CSV export (must come before /:callId/status)
 router.get('/export', async (req, res) => {
   const { status, fromDate, toDate } = req.query;
   const { Op } = require('sequelize');
   const Call = require('../models/Call');
+  const orgFilter = req.tenantScope || {};
 
-  const where = {};
+  const where = { ...orgFilter };
   if (status) where.status = status;
   if (fromDate || toDate) {
     where.createdAt = {};
@@ -95,21 +89,18 @@ router.get('/export', async (req, res) => {
   res.send(csv);
 });
 
-// GET /api/calls/:callId/status
 router.get('/:callId/status',
   [param('callId').isUUID()],
   validate,
   getCallStatus
 );
 
-// POST /api/calls/:callId/retry
 router.post('/:callId/retry',
   [param('callId').isUUID()],
   validate,
   retryCall
 );
 
-// POST /api/calls/:callId/recording/push — push recording to external system
 router.post('/:callId/recording/push',
   [param('callId').isUUID()],
   validate,
@@ -118,8 +109,9 @@ router.post('/:callId/recording/push',
     const Call = require('../models/Call');
     const Transcript = require('../models/Transcript');
     const logger = require('../utils/logger');
+    const orgFilter = req.tenantScope || {};
 
-    const call = await Call.findByPk(req.params.callId);
+    const call = await Call.findOne({ where: { id: req.params.callId, ...orgFilter } });
     if (!call) return res.status(404).json({ error: 'Call not found' });
     if (!call.recordingUrl) return res.status(400).json({ error: 'No recording available for this call' });
 

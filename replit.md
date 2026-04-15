@@ -42,8 +42,66 @@ Single workflow `Start application` runs `bash start.sh` which:
 2. Starts frontend (React CRA) on port 5000 (HOST=0.0.0.0 for Replit proxy)
 
 ## Default Admin Credentials
-- Email: admin@automystic.com
-- Password: ChangeMe@123
+- **Super Admin**: superadmin@kuralai.com / KuralAI@Super123 (platform-level management)
+- **Tenant Admin**: admin@automystic.com / ChangeMe@123 (existing tenant admin)
+
+## Multi-Tenant SaaS Architecture
+KuralAI is a multi-tenant SaaS platform. Each tenant (organization) has isolated data scoped by `organizationId`.
+
+### Tenant Models (src/models/)
+- `Organization.js` — tenant entity (name, slug, email, phone, logo, settings JSONB)
+- `Plan.js` — subscription plans (Starter ₹999, Growth ₹2999, Enterprise ₹9999/month)
+- `Subscription.js` — org↔plan binding with period tracking & Razorpay integration
+- `CreditBalance.js` — per-org credit minutes (totalMinutes, usedMinutes, reservedMinutes)
+- `CreditTransaction.js` — audit log of all credit operations (usage, recharge, plan_credit, adjustment)
+- `ModuleAccess.js` — per-org module toggles (campaigns, crm_integration, api_config, reports, simulator, templates, call_recording, bulk_import)
+
+### User Roles
+- `superadmin` — platform-wide access, manages all orgs, plans, credits, modules
+- `admin` — org-level admin, manages own tenant data
+- `viewer` — read-only access within their org
+
+### SaaS Routes
+- `GET/POST/PUT /api/superadmin/organizations` — org CRUD
+- `POST /api/superadmin/organizations/:id/assign-plan` — plan assignment
+- `POST /api/superadmin/organizations/:id/add-credits` — manual credit adjustment
+- `PUT /api/superadmin/organizations/:orgId/modules` — module toggles
+- `GET /api/superadmin/dashboard` — platform KPIs
+- `GET /api/superadmin/usage` — per-org usage stats
+- `GET /api/superadmin/usage/export` — CSV export
+- `GET /api/payments/plans` — list active plans
+- `POST /api/payments/create-order` — Razorpay order creation
+- `POST /api/payments/verify` — payment verification
+- `GET /api/payments/balance|transactions|subscription` — tenant billing data
+
+### Tenant Data Isolation
+All core routes enforce tenant scoping via `tenantScope` middleware:
+- **Calls** (`call.routes.js`) — list, export, status, retry, recording push all scoped to org
+- **Customers** (`customer.routes.js`) — CRUD + preferences scoped to org
+- **Campaigns** (`campaign.routes.js`) — CRUD + start/pause/resume scoped to org
+- **Dashboard** (`dashboard.routes.js`) — stats, intents, timeline, recent calls scoped to org
+- **Users** (`user.routes.js`) — list/create/update/delete scoped to org
+- **Transcripts** (`transcript.routes.js`) — access gated by call ownership
+- **Logs** (`log.routes.js`) — access gated by call ownership
+- **CRM** (`crm.routes.js`) — customer fetch/push operations scoped to org
+- Super admin bypasses all scoping and sees all data
+- API key auth (`role: 'api'`) bypasses scoping (global key)
+- New records (calls, customers, campaigns, users) auto-stamped with `organizationId`
+
+### Middleware Stack
+- `src/middleware/tenant.js` — tenantScope (injects organizationId), requireSuperAdmin, requireOrgAccess
+- `src/middleware/planLimits.js` — checkPlanLimit(resource) — enforces maxCustomers/maxCampaigns/etc
+- `src/middleware/moduleAccess.js` — requireModule(name) — blocks disabled features per org
+
+### Frontend SaaS Pages
+- `/superadmin` — Platform overview dashboard (org count, revenue, minutes used)
+- `/superadmin/organizations` — Org management with detail view (plan, credits, modules, users)
+- `/billing` — Tenant billing page (current plan, credit balance, Razorpay recharge, transaction history)
+
+### Payment Gateway
+- **Razorpay** (India-focused) — env vars: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
+- Plan purchase: select → create order → Razorpay checkout → verify → activate subscription + credit minutes
+- Credit recharge: select minutes → create order → pay → add minutes
 
 ## Design System
 CSS variables defined in `dashboard/src/global.css`:

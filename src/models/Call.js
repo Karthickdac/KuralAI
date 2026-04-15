@@ -11,6 +11,11 @@ const Call = sequelize.define('Call', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  organizationId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: { model: 'organizations', key: 'id' },
+  },
   callSid: {
     type: DataTypes.STRING(64),
     unique: true,

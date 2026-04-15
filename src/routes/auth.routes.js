@@ -25,18 +25,23 @@ router.post('/login',
     }
 
     const token = jwt.sign(
-      { userId: user.id, role: user.role },
+      { userId: user.id, role: user.role, organizationId: user.organizationId || null },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
     );
 
-    logger.info(`User logged in: ${email}`);
+    logger.info(`User logged in: ${email} (role: ${user.role}, org: ${user.organizationId || 'none'})`);
     res.json({ success: true, token, user: user.toJSON() });
   }
 );
 
-// POST /api/auth/register (admin only - use seed script in production)
+// POST /api/auth/register (superadmin only)
+const { authenticateToken } = require('../middleware/auth');
+const { requireSuperAdmin } = require('../middleware/tenant');
+
 router.post('/register',
+  authenticateToken,
+  requireSuperAdmin,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 8 }),
@@ -44,12 +49,13 @@ router.post('/register',
   ],
   validate,
   async (req, res) => {
-    const { email, password, name, role = 'viewer' } = req.body;
+    const { email, password, name, role = 'viewer', organizationId } = req.body;
 
     const existing = await User.findOne({ where: { email } });
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
-    const user = await User.create({ email, password, name, role });
+    const safeRole = role === 'superadmin' ? 'admin' : role;
+    const user = await User.create({ email, password, name, role: safeRole, organizationId: organizationId || null });
     res.status(201).json({ success: true, user: user.toJSON() });
   }
 );

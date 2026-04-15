@@ -154,4 +154,30 @@ export const templatesApi = {
   deletePrompt:    (id)      => api.delete(`/api/templates/prompts/${id}`),
 };
 
+export const superadminApi = {
+  dashboard: () => api.get('/api/superadmin/dashboard'),
+  organizations: () => api.get('/api/superadmin/organizations'),
+  getOrg: (id) => api.get(`/api/superadmin/organizations/${id}`),
+  createOrg: (data) => api.post('/api/superadmin/organizations', data),
+  updateOrg: (id, data) => api.put(`/api/superadmin/organizations/${id}`, data),
+  assignPlan: (orgId, planId) => api.post(`/api/superadmin/organizations/${orgId}/assign-plan`, { planId }),
+  addCredits: (orgId, minutes, description) => api.post(`/api/superadmin/organizations/${orgId}/add-credits`, { minutes, description }),
+  createOrgUser: (orgId, data) => api.post(`/api/superadmin/organizations/${orgId}/create-user`, data),
+  updateModules: (orgId, modules) => api.put(`/api/superadmin/organizations/${orgId}/modules`, { modules }),
+  plans: () => api.get('/api/superadmin/plans'),
+  createPlan: (data) => api.post('/api/superadmin/plans', data),
+  updatePlan: (id, data) => api.put(`/api/superadmin/plans/${id}`, data),
+  usage: (params) => api.get('/api/superadmin/usage', { params }),
+  usageExport: (params) => api.get('/api/superadmin/usage/export', { params, responseType: 'blob' }),
+};
+
+export const paymentsApi = {
+  plans: () => api.get('/api/payments/plans'),
+  createOrder: (data) => api.post('/api/payments/create-order', data),
+  verify: (data) => api.post('/api/payments/verify', data),
+  balance: () => api.get('/api/payments/balance'),
+  transactions: (params) => api.get('/api/payments/transactions', { params }),
+  subscription: () => api.get('/api/payments/subscription'),
+};
+
 export default api;

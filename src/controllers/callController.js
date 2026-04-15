@@ -1,8 +1,3 @@
-/**
- * Call Controller
- * Handles call initiation, status, retry logic — using Exotel
- */
-
 const fs   = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
@@ -13,13 +8,11 @@ const { buildChitMetadata } = require('./customerController');
 const { initiateCall } = require('../services/telephonyService');
 const logger = require('../utils/logger');
 
-/**
- * Look up a customer by phone and build their full chit metadata.
- * Returns {} if the customer or chit data is not found.
- */
-async function resolveCustomerMeta(toPhone) {
+async function resolveCustomerMeta(toPhone, organizationId) {
   try {
-    const customer = await Customer.findOne({ where: { phone: toPhone } });
+    const where = { phone: toPhone };
+    if (organizationId) where.organizationId = organizationId;
+    const customer = await Customer.findOne({ where });
     if (!customer) return {};
     const chits   = await ChitAccount.findAll({
       where: { customerId: customer.id },
@@ -40,19 +33,14 @@ function getSettings() {
   try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
 }
 
-/**
- * POST /api/calls/initiate
- * Start a new outgoing call via Exotel
- */
 async function initiateCallController(req, res) {
   const { toPhone, metadata = {}, maxRetries } = req.body;
+  const orgId = req.user?.organizationId || null;
 
   try {
-    // Auto-enrich metadata with customer chit data from DB (DB values win over manual overrides)
-    const customerMeta = await resolveCustomerMeta(toPhone);
+    const customerMeta = await resolveCustomerMeta(toPhone, orgId);
     const enrichedMeta = { ...customerMeta, ...metadata };
 
-    // Create call record in DB first
     const s = getSettings();
     const provider   = (s.telephonyProvider || 'twilio').toLowerCase();
     const fromPhone  = provider === 'twilio'
@@ -67,22 +55,18 @@ async function initiateCallController(req, res) {
       direction: 'outbound',
       maxRetries: maxRetries || parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
       metadata: enrichedMeta,
+      organizationId: orgId,
     });
 
     logger.info(`Call initiated: ${call.id} -> ${toPhone} | customer=${enrichedMeta.customerName || 'unknown'} | chit=${enrichedMeta.chitGroup || 'none'}`);
 
-    // Trigger telephony call
     const exotelCall = await initiateCall(toPhone, call.id, enrichedMeta);
 
-    // Update with Exotel SID
     await call.update({
       callSid: exotelCall.sid,
       status: 'queued',
     });
 
-    // ── Fire-and-forget TTS pre-warm during ring phase ─────────────────────────
-    // Customer's phone rings for ~10-15 seconds — use that time to pre-synthesize
-    // the greeting FIRST (+ cache the ready TwiML), then all other messages.
     const _meta = { ...enrichedMeta };
     setImmediate(async () => {
       try {
@@ -172,13 +156,12 @@ async function initiateCallController(req, res) {
   }
 }
 
-/**
- * GET /api/calls/:callId/status
- */
 async function getCallStatus(req, res) {
   const { callId } = req.params;
+  const orgFilter = req.tenantScope || {};
 
-  const call = await Call.findByPk(callId, {
+  const call = await Call.findOne({
+    where: { id: callId, ...orgFilter },
     attributes: ['id', 'callSid', 'toPhone', 'status', 'duration', 'escalated', 'createdAt', 'startedAt', 'endedAt'],
   });
 
@@ -187,13 +170,9 @@ async function getCallStatus(req, res) {
   res.json({ success: true, call });
 }
 
-/**
- * POST /api/calls/bulk
- * Initiate calls to multiple customers (sequential, with delay).
- * Body: { phones: ['+91...'], metadata: { callType: '...' }, delayMs: 2000 }
- */
 async function bulkCallController(req, res) {
   const { phones = [], customerIds = [], metadata = {}, delayMs = 2500 } = req.body;
+  const orgId = req.user?.organizationId || null;
 
   if (!phones.length && !customerIds.length) {
     return res.status(400).json({ success: false, error: 'phones or customerIds array required' });
@@ -201,9 +180,10 @@ async function bulkCallController(req, res) {
 
   const targets = phones.length ? phones : [];
 
-  // Resolve customerIds to phones if provided
   if (customerIds.length) {
-    const customers = await Customer.findAll({ where: { id: customerIds } });
+    const custWhere = { id: customerIds };
+    if (orgId) custWhere.organizationId = orgId;
+    const customers = await Customer.findAll({ where: custWhere });
     customers.forEach(c => { if (c.phone && !targets.includes(c.phone)) targets.push(c.phone); });
   }
 
@@ -211,14 +191,12 @@ async function bulkCallController(req, res) {
     return res.status(400).json({ success: false, error: 'No valid phone numbers found' });
   }
 
-  // Return immediately — calls fire in background
   res.json({
     success: true,
     queued: targets.length,
     message: `Queued ${targets.length} call(s). They will start within a few seconds.`,
   });
 
-  // Fire calls sequentially in background with delay
   setImmediate(async () => {
     const s = getSettings();
     const provider   = (s.telephonyProvider || 'twilio').toLowerCase();
@@ -229,7 +207,7 @@ async function bulkCallController(req, res) {
     for (let i = 0; i < targets.length; i++) {
       const toPhone = targets[i];
       try {
-        const customerMeta = await resolveCustomerMeta(toPhone);
+        const customerMeta = await resolveCustomerMeta(toPhone, orgId);
         const enrichedMeta = { ...customerMeta, ...metadata };
 
         const call = await Call.create({
@@ -237,6 +215,7 @@ async function bulkCallController(req, res) {
           status: 'initiated', direction: 'outbound',
           maxRetries: parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
           metadata: enrichedMeta,
+          organizationId: orgId,
         });
 
         const exotelCall = await initiateCall(toPhone, call.id, enrichedMeta);
@@ -296,15 +275,12 @@ async function bulkCallController(req, res) {
   });
 }
 
-/**
- * GET /api/calls
- * List calls with pagination and filtering
- */
 async function listCalls(req, res) {
   const { page = 1, limit = 20, status, fromDate, toDate } = req.query;
   const { Op } = require('sequelize');
+  const orgFilter = req.tenantScope || {};
 
-  const where = {};
+  const where = { ...orgFilter };
   if (status) where.status = status;
   if (fromDate || toDate) {
     where.createdAt = {};
@@ -331,13 +307,10 @@ async function listCalls(req, res) {
   });
 }
 
-/**
- * POST /api/calls/:callId/retry
- * Manually retry a failed call
- */
 async function retryCall(req, res) {
   const { callId } = req.params;
-  const call = await Call.findByPk(callId);
+  const orgFilter = req.tenantScope || {};
+  const call = await Call.findOne({ where: { id: callId, ...orgFilter } });
 
   if (!call) return res.status(404).json({ error: 'Call not found' });
   if (call.retryCount >= call.maxRetries) {

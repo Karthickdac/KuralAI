@@ -12,6 +12,11 @@ const User = sequelize.define('User', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  organizationId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: { model: 'organizations', key: 'id' },
+  },
   email: {
     type: DataTypes.STRING(255),
     allowNull: false,
@@ -27,7 +32,7 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM('admin', 'viewer'),
+    type: DataTypes.ENUM('superadmin', 'admin', 'viewer'),
     defaultValue: 'viewer',
   },
   isActive: {

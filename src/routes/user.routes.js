@@ -1,29 +1,25 @@
-/**
- * User Management Routes - /api/users
- * Admin-only CRUD for dashboard users
- */
-
 const express = require('express');
 const router = express.Router();
 const { body, param } = require('express-validator');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { tenantScope } = require('../middleware/tenant');
 const { validate } = require('../middleware/validate');
 const User = require('../models/User');
 
 router.use(authenticateToken);
 router.use(requireAdmin);
+router.use(tenantScope);
 
-// GET /api/users
 router.get('/', async (req, res) => {
   try {
-    const users = await User.findAll({ order: [['createdAt', 'DESC']] });
+    const orgFilter = req.tenantScope || {};
+    const users = await User.findAll({ where: { ...orgFilter }, order: [['createdAt', 'DESC']] });
     res.json({ success: true, users });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// POST /api/users
 router.post('/',
   [
     body('email').isEmail().withMessage('Valid email required'),
@@ -37,7 +33,8 @@ router.post('/',
       const { email, password, name, role = 'viewer' } = req.body;
       const existing = await User.findOne({ where: { email } });
       if (existing) return res.status(400).json({ success: false, error: 'Email already in use' });
-      const user = await User.create({ email, password, name, role });
+      const orgId = req.user?.organizationId || null;
+      const user = await User.create({ email, password, name, role, organizationId: orgId });
       res.status(201).json({ success: true, user });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
@@ -45,7 +42,6 @@ router.post('/',
   }
 );
 
-// PUT /api/users/:id
 router.put('/:id',
   [
     param('id').isUUID(),
@@ -57,7 +53,8 @@ router.put('/:id',
   validate,
   async (req, res) => {
     try {
-      const user = await User.findByPk(req.params.id);
+      const orgFilter = req.tenantScope || {};
+      const user = await User.findOne({ where: { id: req.params.id, ...orgFilter } });
       if (!user) return res.status(404).json({ error: 'User not found' });
 
       const updates = {};
@@ -74,13 +71,13 @@ router.put('/:id',
   }
 );
 
-// DELETE /api/users/:id
 router.delete('/:id',
   [param('id').isUUID()],
   validate,
   async (req, res) => {
     try {
-      const user = await User.findByPk(req.params.id);
+      const orgFilter = req.tenantScope || {};
+      const user = await User.findOne({ where: { id: req.params.id, ...orgFilter } });
       if (!user) return res.status(404).json({ error: 'User not found' });
       if (user.id === req.user.userId) {
         return res.status(400).json({ error: 'Cannot delete your own account' });

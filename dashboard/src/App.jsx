@@ -15,10 +15,20 @@ import Customers from './pages/Customers';
 import Campaigns from './pages/Campaigns';
 import ApiConfig from './pages/ApiConfig';
 import CrmIntegration from './pages/CrmIntegration';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import SuperAdminOrganizations from './pages/SuperAdminOrganizations';
+import Billing from './pages/Billing';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? children : <Navigate to="/login" replace />;
+}
+
+function SuperAdminRoute({ children }) {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'superadmin') return <Navigate to="/" replace />;
+  return children;
 }
 
 export default function App() {
@@ -39,6 +49,10 @@ export default function App() {
         <Route path="/api-config" element={<ProtectedRoute><ApiConfig /></ProtectedRoute>} />
         <Route path="/crm" element={<ProtectedRoute><CrmIntegration /></ProtectedRoute>} />
         <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+        <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+        <Route path="/superadmin/organizations" element={<SuperAdminRoute><SuperAdminOrganizations /></SuperAdminRoute>} />
+        <Route path="/superadmin/organizations/:id" element={<SuperAdminRoute><SuperAdminOrganizations /></SuperAdminRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

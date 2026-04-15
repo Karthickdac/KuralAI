@@ -12,6 +12,11 @@ const Customer = sequelize.define('Customer', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
+  organizationId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: { model: 'organizations', key: 'id' },
+  },
   name: {
     type: DataTypes.STRING(100),
     allowNull: false,

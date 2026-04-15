@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, param, query } = require('express-validator');
 const { authenticateToken } = require('../middleware/auth');
+const { tenantScope } = require('../middleware/tenant');
 const { validate } = require('../middleware/validate');
 const {
   listCampaigns,
@@ -15,6 +16,7 @@ const {
 } = require('../controllers/campaignController');
 
 router.use(authenticateToken);
+router.use(tenantScope);
 
 router.get('/',
   [

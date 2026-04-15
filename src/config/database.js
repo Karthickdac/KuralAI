@@ -33,7 +33,15 @@ const sequelize = isTest
 async function initDatabase() {
   await sequelize.authenticate();
 
-  // Register all models (order matters for FK sync)
+  // Register SaaS models first (FK targets)
+  require('../models/Organization')(sequelize);
+  require('../models/Plan')(sequelize);
+  require('../models/Subscription')(sequelize);
+  require('../models/CreditBalance')(sequelize);
+  require('../models/CreditTransaction')(sequelize);
+  require('../models/ModuleAccess')(sequelize);
+
+  // Register existing models
   require('../models/Call');
   require('../models/Transcript');
   require('../models/CallLog');
@@ -45,16 +53,197 @@ async function initDatabase() {
   require('../models/AppSetting');
   require('../models/Campaign');
 
+  // Define associations
+  setupAssociations();
+
+  // Migrate user role enum to include superadmin
+  await migrateUserRoleEnum();
+
+  // Add organizationId columns to existing tables
+  await addOrgIdColumns();
+
   // Sync schema (create tables if they don't exist)
   await sequelize.sync({ force: false });
 
   // Migrate settings from file → DB (one-time, on first boot)
   await migrateSettingsToDb();
 
-  // Seed data if tables are empty
+  // Seed SaaS data
+  await seedPlans();
+  await seedSuperAdmin();
+  await seedDefaultOrg();
+
+  // Seed sample data if tables are empty
   await seedCustomers();
   await seedQaTemplates();
   await seedPromptTemplates();
+}
+
+function setupAssociations() {
+  const Organization = sequelize.models.Organization;
+  const Plan = sequelize.models.Plan;
+  const Subscription = sequelize.models.Subscription;
+  const CreditBalance = sequelize.models.CreditBalance;
+  const CreditTransaction = sequelize.models.CreditTransaction;
+  const ModuleAccess = sequelize.models.ModuleAccess;
+  const User = require('../models/User');
+  const Customer = require('../models/Customer');
+  const Call = require('../models/Call');
+  const Campaign = require('../models/Campaign');
+
+  Organization.hasMany(Subscription, { foreignKey: 'organizationId', as: 'subscriptions' });
+  Subscription.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' });
+
+  Plan.hasMany(Subscription, { foreignKey: 'planId', as: 'subscriptions' });
+  Subscription.belongsTo(Plan, { foreignKey: 'planId', as: 'plan' });
+
+  Organization.hasOne(CreditBalance, { foreignKey: 'organizationId', as: 'creditBalance' });
+  CreditBalance.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' });
+
+  Organization.hasMany(CreditTransaction, { foreignKey: 'organizationId', as: 'creditTransactions' });
+  CreditTransaction.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' });
+
+  Organization.hasMany(ModuleAccess, { foreignKey: 'organizationId', as: 'modules' });
+  ModuleAccess.belongsTo(Organization, { foreignKey: 'organizationId', as: 'organization' });
+
+  Organization.hasMany(User, { foreignKey: 'organizationId', as: 'users' });
+  Organization.hasMany(Customer, { foreignKey: 'organizationId', as: 'customers' });
+  Organization.hasMany(Call, { foreignKey: 'organizationId', as: 'calls' });
+  Organization.hasMany(Campaign, { foreignKey: 'organizationId', as: 'campaigns' });
+}
+
+async function migrateUserRoleEnum() {
+  try {
+    await sequelize.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'superadmin' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'enum_users_role')) THEN
+          ALTER TYPE "enum_users_role" ADD VALUE 'superadmin' BEFORE 'admin';
+        END IF;
+      END$$;
+    `);
+  } catch (e) {
+    // Enum type may not exist yet on first boot
+  }
+}
+
+async function addOrgIdColumns() {
+  const tables = ['users', 'customers', 'calls', 'campaigns'];
+  for (const table of tables) {
+    try {
+      const [cols] = await sequelize.query(`SELECT column_name FROM information_schema.columns WHERE table_name='${table}' AND column_name='organizationId'`);
+      if (cols.length === 0) {
+        await sequelize.query(`ALTER TABLE "${table}" ADD COLUMN IF NOT EXISTS "organizationId" UUID REFERENCES organizations(id);`);
+      }
+    } catch (e) {
+      // Table may not exist yet
+    }
+  }
+}
+
+async function seedPlans() {
+  const Plan = sequelize.models.Plan;
+  if (!Plan) return;
+  const count = await Plan.count();
+  if (count > 0) return;
+
+  await Plan.bulkCreate([
+    {
+      name: 'Starter',
+      slug: 'starter',
+      description: 'For small businesses getting started with AI calling',
+      price: 999,
+      billingCycle: 'monthly',
+      creditMinutes: 60,
+      maxWorkflows: 2,
+      maxCustomers: 50,
+      maxCampaigns: 3,
+      maxUsersPerOrg: 2,
+      features: { callRecording: true, reports: true, simulator: true },
+      sortOrder: 1,
+    },
+    {
+      name: 'Growth',
+      slug: 'growth',
+      description: 'For growing businesses with higher call volumes',
+      price: 2999,
+      billingCycle: 'monthly',
+      creditMinutes: 300,
+      maxWorkflows: 5,
+      maxCustomers: 500,
+      maxCampaigns: 10,
+      maxUsersPerOrg: 5,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true },
+      sortOrder: 2,
+    },
+    {
+      name: 'Enterprise',
+      slug: 'enterprise',
+      description: 'Unlimited access for large organizations',
+      price: 9999,
+      billingCycle: 'monthly',
+      creditMinutes: 1500,
+      maxWorkflows: 50,
+      maxCustomers: 10000,
+      maxCampaigns: 100,
+      maxUsersPerOrg: 25,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, apiConfig: true, bulkImport: true },
+      sortOrder: 3,
+    },
+  ]);
+  logger.info('✅ Default plans seeded (Starter, Growth, Enterprise)');
+}
+
+async function seedSuperAdmin() {
+  const User = require('../models/User');
+  const existing = await User.findOne({ where: { role: 'superadmin' } });
+  if (existing) return;
+
+  await User.create({
+    email: 'superadmin@kuralai.com',
+    password: 'KuralAI@Super123',
+    name: 'KuralAI Super Admin',
+    role: 'superadmin',
+    organizationId: null,
+  });
+  logger.info('✅ Super admin seeded (superadmin@kuralai.com / KuralAI@Super123)');
+}
+
+async function seedDefaultOrg() {
+  const Organization = sequelize.models.Organization;
+  const CreditBalance = sequelize.models.CreditBalance;
+  const User = require('../models/User');
+  if (!Organization) return;
+
+  const existing = await Organization.findOne({ where: { slug: 'automystic-chit-fund' } });
+  if (existing) {
+    const unassigned = await User.findAll({ where: { organizationId: null, role: { [require('sequelize').Op.ne]: 'superadmin' } } });
+    for (const u of unassigned) {
+      await u.update({ organizationId: existing.id });
+      logger.info(`Assigned user ${u.email} to org ${existing.name}`);
+    }
+    return;
+  }
+
+  const org = await Organization.create({
+    name: 'Automystic Chit Fund',
+    slug: 'automystic-chit-fund',
+    email: 'info@automystic.com',
+    phone: '+919999999999',
+  });
+
+  await CreditBalance.findOrCreate({
+    where: { organizationId: org.id },
+    defaults: { totalMinutes: 100, usedMinutes: 0, reservedMinutes: 0 },
+  });
+
+  const users = await User.findAll({ where: { organizationId: null, role: { [require('sequelize').Op.ne]: 'superadmin' } } });
+  for (const u of users) {
+    await u.update({ organizationId: org.id });
+    logger.info(`Assigned user ${u.email} to org ${org.name}`);
+  }
+
+  logger.info(`✅ Default organization seeded: ${org.name}`);
 }
 
 async function seedCustomers() {

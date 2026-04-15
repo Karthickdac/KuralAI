@@ -17,9 +17,11 @@ function getSettings() {
 
 const activeCampaigns = new Map();
 
-async function resolveCustomerMeta(toPhone) {
+async function resolveCustomerMeta(toPhone, organizationId) {
   try {
-    const customer = await Customer.findOne({ where: { phone: toPhone } });
+    const where = { phone: toPhone };
+    if (organizationId) where.organizationId = organizationId;
+    const customer = await Customer.findOne({ where });
     if (!customer) return {};
     const chits = await ChitAccount.findAll({
       where: { customerId: customer.id },
@@ -38,7 +40,8 @@ async function resolveCustomerMeta(toPhone) {
 async function listCampaigns(req, res) {
   const { page = 1, limit = 20, status } = req.query;
   const { Op } = require('sequelize');
-  const where = {};
+  const orgFilter = req.tenantScope || {};
+  const where = { ...orgFilter };
   if (status) where.status = status;
 
   const { count, rows } = await Campaign.findAndCountAll({
@@ -56,7 +59,8 @@ async function listCampaigns(req, res) {
 }
 
 async function getCampaign(req, res) {
-  const campaign = await Campaign.findByPk(req.params.id);
+  const orgFilter = req.tenantScope || {};
+  const campaign = await Campaign.findOne({ where: { id: req.params.id, ...orgFilter } });
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
 
   const callIds = campaign.callIds || [];
@@ -74,6 +78,7 @@ async function getCampaign(req, res) {
 
 async function createCampaign(req, res) {
   const { name, type = 'due_reminder', customerIds = [], concurrency = 1, scheduledAt, metadata = {}, workflowId, recordCalls = true, callbackUrl } = req.body;
+  const orgId = req.user?.organizationId || null;
 
   if (!name) return res.status(400).json({ error: 'Campaign name is required' });
   if (!customerIds.length) return res.status(400).json({ error: 'At least one customer is required' });
@@ -92,13 +97,15 @@ async function createCampaign(req, res) {
     recordCalls,
     callbackUrl,
     createdBy: req.user?.id,
+    organizationId: orgId,
   });
 
   res.status(201).json({ success: true, campaign });
 }
 
 async function updateCampaign(req, res) {
-  const campaign = await Campaign.findByPk(req.params.id);
+  const orgFilter = req.tenantScope || {};
+  const campaign = await Campaign.findOne({ where: { id: req.params.id, ...orgFilter } });
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
   if (['running', 'completed'].includes(campaign.status)) {
     return res.status(400).json({ error: 'Cannot edit a running or completed campaign' });
@@ -121,7 +128,8 @@ async function updateCampaign(req, res) {
 }
 
 async function deleteCampaign(req, res) {
-  const campaign = await Campaign.findByPk(req.params.id);
+  const orgFilter = req.tenantScope || {};
+  const campaign = await Campaign.findOne({ where: { id: req.params.id, ...orgFilter } });
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
   if (campaign.status === 'running') return res.status(400).json({ error: 'Cannot delete a running campaign. Pause it first.' });
 
@@ -130,7 +138,8 @@ async function deleteCampaign(req, res) {
 }
 
 async function startCampaign(req, res) {
-  const campaign = await Campaign.findByPk(req.params.id);
+  const orgFilter = req.tenantScope || {};
+  const campaign = await Campaign.findOne({ where: { id: req.params.id, ...orgFilter } });
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
   if (campaign.status === 'running') return res.status(400).json({ error: 'Campaign is already running' });
   if (campaign.status === 'completed') return res.status(400).json({ error: 'Campaign is already completed' });
@@ -144,7 +153,8 @@ async function startCampaign(req, res) {
 }
 
 async function pauseCampaign(req, res) {
-  const campaign = await Campaign.findByPk(req.params.id);
+  const orgFilter = req.tenantScope || {};
+  const campaign = await Campaign.findOne({ where: { id: req.params.id, ...orgFilter } });
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
   if (campaign.status !== 'running') return res.status(400).json({ error: 'Campaign is not running' });
 
@@ -156,7 +166,8 @@ async function pauseCampaign(req, res) {
 }
 
 async function resumeCampaign(req, res) {
-  const campaign = await Campaign.findByPk(req.params.id);
+  const orgFilter = req.tenantScope || {};
+  const campaign = await Campaign.findOne({ where: { id: req.params.id, ...orgFilter } });
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
   if (campaign.status !== 'paused') return res.status(400).json({ error: 'Campaign is not paused' });
 
@@ -173,6 +184,7 @@ async function executeCampaign(campaignId) {
   const campaign = await Campaign.findByPk(campaignId);
   if (!campaign || campaign.status !== 'running') return;
 
+  const orgId = campaign.organizationId || null;
   const { customerIds, concurrency, metadata, recordCalls, callbackUrl } = campaign;
   const s = getSettings();
   const provider  = (s.telephonyProvider || 'twilio').toLowerCase();
@@ -198,7 +210,7 @@ async function executeCampaign(campaignId) {
     if (activeCampaigns.get(campaignId) === 'paused') return 'paused';
 
     try {
-      const customerMeta = await resolveCustomerMeta(customer.phone);
+      const customerMeta = await resolveCustomerMeta(customer.phone, orgId);
       const wfId = campaign.workflowId || campaign.type;
       const enrichedMeta = {
         ...customerMeta,
@@ -218,6 +230,7 @@ async function executeCampaign(campaignId) {
         direction: 'outbound',
         maxRetries: parseInt(process.env.CALL_RETRY_ATTEMPTS) || 3,
         metadata: enrichedMeta,
+        organizationId: orgId,
       });
 
       const result = await initiateCall(customer.phone, call.id, enrichedMeta);
