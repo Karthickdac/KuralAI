@@ -113,28 +113,7 @@ export default function Billing() {
                 </div>
               </div>
 
-              {showRecharge && (
-                <div className={styles.rechargeModal}>
-                  <div className={styles.rechargeCard}>
-                    <h4>Recharge Call Credits</h4>
-                    <div className={styles.rechargeForm}>
-                      <label>Minutes</label>
-                      <input
-                        type="number" min={10} step={10} value={rechargeMinutes}
-                        onChange={e => setRechargeMinutes(Number(e.target.value))}
-                        className={styles.input}
-                      />
-                      <div className={styles.rechargeSummary}>
-                        {rechargeMinutes} minutes = ₹{(rechargeMinutes * RATE_PER_MIN).toLocaleString('en-IN')}
-                      </div>
-                      <div className={styles.rechargeActions}>
-                        <button className={styles.primaryBtn} onClick={() => handlePayment('recharge')}>Pay with Razorpay</button>
-                        <button className={styles.secondaryBtn} onClick={() => setShowRecharge(false)}>Cancel</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              
 
               <div className={styles.section}>
                 <h3>Available Plans</h3>
@@ -198,6 +177,29 @@ export default function Billing() {
             </>
           )}
         </div>
+
+        {showRecharge && (
+          <div className={styles.rechargeModal} onClick={() => setShowRecharge(false)}>
+            <div className={styles.rechargeCard} onClick={e => e.stopPropagation()}>
+              <h4>Recharge Call Credits</h4>
+              <div className={styles.rechargeForm}>
+                <label>Minutes</label>
+                <input
+                  type="number" min={10} step={10} value={rechargeMinutes}
+                  onChange={e => setRechargeMinutes(Number(e.target.value))}
+                  className={styles.input}
+                />
+                <div className={styles.rechargeSummary}>
+                  {rechargeMinutes} minutes = ₹{(rechargeMinutes * RATE_PER_MIN).toLocaleString('en-IN')}
+                </div>
+                <div className={styles.rechargeActions}>
+                  <button className={styles.primaryBtn} onClick={() => handlePayment('recharge')}>Pay with Razorpay</button>
+                  <button className={styles.secondaryBtn} onClick={() => setShowRecharge(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
