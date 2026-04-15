@@ -142,14 +142,36 @@ function generateConversationExoML(audioUrl, callId, turn, sayText) {
     ? `<Play>${audioUrl}</Play>`
     : `<Say language="ta-IN">${_escapeXml(sayText || 'கேள்வி கேளுங்கள்.')}</Say>`;
 
+  const hints = [
+    'ஆமா','ஆமாம்','இல்ல','இல்லை','சரி','ஓகே','நான் தான்','பேசுறேன்',
+    'கட்டிட்டேன்','கட்டுறேன்','கட்டிடுறேன்','கட்டாச்சு','போட்டாச்சு',
+    'நாளைக்கு','நாளை','இந்த வீக்','tomorrow','this week',
+    'வேண்டாம்','முடியல','கஷ்டம்','பணம் இல்ல','afford',
+    'busy','meeting','driving','later','அப்புறம்',
+    'எப்போ','எவ்வளவு','எத்தன','எவ்ளோ','எத்தனாவது',
+    'due','due date','amount','pay','paid','UPI','GPay','bank','cash','online','transfer',
+    'chit','சீட்','சீட்டு','seat','குலுக்கல்','lottery','participate','கலந்துக்கிறேன்','interested',
+    'jamin','ஜாமீன்','cheque','document','security',
+    'premature','withdraw','எடுத்தா','surrender','cancel','close','refund',
+    'senior','manager','complaint','புகார்','ஆளு','transfer',
+    'office','ஆஃபீஸ்','staff','ஸ்டாஃப்',
+    'ஒருத்தர்','ஒரு ஆளு',
+    'ஹலோ','வணக்கம்','நன்றி','bye','thanks',
+    'salary','EMI','loan','penalty','fine',
+    'yes','no','ok','sure','ready','skip','next time','correct','yeah','haan',
+    'சொல்லுங்க','தெரியும்','தெரியாது','புரியுது','பாக்குறேன்','கவனிச்சுக்கிறேன்',
+    'wrong number','தப்பு','வேற ஆளு','available இல்ல',
+    'account details','payment method','எப்படி கட்டணும்',
+  ].join(',');
+
   return _xml(`
-  <Gather input="speech" timeout="7" speechTimeout="auto"
+  <Gather input="speech" timeout="5" speechTimeout="auto"
           language="ta-IN"
           action="${speechUrl}"
           method="POST"
           speechModel="phone_call"
           enhanced="true"
-          hints="ஆமா,இல்ல,சரி,தெரியும்,தெரியாது,கட்டிட்டேன்,கட்டுறேன்,நாளைக்கு,போன்,வேண்டாம்,சொல்லுங்க,ம்,ஹலோ,வணக்கம்,யாரு,எப்போ,எவ்வளவு,manager,ok,yes,no,paid,tomorrow,due,chit,lottery">
+          hints="${hints}">
     ${spokenContent}
   </Gather>
   <Redirect method="POST">${silenceUrl}</Redirect>`);

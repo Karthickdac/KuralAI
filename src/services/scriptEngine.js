@@ -60,6 +60,71 @@ function getOpenAI() {
   return _openai;
 }
 
+/**
+ * Normalize Tamil speech-to-text output for better matching.
+ * Handles common STT noise, phonetic variants, and Tanglish patterns.
+ */
+function normalizeTamilSpeech(text) {
+  if (!text) return '';
+  let t = text.trim();
+
+  const replacements = [
+    [/\baam[aā]\b/gi, 'ஆமா'],
+    [/\baamam\b/gi, 'ஆமாம்'],
+    [/\bhaan\b/gi, 'ஆமா'],
+    [/\bhmm+\b/gi, 'ஆமா'],
+    [/\byeah?\b/gi, 'yes'],
+    [/\byep\b/gi, 'yes'],
+    [/\bnope\b/gi, 'no'],
+    [/\bnah\b/gi, 'no'],
+    [/\bokay\b/gi, 'ok'],
+    [/\bO\.?K\.?\b/g, 'ok'],
+    [/\bvendaam\b/gi, 'வேண்டாம்'],
+    [/\bvenaam\b/gi, 'வேண்டாம்'],
+    [/\billa\b/gi, 'இல்ல'],
+    [/\billai\b/gi, 'இல்ல'],
+    [/\bsari\b/gi, 'சரி'],
+    [/\bpanam\b/gi, 'பணம்'],
+    [/\bkashtam\b/gi, 'கஷ்டம்'],
+    [/\bkatturen\b/gi, 'கட்டுறேன்'],
+    [/\bkattitten\b/gi, 'கட்டிட்டேன்'],
+    [/\bkattachu\b/gi, 'கட்டாச்சு'],
+    [/\bpottachu\b/gi, 'போட்டாச்சு'],
+    [/\bgpay\b/gi, 'GPay'],
+    [/\bg[\s-]?pay\b/gi, 'GPay'],
+    [/\bphone[\s-]?pe\b/gi, 'PhonePe'],
+    [/\bkulukkal\b/gi, 'குலுக்கல்'],
+    [/\blottery\b/gi, 'lottery'],
+    [/\bparticipate\b/gi, 'participate'],
+    [/\bjamin\b/gi, 'jamin'],
+    [/\bjameen\b/gi, 'jamin'],
+    [/\bseetu?\b/gi, 'சீட்'],
+    [/\bchit\b/gi, 'chit'],
+    [/\bpremature\b/gi, 'premature'],
+    [/\bwithdraw(?:al)?\b/gi, 'withdraw'],
+    [/\bsurrender\b/gi, 'surrender'],
+    [/\bcancel\b/gi, 'cancel'],
+    [/\brefund\b/gi, 'refund'],
+    [/\bmanager\b/gi, 'manager'],
+    [/\bsenior\b/gi, 'senior'],
+    [/\bcomplaint?\b/gi, 'complaint'],
+    [/\boffice\b/gi, 'office'],
+    [/\bstaff\b/gi, 'staff'],
+    [/\bbusy\b/gi, 'busy'],
+    [/\bmeeting\b/gi, 'meeting'],
+    [/\bdriving\b/gi, 'driving'],
+    [/\bwrong\s*number\b/gi, 'wrong number'],
+    [/\bavailable\s*(?:இல்ல|illa)\b/gi, 'available இல்ல'],
+  ];
+
+  for (const [pattern, replacement] of replacements) {
+    t = t.replace(pattern, replacement);
+  }
+
+  t = t.replace(/\s+/g, ' ').trim();
+  return t;
+}
+
 // In-memory state: tracks current step + retry count per active call
 const callStates = new Map();
 
@@ -168,34 +233,50 @@ async function matchBranch(customerText, step) {
   const { branches } = step;
   if (!branches || branches.length === 0) return { matched: false };
 
-  // Fast keyword pre-check (avoids GPT call for obvious matches)
+  const normalizedText = normalizeTamilSpeech(customerText);
+  const lower = normalizedText.toLowerCase();
+
   const keywordMatch = branches.find(b => {
     if (!b.expectedPhrases?.length) return false;
-    const lower = customerText.toLowerCase();
     return b.expectedPhrases.some(p => lower.includes(p.toLowerCase()));
   });
 
   if (keywordMatch) {
-    logger.info(`[ScriptEngine] Keyword match → branch: ${keywordMatch.label}`);
+    logger.info(`[ScriptEngine] Keyword match → branch: ${keywordMatch.label} (normalized: "${normalizedText}")`);
     return { matched: true, branch: keywordMatch };
   }
 
-  // Semantic classification via GPT-4o
+  // Semantic classification via GPT-4o-mini (fast + accurate for classification)
   try {
     const branchList = branches
       .map((b, i) => `${i + 1}. ${b.label}${b.expectedPhrases?.length ? ` [clues: ${b.expectedPhrases.join(', ')}]` : ''}`)
       .join('\n');
 
     const completion = await getOpenAI().chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'You classify Tamil/English customer speech into predefined categories. Reply with ONLY the number of the best matching category, or 0 if none match.',
+          content: `You are an expert classifier for Tamil/Tanglish (Tamil+English) customer phone conversations in a chit fund (சீட்டு) company context.
+
+DOMAIN: Automystic Chit Fund — customers call about dues, lottery (குலுக்கல்), premature withdrawal, jamin (security documents), payments.
+
+CRITICAL RULES:
+- Tamil speech-to-text is NOISY — expect misspellings, phonetic approximations, and partial words
+- "ஆமா", "ஆமாம்", "ம்", "ஹா", "ஹாங்", "ஓ", "ஓகே", "சரி", "yes", "yeah", "haan", "hmm", "ok" ALL mean affirmative/agreement
+- "வேண்டாம்", "இல்ல", "வேணாம்", "no", "nah", "இல்லை" mean negative/decline
+- Short utterances like "ஆமா சார்", "ok சார்", "சரி" = agreement with whatever was asked
+- "கட்டுறேன்", "கட்டிடுறேன்", "pay பண்றேன்" = will pay
+- "கட்டிட்டேன்", "கட்டாச்சு", "போட்டாச்சு", "paid" = already paid
+- "busy", "meeting", "driving", "அப்புறம்", "later" = busy/callback
+- Be GENEROUS in matching — if the customer's intent is roughly close to a category, match it
+- Only return 0 if the speech is truly unrelated to ALL categories
+
+Reply with ONLY the number (1-${branches.length}) or 0.`,
         },
         {
           role: 'user',
-          content: `Customer said: "${customerText}"\n\nCategories:\n${branchList}\n${branches.length + 1}. None of the above\n\nReply with only the number:`,
+          content: `Customer said: "${customerText}"\n\nCategories:\n${branchList}\n\nBest matching category number:`,
         },
       ],
       temperature: 0,

@@ -177,7 +177,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
       });
     }
 
-    if (!userText || userText.trim().length < 2) {
+    if (!userText || userText.trim().length < 1) {
       return handleSilence(callId, turn);
     }
 
@@ -311,8 +311,7 @@ async function handleSilence(callId, turn) {
 
   logEvent(callId, 'silence_detected', 'warn', `Silence count: ${silenceCount}`);
 
-  if (silenceCount >= 2) {
-    // Too many silences - end the call
+  if (silenceCount >= 3) {
     return handleEndCall(callId, turn);
   }
 

@@ -478,15 +478,51 @@ function pickResponse(qa) {
  * Normalize input for Q&A matching:
  * - lowercase + trim
  * - remove punctuation characters common in STT output
+ * - normalize common Romanized Tamil / Tanglish phonetic variants
  * - collapse repeated spaces
  */
 function normalizeForQA(text) {
-  return text
+  let t = text
     .toLowerCase()
     .trim()
-    .replace(/[.,!?;:'"(){}\[\]]/g, ' ') // strip punctuation
-    .replace(/\s+/g, ' ')                 // collapse spaces
+    .replace(/[.,!?;:'"(){}\[\]]/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
+
+  const phonetics = [
+    [/\baam[aā]\b/g, 'ஆமா'],
+    [/\baamam\b/g, 'ஆமாம்'],
+    [/\bhaan\b/g, 'ஆமா'],
+    [/\bhmm+\b/g, 'ஆமா'],
+    [/\byeah?\b/g, 'yes'],
+    [/\byep\b/g, 'yes'],
+    [/\bnope\b/g, 'no'],
+    [/\bnah\b/g, 'no'],
+    [/\bokay\b/g, 'ok'],
+    [/\bvendaam\b/g, 'வேண்டாம்'],
+    [/\bvenaam\b/g, 'வேண்டாம்'],
+    [/\billa\b/g, 'இல்ல'],
+    [/\billai\b/g, 'இல்ல'],
+    [/\bsari\b/g, 'சரி'],
+    [/\bpanam\b/g, 'பணம்'],
+    [/\bkashtam\b/g, 'கஷ்டம்'],
+    [/\bkatturen\b/g, 'கட்டுறேன்'],
+    [/\bkattitten\b/g, 'கட்டிட்டேன்'],
+    [/\bkattachu\b/g, 'கட்டாச்சு'],
+    [/\bpottachu\b/g, 'போட்டாச்சு'],
+    [/\bg[\s-]?pay\b/g, 'gpay'],
+    [/\bphone[\s-]?pe\b/g, 'phonepe'],
+    [/\bkulukkal\b/g, 'குலுக்கல்'],
+    [/\bjameen\b/g, 'jamin'],
+    [/\bseetu?\b/g, 'சீட்'],
+    [/\bwrong\s*number\b/g, 'wrong number'],
+  ];
+
+  for (const [pattern, replacement] of phonetics) {
+    t = t.replace(pattern, replacement);
+  }
+
+  return t.replace(/\s+/g, ' ').trim();
 }
 
 async function findExactAnswer(userText, metadata = {}, silent = false) {
@@ -592,13 +628,13 @@ async function detectIntent(userText, metadata = {}) {
  * Fast keyword-based intent detection (no API call)
  */
 function keywordDetect(text) {
-  const lower = text.toLowerCase();
+  const normalized = normalizeForQA(text);
   let bestIntent = 'unknown';
   let bestScore = 0;
   let matchedKeywords = [];
 
   for (const [intent, keywords] of Object.entries(TAMIL_KEYWORDS)) {
-    const matches = keywords.filter(kw => lower.includes(kw.toLowerCase()));
+    const matches = keywords.filter(kw => normalized.includes(kw.toLowerCase()));
     const score = matches.length / keywords.length;
 
     if (score > bestScore) {
@@ -610,7 +646,7 @@ function keywordDetect(text) {
 
   return {
     intent: bestIntent,
-    confidence: Math.min(0.85, bestScore * 2), // Scale to 0-0.85 (LLM can reach 1.0)
+    confidence: Math.min(0.85, bestScore * 2),
     keywords: matchedKeywords,
   };
 }
