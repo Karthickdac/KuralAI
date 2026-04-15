@@ -174,13 +174,12 @@ export default function Sidebar() {
   }, [mobileOpen]);
 
   const isSuperAdmin = user?.role === 'superadmin';
-  const isAdmin = user?.role === 'admin';
-  const hiddenForViewers = ['users', 'api-config'];
+  const superAdminOnly = ['users', 'api-config'];
   const NAV = isSuperAdmin
     ? SUPER_ADMIN_NAV
     : TENANT_NAV.map(group => ({
         ...group,
-        items: group.items.filter(item => isAdmin || !hiddenForViewers.includes(item.key)),
+        items: group.items.filter(item => !superAdminOnly.includes(item.key)),
       })).filter(group => group.items.length > 0);
 
   function isActive(path) {
