@@ -31,12 +31,13 @@ const CREDENTIAL_KEYS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
   'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
-  'elevenLabsApiKey',
+  'elevenLabsApiKey', 'razorpayKeyId', 'razorpayKeySecret',
 ];
 
 const NAV_ITEMS = [
   { id: 'telephony', label: 'Telephony',   icon: '📞' },
   { id: 'ai',        label: 'AI & Voice',  icon: '🤖' },
+  { id: 'payment',   label: 'Payment Gateway', icon: '💳' },
   { id: 'storage',   label: 'Storage',     icon: '🗄️' },
   { id: 'behaviour', label: 'Behaviour',   icon: '⚙️' },
   { id: 'escalation',label: 'Escalation',  icon: '↗️' },
@@ -306,6 +307,50 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
             </Field>
           </div>
         )}
+      </Card>
+    </>
+  );
+}
+
+function PaymentGatewaySection({ s, savedCreds, onChange }) {
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Payment Gateway</h2>
+      <p className={styles.sectionSub}>Configure Razorpay to accept subscription and credit recharge payments from tenants.</p>
+
+      <Card label="Razorpay" badge="Required for Billing">
+        <div className={styles.grid}>
+          <Field label="Key ID" hint="Dashboard → Settings → API Keys (starts with rzp_live_ or rzp_test_)">
+            <SecretInput name="razorpayKeyId" value={s.razorpayKeyId || ''} onChange={e => onChange('razorpayKeyId', e.target.value)} placeholder="rzp_live_XXXXXXXXXXXXXX" alreadySaved={savedCreds.has('razorpayKeyId')} />
+          </Field>
+          <Field label="Key Secret" hint="Dashboard → Settings → API Keys (shown once during creation)">
+            <SecretInput name="razorpayKeySecret" value={s.razorpayKeySecret || ''} onChange={e => onChange('razorpayKeySecret', e.target.value)} placeholder="Razorpay Key Secret" alreadySaved={savedCreds.has('razorpayKeySecret')} />
+          </Field>
+        </div>
+      </Card>
+
+      <Card label="Pricing Configuration" badge="Info">
+        <div className={styles.grid}>
+          <Field label="Recharge Rate" hint="Fixed per-minute rate for pay-as-you-go credit recharge">
+            <input className={styles.input} value="₹15 / minute" readOnly />
+          </Field>
+          <Field label="Payment Currency" hint="All payments are processed in Indian Rupees">
+            <input className={styles.input} value="INR (₹)" readOnly />
+          </Field>
+        </div>
+        <div className={styles.webhookBox} style={{ marginTop: 12 }}>
+          <div className={styles.webhookBoxTitle}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Razorpay Setup Steps
+          </div>
+          <ol style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+            <li>Create a Razorpay account at <a href="https://dashboard.razorpay.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)' }}>dashboard.razorpay.com</a></li>
+            <li>Go to Settings &rarr; API Keys &rarr; Generate Key</li>
+            <li>Copy the Key ID and Key Secret and paste them above</li>
+            <li>For production, use <strong>Live mode</strong> keys (rzp_live_...)</li>
+            <li>For testing, use <strong>Test mode</strong> keys (rzp_test_...)</li>
+          </ol>
+        </div>
       </Card>
     </>
   );
@@ -596,6 +641,7 @@ export default function Settings() {
     switch (activeSection) {
       case 'telephony':  return <TelephonySection  {...props} />;
       case 'ai':         return <AiVoiceSection    {...props} elVoicePreset={elVoicePreset} setElVoicePreset={setElVoicePreset} />;
+      case 'payment':    return <PaymentGatewaySection {...props} />;
       case 'storage':    return <StorageSection    {...props} />;
       case 'behaviour':  return <BehaviourSection  {...props} />;
       case 'escalation': return <EscalationSection {...props} />;

@@ -102,7 +102,8 @@ All core routes enforce tenant scoping via `tenantScope` middleware:
 - `/billing` — Tenant billing page (current plan, credit balance, Razorpay recharge ₹15/min, transaction history)
 
 ### Payment Gateway
-- **Razorpay** (India-focused) — env vars: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
+- **Razorpay** (India-focused) — configurable via Settings → Payment Gateway (DB-backed), with env var fallback: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
+- Credentials read from `app_settings` DB first, then env vars; 30s in-memory cache in payment routes
 - Plan purchase: select → create order → Razorpay checkout → verify → activate subscription + credit minutes
 - Credit recharge: select minutes → create order → pay → add minutes
 

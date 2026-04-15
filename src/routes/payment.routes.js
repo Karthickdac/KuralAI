@@ -7,12 +7,33 @@ const creditService = require('../services/creditService');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 
-function getRazorpay() {
+let _settingsCache = null;
+let _settingsCacheTime = 0;
+
+async function getPaymentSettings() {
+  if (_settingsCache && Date.now() - _settingsCacheTime < 30000) return _settingsCache;
+  try {
+    const AppSetting = require('../models/AppSetting');
+    const row = await AppSetting.findByPk('main');
+    const data = row?.data || {};
+    _settingsCache = {
+      keyId: data.razorpayKeyId || process.env.RAZORPAY_KEY_ID || '',
+      keySecret: data.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET || '',
+    };
+  } catch {
+    _settingsCache = {
+      keyId: process.env.RAZORPAY_KEY_ID || '',
+      keySecret: process.env.RAZORPAY_KEY_SECRET || '',
+    };
+  }
+  _settingsCacheTime = Date.now();
+  return _settingsCache;
+}
+
+async function getRazorpay() {
+  const creds = await getPaymentSettings();
   const Razorpay = require('razorpay');
-  return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  });
+  return new Razorpay({ key_id: creds.keyId, key_secret: creds.keySecret });
 }
 
 router.get('/plans', async (req, res) => {
@@ -30,8 +51,9 @@ router.post('/create-order', authenticateToken, requireOrgAccess, async (req, re
     const { type, planId, rechargeMinutes, rechargeAmount } = req.body;
     const orgId = req.user.organizationId;
 
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(503).json({ error: 'Razorpay is not configured. Contact super admin.' });
+    const paymentCreds = await getPaymentSettings();
+    if (!paymentCreds.keyId || !paymentCreds.keySecret) {
+      return res.status(503).json({ error: 'Razorpay is not configured. Contact super admin to set up Payment Gateway in Settings.' });
     }
 
     let amount, description, notes;
@@ -55,7 +77,7 @@ router.post('/create-order', authenticateToken, requireOrgAccess, async (req, re
       return res.status(400).json({ error: 'Invalid order type' });
     }
 
-    const razorpay = getRazorpay();
+    const razorpay = await getRazorpay();
     const order = await razorpay.orders.create({
       amount,
       currency: 'INR',
@@ -67,7 +89,7 @@ router.post('/create-order', authenticateToken, requireOrgAccess, async (req, re
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.RAZORPAY_KEY_ID,
+      keyId: paymentCreds.keyId,
     });
   } catch (err) {
     logger.error('Create order error:', err);
@@ -80,8 +102,12 @@ router.post('/verify', authenticateToken, requireOrgAccess, async (req, res) => 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const orgId = req.user.organizationId;
 
+    const paymentCreds = await getPaymentSettings();
+    if (!paymentCreds.keyId || !paymentCreds.keySecret) {
+      return res.status(503).json({ error: 'Razorpay is not configured. Contact super admin.' });
+    }
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .createHmac('sha256', paymentCreds.keySecret)
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
@@ -95,7 +121,7 @@ router.post('/verify', authenticateToken, requireOrgAccess, async (req, res) => 
       return res.status(409).json({ error: 'Payment already processed' });
     }
 
-    const razorpay = getRazorpay();
+    const razorpay = await getRazorpay();
     const order = await razorpay.orders.fetch(razorpay_order_id);
     const notes = order.notes || {};
 

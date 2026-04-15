@@ -20,6 +20,7 @@ const CREDENTIAL_FIELDS = [
   'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
   'elevenLabsApiKey', 'apiKey',
+  'razorpayKeyId', 'razorpayKeySecret',
 ];
 
 const DEFAULTS = {
@@ -65,6 +66,9 @@ const DEFAULTS = {
   inboundWorkflowId:       process.env.INBOUND_WORKFLOW_ID || '',
   // External API
   apiKey:                  process.env.KURAL_API_KEY || '',
+  // Payment Gateway — Razorpay
+  razorpayKeyId:           process.env.RAZORPAY_KEY_ID || '',
+  razorpayKeySecret:       process.env.RAZORPAY_KEY_SECRET || '',
 };
 
 // ── DB helpers ─────────────────────────────────────────────────────────────────
@@ -147,6 +151,8 @@ const ENV_MAP = {
   escalationWebhookUrl:    'ESCALATION_WEBHOOK_URL',
   inboundWorkflowId:       'INBOUND_WORKFLOW_ID',
   apiKey:                  'KURAL_API_KEY',
+  razorpayKeyId:           'RAZORPAY_KEY_ID',
+  razorpayKeySecret:       'RAZORPAY_KEY_SECRET',
 };
 
 function syncEnv(updated) {
