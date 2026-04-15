@@ -9,8 +9,8 @@
   flex: 2;
   background: #020617;
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
   padding: 40px 48px;
   position: relative;
   overflow: hidden;
@@ -359,7 +359,7 @@
 }
 
 .headerLogo {
-  height: 200px;
+  height: 480px;
   object-fit: contain;
   margin: 0 auto 24px;
   display: block;
@@ -514,7 +514,7 @@
   .left { padding: 36px; }
   .tagline { font-size: 30px; }
   .right { padding: 36px; }
-  .headerLogo { height: 160px; }
+  .headerLogo { height: 360px; }
 }
 
 @media (max-width: 900px) {
@@ -524,7 +524,7 @@
   .stat { padding: 12px 8px; }
   .statValue { font-size: 22px; }
   .right { padding: 28px; }
-  .headerLogo { height: 120px; }
+  .headerLogo { height: 240px; }
 }
 
 @media (max-width: 768px) {
