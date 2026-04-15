@@ -110,6 +110,12 @@ function normalizeTamilSpeech(text) {
     [/\bg[\s-]?pay\b/gi, 'GPay'],
     [/\bphone[\s-]?pe\b/gi, 'PhonePe'],
     [/\bkulukkal\b/gi, 'குலுக்கல்'],
+    [/குளத்தில்/g, 'குலுக்கல்'],
+    [/குளத்து/g, 'குலுக்கல்'],
+    [/குலுக்கு/g, 'குலுக்கல்'],
+    [/குலுக்க\b/g, 'குலுக்கல்'],
+    [/குளுக்கல்/g, 'குலுக்கல்'],
+    [/குழுக்கல்/g, 'குலுக்கல்'],
     [/\bkalanthukiren\b/gi, 'கலந்துக்கிறேன்'],
     [/\bkalanthukka\b/gi, 'கலந்துக்க'],
     [/\blottery\b/gi, 'lottery'],
@@ -150,6 +156,12 @@ function normalizeTamilSpeech(text) {
     [/\bethana\b/gi, 'எத்தன'],
     [/\bnaan\b/gi, 'நான்'],
     [/\bthan\b/gi, 'தான்'],
+    [/என்னைக்கு/g, 'எப்போ'],
+    [/எந்நாள்/g, 'எப்போ'],
+    [/எந்நாளு/g, 'எப்போ'],
+    [/எப்ப\b/g, 'எப்போ'],
+    [/\bennaikku\b/gi, 'எப்போ'],
+    [/\beppothu?\b/gi, 'எப்போ'],
   ];
 
   for (const [pattern, replacement] of replacements) {
@@ -234,6 +246,7 @@ async function processStep(callId, customerText, scriptFlow) {
   // Branch matched
   const branch = match.branch;
   state.retryCount = 0;
+  state._oosUsed = false;
 
   // Collect any data the branch extracts
   if (branch.collectAs) {
@@ -272,6 +285,67 @@ async function processStep(callId, customerText, scriptFlow) {
 }
 
 /**
+ * Fuzzy keyword matching — scores branches by partial token overlap.
+ * Catches STT garbles that exact substring matching misses.
+ * Returns the best branch if score >= threshold, else null.
+ */
+function fuzzyMatchBranch(lowerText, branches) {
+  const inputTokens = lowerText.split(/[\s,.:;!?]+/).filter(t => t.length > 1);
+  if (inputTokens.length === 0) return null;
+
+  let bestBranch = null;
+  let bestScore = 0;
+
+  for (const branch of branches) {
+    if (!branch.expectedPhrases?.length) continue;
+    let score = 0;
+
+    for (const phrase of branch.expectedPhrases) {
+      const phraseLower = phrase.toLowerCase();
+      const phraseTokens = phraseLower.split(/[\s,.:;!?]+/).filter(t => t.length > 1);
+
+      for (const pt of phraseTokens) {
+        for (const it of inputTokens) {
+          if (it === pt) {
+            score += 3;
+          } else if (it.length >= 3 && pt.length >= 3 && (it.includes(pt) || pt.includes(it))) {
+            score += 2;
+          } else if (it.length >= 4 && pt.length >= 4 && levenshtein(it, pt) <= 2) {
+            score += 1;
+          }
+        }
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestBranch = branch;
+    }
+  }
+
+  return bestScore >= 2 ? bestBranch : null;
+}
+
+function levenshtein(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      const cost = a[j - 1] === b[i - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+/**
  * Use GPT-4o to semantically classify the customer's speech against branches.
  * Handles "slight differences" — paraphrases, dialect variations, etc.
  */
@@ -290,6 +364,13 @@ async function matchBranch(customerText, step) {
   if (keywordMatch) {
     logger.info(`[ScriptEngine] Keyword match → branch: ${keywordMatch.label} (normalized: "${normalizedText}")`);
     return { matched: true, branch: keywordMatch };
+  }
+
+  // Fuzzy keyword matching — score each branch by how many partial/substring hits
+  const fuzzyMatch = fuzzyMatchBranch(lower, branches);
+  if (fuzzyMatch) {
+    logger.info(`[ScriptEngine] Fuzzy match → branch: ${fuzzyMatch.label} (normalized: "${normalizedText}")`);
+    return { matched: true, branch: fuzzyMatch };
   }
 
   // Semantic classification via GPT-4o-mini (fast + accurate for classification)

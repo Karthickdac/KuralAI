@@ -112,7 +112,10 @@
                 "எப்போ", "due date", "last date", "எந்த தேதி", "deadline",
                 "எப்போ கட்டணும்", "date என்ன", "எந்த date",
                 "fine வருமா", "penalty", "late-ஆ கட்டினா",
-                "எத்தனை நாள்", "time limit"
+                "எத்தனை நாள்", "time limit",
+                "என்னைக்கு", "எந்நாள்", "எப்ப",
+                "எப்போ due", "due எப்போ", "தேதி",
+                "date சொல்லுங்க", "எப்போ கட்ட"
               ],
               "agentResponse": "{{nextDueDate}} தேதிக்குள்ள கட்டிடணும் சார். ₹{{dueAmount}} ready-ஆ வைங்க சார்.",
               "nextStep": "lottery_ask"
@@ -170,7 +173,7 @@
               "nextStep": "lottery_ask"
             }
           ],
-          "fallbackMessage": "சார், due amount ₹{{dueAmount}} — {{nextDueDate}} தேதிக்குள்ள கட்டிடணும் சார். Pay பண்றீங்களா சார்?",
+          "fallbackMessage": "சார், ₹{{dueAmount}} — {{nextDueDate}} தேதிக்குள்ள கட்டணும் சார். கட்டுறீங்களா சார், இல்ல date கேக்குறீங்களா சார்?",
           "maxRetries": 2
         },
         {
@@ -194,9 +197,12 @@
               "id": "lottery_question",
               "label": "Customer asks about lottery details, rules, or dates",
               "expectedPhrases": [
-                "எப்போ", "குலுக்கல் எப்போ", "details", "எப்படி", "rules",
+                "குலுக்கல் எப்போ", "details", "எப்படி", "rules",
                 "lottery எப்போ", "draw date", "எந்த தேதி",
-                "என்ன rules", "explain", "எப்படி participate"
+                "என்ன rules", "explain", "எப்படி participate",
+                "குலுக்கல் என்னைக்கு", "lottery details",
+                "என்னைக்கு குலுக்கல்", "குலுக்கல் date",
+                "draw எப்போ", "குலுக்கல்"
               ],
               "agentResponse": "சார், due time-க்கு கட்டினா automatically குலுக்கல்ல include ஆகும் சார். Participate பண்றீங்களா சார்?",
               "nextStep": "lottery_confirm"
@@ -216,7 +222,7 @@
               "action": "end_call"
             }
           ],
-          "fallbackMessage": "சார், குலுக்கல்ல கலந்துக்கணுமா வேண்டாமா சார்?",
+          "fallbackMessage": "சார், குலுக்கல்ல participate பண்ண விருப்பமா சார்? ஆமா அல்லது வேண்டாம் சொல்லுங்க சார்.",
           "maxRetries": 2
         },
         {
@@ -317,9 +323,11 @@
               "id": "lottery_details",
               "label": "Customer asks for more details about the lottery",
               "expectedPhrases": [
-                "details", "எப்படி", "rules", "எப்போ", "explain",
+                "details", "எப்படி", "rules", "explain",
                 "எந்த தேதி", "lottery எப்போ", "draw date",
-                "என்ன rules", "எப்படி participate", "how"
+                "என்ன rules", "எப்படி participate", "how",
+                "குலுக்கல் எப்போ", "என்னைக்கு குலுக்கல்",
+                "குலுக்கல் date", "draw எப்போ", "குலுக்கல்"
               ],
               "agentResponse": "சார், {{nextDueDate}} தேதி குலுக்கல் நடக்கும் சார். Due ₹{{dueAmount}} time-க்கு கட்டினா automatically உங்க name include ஆகும் சார். Separate-ஆ apply பண்ண வேண்டாம் சார். நன்றி சார்! Due time-க்கு கட்டுங்க சார். வணக்கம்!",
               "action": "end_call"
