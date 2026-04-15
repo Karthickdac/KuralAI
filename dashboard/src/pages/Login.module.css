@@ -359,17 +359,11 @@
   margin-bottom: 36px;
 }
 
-.loginIcon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
-  color: #059669;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  border: 1px solid #d1fae5;
+.headerLogo {
+  height: 72px;
+  object-fit: contain;
+  margin: 0 auto 16px;
+  display: block;
 }
 
 .heading {
@@ -505,54 +499,8 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── DIVIDER & TECH STACK ─── */
-.divider {
-  display: flex;
-  align-items: center;
-  margin: 28px 0 16px;
-  gap: 12px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #e2e8f0;
-}
-
-.divider span {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.techStack {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.techItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.techDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
 .footer {
+  margin-top: 28px;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -150,12 +150,7 @@ export default function Login() {
       <div className={styles.right}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className={styles.loginIcon}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-            </div>
+            <img src="/automystic-logo.png" alt="Automystic" className={styles.headerLogo} />
             <h2 className={styles.heading}>Welcome back</h2>
             <p className={styles.subheading}>Sign in to your KuralAI dashboard</p>
           </div>
@@ -209,25 +204,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          <div className={styles.divider}>
-            <span>Powered by</span>
-          </div>
-
-          <div className={styles.techStack}>
-            <div className={styles.techItem}>
-              <span className={styles.techDot} style={{background:'#10a37f'}}/>
-              GPT-4o
-            </div>
-            <div className={styles.techItem}>
-              <span className={styles.techDot} style={{background:'#8b5cf6'}}/>
-              ElevenLabs
-            </div>
-            <div className={styles.techItem}>
-              <span className={styles.techDot} style={{background:'#e11d48'}}/>
-              Twilio
-            </div>
-          </div>
 
           <div className={styles.footer}>
             <span className={styles.footerText}>A Product of</span>
