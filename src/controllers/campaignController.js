@@ -7,6 +7,7 @@ const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { buildChitMetadata } = require('./customerController');
 const { initiateCall } = require('../services/telephonyService');
+const creditService = require('../services/creditService');
 const { notifyDashboard } = require('../websocket/wsServer');
 const logger = require('../utils/logger');
 
@@ -210,6 +211,14 @@ async function executeCampaign(campaignId) {
     if (activeCampaigns.get(campaignId) === 'paused') return 'paused';
 
     try {
+      if (orgId) {
+        const hasCredits = await creditService.hasEnoughCredits(orgId, 2);
+        if (!hasCredits) {
+          logger.warn(`Campaign ${campaignId}: insufficient credits, stopping.`);
+          return 'no_credits';
+        }
+      }
+
       const customerMeta = await resolveCustomerMeta(customer.phone, orgId);
       const wfId = campaign.workflowId || campaign.type;
       const enrichedMeta = {
@@ -254,6 +263,14 @@ async function executeCampaign(campaignId) {
 
       preWarmTts(enrichedMeta, call.id);
 
+      if (orgId) {
+        try {
+          await creditService.deductMinutes(orgId, 2, `Campaign ${campaign.name}: call ${call.id}`);
+        } catch (e) {
+          logger.warn(`Credit deduction failed for campaign call ${call.id}:`, e.message);
+        }
+      }
+
       logger.info(`Campaign ${campaign.name}: call ${completed}/${campaign.totalCalls} -> ${customer.phone}`);
       return 'ok';
     } catch (e) {
@@ -279,6 +296,17 @@ async function executeCampaign(campaignId) {
 
     if (results.includes('paused')) {
       logger.info(`Campaign ${campaign.name} paused at ${completed}/${campaign.totalCalls}`);
+      return;
+    }
+
+    if (results.includes('no_credits')) {
+      logger.warn(`Campaign ${campaign.name} stopped: insufficient credits at ${completed}/${campaign.totalCalls}`);
+      await Campaign.update(
+        { status: 'paused', completedCalls: completed, failedCalls: failed, answeredCalls: answered },
+        { where: { id: campaignId } }
+      );
+      activeCampaigns.delete(campaignId);
+      await notifyDashboard({ type: 'CAMPAIGN_OUT_OF_CREDITS', campaignId, progress: { completed, total: campaign.totalCalls } });
       return;
     }
 

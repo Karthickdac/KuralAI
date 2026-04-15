@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requirePlanFeature } = require('../middleware/planLimits');
 const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const Call = require('../models/Call');
@@ -65,6 +66,7 @@ const { tenantScope } = require('../middleware/tenant');
 
 router.use(authenticateToken, requireAdmin);
 router.use(tenantScope);
+router.use(requirePlanFeature('crmIntegration'));
 
 router.get('/config', async (req, res) => {
   const s = await loadSettings();

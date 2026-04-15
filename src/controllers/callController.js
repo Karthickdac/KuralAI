@@ -6,6 +6,7 @@ const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { buildChitMetadata } = require('./customerController');
 const { initiateCall } = require('../services/telephonyService');
+const creditService = require('../services/creditService');
 const logger = require('../utils/logger');
 
 async function resolveCustomerMeta(toPhone, organizationId) {
@@ -66,6 +67,14 @@ async function initiateCallController(req, res) {
       callSid: exotelCall.sid,
       status: 'queued',
     });
+
+    if (orgId) {
+      try {
+        await creditService.deductMinutes(orgId, 2, `Call initiated: ${call.id}`);
+      } catch (e) {
+        logger.warn(`Credit deduction failed for call ${call.id}:`, e.message);
+      }
+    }
 
     const _meta = { ...enrichedMeta };
     setImmediate(async () => {

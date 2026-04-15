@@ -4,6 +4,7 @@ const { body, param } = require('express-validator');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const { tenantScope } = require('../middleware/tenant');
 const { validate } = require('../middleware/validate');
+const { checkPlanLimit } = require('../middleware/planLimits');
 const User = require('../models/User');
 
 router.use(authenticateToken);
@@ -28,6 +29,7 @@ router.post('/',
     body('role').optional().isIn(['admin', 'viewer']),
   ],
   validate,
+  checkPlanLimit('users'),
   async (req, res) => {
     try {
       const { email, password, name, role = 'viewer' } = req.body;

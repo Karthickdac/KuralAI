@@ -4,6 +4,7 @@ const { body, param, query } = require('express-validator');
 const { authenticateToken } = require('../middleware/auth');
 const { tenantScope } = require('../middleware/tenant');
 const { validate } = require('../middleware/validate');
+const { checkPlanLimit, requireCredits } = require('../middleware/planLimits');
 const {
   listCampaigns,
   getCampaign,
@@ -47,6 +48,7 @@ router.post('/',
     body('callbackUrl').optional().isURL(),
   ],
   validate,
+  checkPlanLimit('campaigns'),
   createCampaign
 );
 
@@ -65,6 +67,7 @@ router.delete('/:id',
 router.post('/:id/start',
   [param('id').isUUID()],
   validate,
+  requireCredits(2),
   startCampaign
 );
 

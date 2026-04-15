@@ -3,6 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requirePlanFeature } = require('../middleware/planLimits');
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 
@@ -31,6 +32,7 @@ function maskKey(val) {
 }
 
 router.use(authenticateToken, requireAdmin);
+router.use(requirePlanFeature('apiConfig'));
 
 router.get('/status', async (req, res) => {
   const s = await loadSettings();

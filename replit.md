@@ -90,8 +90,24 @@ All core routes enforce tenant scoping via `tenantScope` middleware:
 
 ### Middleware Stack
 - `src/middleware/tenant.js` — tenantScope (injects organizationId), requireSuperAdmin, requireOrgAccess
-- `src/middleware/planLimits.js` — checkPlanLimit(resource) — enforces maxCustomers/maxCampaigns/etc
+- `src/middleware/planLimits.js` — Plan enforcement middleware:
+  - `requireActivePlan()` — blocks if no active subscription
+  - `checkPlanLimit(resource)` — enforces count limits (customers, campaigns, workflows, users)
+  - `requirePlanFeature(featureName)` — gates features by plan (crmIntegration, apiConfig, voiceCloning, etc.)
+  - `requireCredits(minutes)` — checks credit balance before calls
+  - All middleware skips superadmin and null organizationId; fail-closed on errors (500)
 - `src/middleware/moduleAccess.js` — requireModule(name) — blocks disabled features per org
+
+### Plan Enforcement Wiring
+- `customer.routes.js` POST → `checkPlanLimit('customers')`
+- `campaign.routes.js` POST → `checkPlanLimit('campaigns')`, start → `requireCredits(2)`
+- `workflow.routes.js` POST → `checkPlanLimit('workflows')` (org-scoped via organizationId field)
+- `user.routes.js` POST → `checkPlanLimit('users')`
+- `call.routes.js` initiate/bulk/retry → `requireCredits(2)`
+- `crm.routes.js` → `requirePlanFeature('crmIntegration')` (all routes)
+- `apiConfig.routes.js` → `requirePlanFeature('apiConfig')` (all routes)
+- Credit deduction: 2 min deducted per call in callController and campaignController after successful initiation
+- Campaign auto-pauses on insufficient credits with `CAMPAIGN_OUT_OF_CREDITS` WebSocket notification
 
 ### Frontend SaaS Pages
 - `/superadmin` — Platform overview dashboard (org count, revenue, minutes used)

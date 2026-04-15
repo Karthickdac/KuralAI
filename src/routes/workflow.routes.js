@@ -8,6 +8,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { authenticateToken } = require('../middleware/auth');
+const { checkPlanLimit } = require('../middleware/planLimits');
 
 const WORKFLOWS_FILE = path.join(__dirname, '../../config/workflows.json');
 
@@ -31,10 +32,11 @@ router.get('/', (req, res) => {
   res.json({ workflows: readWorkflows() });
 });
 
-router.post('/', (req, res) => {
+router.post('/', checkPlanLimit('workflows'), (req, res) => {
   const workflows = readWorkflows();
   const workflow = {
     id: `wf_${Date.now()}`,
+    organizationId: req.user?.organizationId || null,
     name: req.body.name || 'Untitled Workflow',
     description: req.body.description || '',
     script: req.body.script || '',

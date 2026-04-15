@@ -4,6 +4,7 @@ const { body, param, query } = require('express-validator');
 const { authenticateToken } = require('../middleware/auth');
 const { tenantScope } = require('../middleware/tenant');
 const { validate } = require('../middleware/validate');
+const { requireCredits } = require('../middleware/planLimits');
 const {
   initiateCallController,
   bulkCallController,
@@ -22,6 +23,7 @@ router.post('/initiate',
     body('maxRetries').optional().isInt({ min: 0, max: 5 }),
   ],
   validate,
+  requireCredits(2),
   initiateCallController
 );
 
@@ -33,6 +35,7 @@ router.post('/bulk',
     body('delayMs').optional().isInt({ min: 500, max: 10000 }),
   ],
   validate,
+  requireCredits(2),
   bulkCallController
 );
 
@@ -98,6 +101,7 @@ router.get('/:callId/status',
 router.post('/:callId/retry',
   [param('callId').isUUID()],
   validate,
+  requireCredits(2),
   retryCall
 );
 
