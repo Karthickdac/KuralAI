@@ -28,6 +28,13 @@ function ProtectedRoute({ children }) {
   return isAuthenticated ? <>{children}<CreditsBadge /></> : <Navigate to="/login" replace />;
 }
 
+function AdminRoute({ children }) {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin' && user?.role !== 'superadmin') return <Navigate to="/" replace />;
+  return <>{children}<CreditsBadge /></>;
+}
+
 function SuperAdminRoute({ children }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -45,12 +52,12 @@ export default function App() {
         <Route path="/calls/:callId" element={<ProtectedRoute><CallDetail /></ProtectedRoute>} />
         <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-        <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+        <Route path="/users" element={<AdminRoute><Users /></AdminRoute>} />
         <Route path="/settings" element={<SuperAdminRoute><Settings /></SuperAdminRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><Simulate /></ProtectedRoute>} />
-        <Route path="/api-config" element={<ProtectedRoute><ApiConfig /></ProtectedRoute>} />
+        <Route path="/api-config" element={<AdminRoute><ApiConfig /></AdminRoute>} />
         <Route path="/crm" element={<ProtectedRoute><CrmIntegration /></ProtectedRoute>} />
         <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
         <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />

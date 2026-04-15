@@ -311,7 +311,17 @@
   animation: slideUp 0.2s ease;
 }
 
-  @media (max-width: 768px) {
-    .layout { flex-direction: column; }
-    .main { padding: 0; }
-  }
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .main { padding: 12px; }
+  .header { flex-direction: column; gap: 10px; }
+  .searchBar { margin-bottom: 10px; }
+  .tableCard { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 600px; }
+  .modal { margin: 12px; max-width: calc(100vw - 24px); }
+  .modalWide { max-width: calc(100vw - 24px); }
+  .modalBody { max-height: 60vh; }
+  .toast { left: 12px; right: 12px; bottom: 16px; }
+  .addBtn, .bulkCallBtn { width: 100%; justify-content: center; }
+  .centerState { padding: 40px 16px; }
+}
