@@ -159,6 +159,13 @@ export default function Sidebar() {
   const { connected } = useWebSocket();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -193,6 +200,7 @@ export default function Sidebar() {
     .split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
   const roleLabel = isSuperAdmin ? 'Super Admin' : (user?.role === 'admin' ? 'Administrator' : 'Viewer');
+  const showLabels = isMobile || !collapsed;
 
   return (
     <>
@@ -217,7 +225,7 @@ export default function Sidebar() {
 
       {mobileOpen && <div className={styles.overlay} onClick={() => setMobileOpen(false)} />}
 
-      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''} ${mobileOpen ? styles.mobileOpen : ''}`}>
+      <aside className={`${styles.sidebar} ${collapsed && !isMobile ? styles.collapsed : ''} ${mobileOpen ? styles.mobileOpen : ''}`}>
         <div className={styles.topSection}>
           <div className={styles.logo} onClick={() => navigate(isSuperAdmin ? '/superadmin' : '/')}>
             <div className={styles.logoMark}>
@@ -227,7 +235,7 @@ export default function Sidebar() {
                 <path d="M7.5 9.5L12 12l4.5-2.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            {!collapsed && (
+            {showLabels && (
               <div className={styles.logoText}>
                 <span className={styles.logoName}>KuralAI</span>
                 <span className={styles.logoBadge}>{isSuperAdmin ? 'ADMIN' : 'PRO'}</span>
@@ -235,24 +243,28 @@ export default function Sidebar() {
             )}
           </div>
 
-          <button className={styles.collapseBtn} onClick={() => { setCollapsed(c => !c); setMobileOpen(false); }} title={collapsed ? 'Expand' : 'Collapse'}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              {mobileOpen ? (
-                <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
-              ) : (
-                <><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>
-              )}
-            </svg>
-          </button>
+          {!isMobile ? (
+            <button className={styles.collapseBtn} onClick={() => setCollapsed(c => !c)} title={collapsed ? 'Expand' : 'Collapse'}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+          ) : (
+            <button className={styles.collapseBtn} onClick={() => setMobileOpen(false)} title="Close">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
         </div>
 
         <nav className={styles.nav}>
           {NAV.map((group, gi) => (
             <div key={gi} className={styles.navGroup}>
-              {group.section && !collapsed && (
+              {group.section && showLabels && (
                 <div className={styles.navSection}>{group.section}</div>
               )}
-              {group.section && collapsed && <div className={styles.navDivider} />}
+              {group.section && !showLabels && <div className={styles.navDivider} />}
               {group.items.map((item) => {
                 const active = isActive(item.path);
                 return (
@@ -260,10 +272,10 @@ export default function Sidebar() {
                     key={item.key}
                     className={`${styles.navItem} ${active ? styles.active : ''}`}
                     onClick={() => { navigate(item.path); setMobileOpen(false); }}
-                    title={collapsed ? item.label : undefined}
+                    title={!showLabels ? item.label : undefined}
                   >
                     <span className={styles.navIcon}>{item.icon}</span>
-                    {!collapsed && <span className={styles.navLabel}>{item.label}</span>}
+                    {showLabels && <span className={styles.navLabel}>{item.label}</span>}
                     {active && <span className={styles.activeIndicator} />}
                   </button>
                 );
@@ -275,14 +287,14 @@ export default function Sidebar() {
         <div className={styles.bottom}>
           <div className={styles.statusBar}>
             <span className={`${styles.statusDot} ${connected ? styles.online : styles.offline}`} />
-            {!collapsed && (
+            {showLabels && (
               <span className={styles.statusText}>{connected ? 'System Online' : 'Reconnecting...'}</span>
             )}
           </div>
 
           <div className={styles.userCard}>
             <div className={styles.avatar}>{initials}</div>
-            {!collapsed && (
+            {showLabels && (
               <div className={styles.userInfo}>
                 <div className={styles.userName}>{user?.name || 'Admin'}</div>
                 <div className={styles.userRole}>{roleLabel}</div>
