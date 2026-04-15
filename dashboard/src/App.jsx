@@ -17,6 +17,9 @@ import ApiConfig from './pages/ApiConfig';
 import CrmIntegration from './pages/CrmIntegration';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminOrganizations from './pages/SuperAdminOrganizations';
+import SuperAdminPlans from './pages/SuperAdminPlans';
+import SuperAdminUsage from './pages/SuperAdminUsage';
+import SuperAdminRevenue from './pages/SuperAdminRevenue';
 import Billing from './pages/Billing';
 
 function ProtectedRoute({ children }) {
@@ -53,6 +56,9 @@ export default function App() {
         <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
         <Route path="/superadmin/organizations" element={<SuperAdminRoute><SuperAdminOrganizations /></SuperAdminRoute>} />
         <Route path="/superadmin/organizations/:id" element={<SuperAdminRoute><SuperAdminOrganizations /></SuperAdminRoute>} />
+        <Route path="/superadmin/plans" element={<SuperAdminRoute><SuperAdminPlans /></SuperAdminRoute>} />
+        <Route path="/superadmin/usage" element={<SuperAdminRoute><SuperAdminUsage /></SuperAdminRoute>} />
+        <Route path="/superadmin/revenue" element={<SuperAdminRoute><SuperAdminRevenue /></SuperAdminRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

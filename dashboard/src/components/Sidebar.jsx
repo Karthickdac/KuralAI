@@ -131,6 +131,9 @@ const SUPER_ADMIN_NAV = [
     items: [
       { key: 'super-dashboard', label: 'Platform Overview', path: '/superadmin', icon: ICON.superDash },
       { key: 'organizations', label: 'Organizations', path: '/superadmin/organizations', icon: ICON.orgs },
+      { key: 'plans', label: 'Plan Management', path: '/superadmin/plans', icon: ICON.billing },
+      { key: 'usage', label: 'Usage & Analytics', path: '/superadmin/usage', icon: ICON.reports },
+      { key: 'revenue', label: 'Revenue & Billing', path: '/superadmin/revenue', icon: ICON.campaigns },
     ],
   },
   {

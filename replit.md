@@ -96,7 +96,10 @@ All core routes enforce tenant scoping via `tenantScope` middleware:
 ### Frontend SaaS Pages
 - `/superadmin` — Platform overview dashboard (org count, revenue, minutes used)
 - `/superadmin/organizations` — Org management with detail view (plan, credits, modules, users)
-- `/billing` — Tenant billing page (current plan, credit balance, Razorpay recharge, transaction history)
+- `/superadmin/plans` — Plan management (create/edit/activate/deactivate subscription plans)
+- `/superadmin/usage` — Usage analytics (per-org call stats, date filters, CSV export)
+- `/superadmin/revenue` — Revenue & billing overview (total revenue, subscriptions, credit distribution)
+- `/billing` — Tenant billing page (current plan, credit balance, Razorpay recharge ₹15/min, transaction history)
 
 ### Payment Gateway
 - **Razorpay** (India-focused) — env vars: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
