@@ -121,7 +121,6 @@ const TENANT_NAV = [
       { key: 'crm', label: 'CRM', path: '/crm', icon: ICON.crm },
       { key: 'api-config', label: 'API Keys', path: '/api-config', icon: ICON.apiConfig },
       { key: 'billing', label: 'Billing', path: '/billing', icon: ICON.billing },
-      { key: 'settings', label: 'Settings', path: '/settings', icon: ICON.settings },
     ],
   },
 ];

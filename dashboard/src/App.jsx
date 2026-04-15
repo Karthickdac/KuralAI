@@ -46,7 +46,7 @@ export default function App() {
         <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/settings" element={<SuperAdminRoute><Settings /></SuperAdminRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><Simulate /></ProtectedRoute>} />
