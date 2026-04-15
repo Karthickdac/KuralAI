@@ -68,7 +68,21 @@
 .pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 .pageInfo { font-size: 13px; color: var(--text-muted); }
 
-  @media (max-width: 768px) {
-    .layout { flex-direction: column; }
-    .main { padding: 0; }
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .main { padding: 12px; }
+  .header { flex-direction: column; gap: 10px; }
+  .exportBtn { width: 100%; justify-content: center; }
+  .filterBar {
+    flex-direction: column; gap: 10px;
+    padding: 12px 14px;
   }
+  .filterGroup { width: 100%; }
+  .filterSelect { width: 100%; min-width: unset; }
+  .clearBtn { width: 100%; text-align: center; }
+  .tableCard { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 580px; }
+  .loadingState, .emptyState { padding: 40px 16px; }
+  .pagination { gap: 8px; flex-wrap: wrap; }
+  .pageBtn { padding: 7px 12px; font-size: 12px; }
+}
