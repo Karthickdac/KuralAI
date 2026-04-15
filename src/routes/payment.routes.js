@@ -196,7 +196,8 @@ router.get('/balance', authenticateToken, requireOrgAccess, async (req, res) => 
   try {
     const balance = await creditService.getBalance(req.user.organizationId);
     const paySettings = await getPaymentSettings();
-    res.json({ ...balance, rechargeRatePerMinute: paySettings.rechargeRatePerMinute || 15 });
+    const plain = balance?.toJSON ? balance.toJSON() : (balance || {});
+    res.json({ ...plain, rechargeRatePerMinute: paySettings.rechargeRatePerMinute || 15 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

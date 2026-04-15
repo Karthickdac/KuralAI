@@ -23,20 +23,16 @@ export default function Billing() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try {
-      const [plansRes, balanceRes, subRes, txRes] = await Promise.all([
-        paymentsApi.plans(),
-        paymentsApi.balance(),
-        paymentsApi.subscription(),
-        paymentsApi.transactions(),
-      ]);
-      setPlans(plansRes.data);
-      setBalance(balanceRes.data);
-      setSubscription(subRes.data);
-      setTransactions(txRes.data?.rows || []);
-    } catch (err) {
-      console.error('Billing load error:', err);
-    }
+    const [plansRes, balanceRes, subRes, txRes] = await Promise.allSettled([
+      paymentsApi.plans(),
+      paymentsApi.balance(),
+      paymentsApi.subscription(),
+      paymentsApi.transactions(),
+    ]);
+    if (plansRes.status === 'fulfilled') setPlans(plansRes.value.data || []);
+    if (balanceRes.status === 'fulfilled') setBalance(balanceRes.value.data);
+    if (subRes.status === 'fulfilled') setSubscription(subRes.value.data);
+    if (txRes.status === 'fulfilled') setTransactions(txRes.value.data?.rows || []);
     setLoading(false);
   }, []);
 
