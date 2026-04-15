@@ -313,8 +313,12 @@ async function seedDefaultOrg() {
 async function seedCustomers() {
   const Customer = require('../models/Customer');
   const ChitAccount = require('../models/ChitAccount');
+  const Organization = require('../models/Organization');
   const count = await Customer.count();
   if (count > 0) return; // Already seeded
+
+  const org = await Organization.findOne({ where: { slug: 'automystic' } });
+  const orgId = org?.id || null;
 
   const { toIndianFormat } = require('../utils/templateEngine');
 
@@ -413,7 +417,7 @@ async function seedCustomers() {
 
   for (const c of customers) {
     const { chits, ...customerData } = c;
-    const customer = await Customer.create(customerData);
+    const customer = await Customer.create({ ...customerData, organizationId: orgId });
     for (const chit of chits) {
       await ChitAccount.create({ ...chit, customerId: customer.id });
     }
