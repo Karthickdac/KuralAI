@@ -46,7 +46,7 @@ export default function InitiateCallModal({ onClose, onSuccess }) {
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
           <div>
             <h2 style={{ fontSize:17, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.01em' }}>Initiate Voice Call</h2>
-            <p style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>Outbound Tamil AI call via Exotel</p>
+            <p style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>Outbound Tamil AI call via Twilio</p>
           </div>
           <button onClick={onClose} style={{ background:'var(--page-bg)', border:'none', borderRadius:8, width:30, height:30, fontSize:16, cursor:'pointer', color:'var(--text-muted)', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
         </div>
@@ -56,7 +56,7 @@ export default function InitiateCallModal({ onClose, onSuccess }) {
             <div style={{ background:'var(--success-bg)', border:'1px solid rgba(5,150,105,0.2)', borderRadius:10, padding:16, marginBottom:20 }}>
               <div style={{ fontSize:14, fontWeight:600, color:'var(--success-text)', marginBottom:8 }}>✓ Call queued successfully</div>
               <div style={{ fontSize:12, color:'var(--text-secondary)' }}>Call ID: <code style={{ fontFamily:'var(--font-mono)' }}>{result.callId}</code></div>
-              <div style={{ fontSize:12, color:'var(--text-secondary)', marginTop:4 }}>Exotel SID: <code style={{ fontFamily:'var(--font-mono)' }}>{result.callSid}</code></div>
+              <div style={{ fontSize:12, color:'var(--text-secondary)', marginTop:4 }}>Call SID: <code style={{ fontFamily:'var(--font-mono)' }}>{result.callSid}</code></div>
             </div>
             <button onClick={onSuccess} style={{ width:'100%', padding:'10px 16px', background:'var(--primary)', color:'#fff', border:'none', borderRadius:'var(--radius-sm)', fontSize:14, fontWeight:600, cursor:'pointer' }}>
               Done

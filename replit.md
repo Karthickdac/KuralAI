@@ -1,7 +1,7 @@
 # KuralAI — Enterprise Tamil AI Voice Calling System
 
 ## Overview
-KuralAI is a real-time AI voice calling platform that speaks and understands Tamil naturally. Built for enterprise outbound call campaigns with GPT-4o, Azure Neural TTS, Exotel telephony, and a full analytics dashboard.
+KuralAI is a multi-tenant SaaS platform for AI-powered Tamil voice calling. Agent persona **சமுத்ரா** handles chit fund customer calls — due reminders, lottery participation, and payment follow-ups. Built with GPT-4o, ElevenLabs/Azure TTS, Twilio telephony, Razorpay payments, and a full analytics dashboard.
 
 ## Architecture
 - **Frontend**: React (CRA) enterprise dashboard on port 5000
@@ -319,35 +319,13 @@ In the Workflows Q&A Script tab, the "Add from Q&A" button opens a picker that s
 - Correct action (continue / end_call)
 
 ## Notable Technical Decisions
-- Exotel replaces Twilio — ExoML XML-based, `<Gather input="speech">` for speech input
-- **`<Gather>` must NOT have a `language=` attribute** — confirmed to cause silent call failure on this account
-- **`<Say language="ta-IN">` (capital IN) is the correct TTS tag** — `ta-in` (lowercase) was a regression
-- Webhook URLs include `?wt=<EXOTEL_WEBHOOK_TOKEN>` for security
+- Twilio is the primary telephony provider (TwiML); Exotel available as legacy fallback via `telephonyService.js` facade
 - Services are lazy-initialized to allow startup without API credentials
 - WebSocket URL uses `window.location.host` dynamically (works behind Replit proxy)
-- Settings and workflows stored in `config/*.json` (file-based, no extra DB tables needed)
-- `express trust proxy` should be set to `true` to suppress rate-limiter X-Forwarded-For warning
-
-## Exotel Account Status & Required Actions
-
-**CRITICAL — The Exotel account is a Trial account with KYC not started:**
-- Account SID: `kyro3602`
-- Type: `Trial` (created 2026-04-12)
-- KYC Status: `notstarted`
-
-**Why calls connect but produce no audio:**
-1. `<Say>` TTS is disabled on Trial Exotel accounts — TTS requires a paid plan
-2. `<Play>` with external audio URLs is blocked/restricted on Trial accounts
-3. `<Gather>` alone works (call stays connected, listens for speech)
-
-**To fully activate the system:**
-1. Log in to the Exotel dashboard at https://my.exotel.com
-2. Complete KYC verification (required by Indian telecom regulations)
-3. Upgrade to a paid plan (Talk or Enterprise)
-4. Contact Exotel support to confirm Tamil TTS (`<Say language="ta-IN">`) is enabled
-5. Once upgraded, all audio (greeting, conversation responses, goodbye) will work automatically
-
-**Audio files pre-generated and ready:**
-- Azure TTS (ta-IN-PallaviNeural) generates Tamil audio on-demand via `speechService.js`
-- Local audio served from `/tmp/kuralai-audio/` via `/audio/:filename` route
-- For production: configure AWS S3 (set `s3Bucket`, `awsAccessKeyId`, `awsSecretAccessKey` in settings)
+- Settings stored in `app_settings` DB table with file-based fallback (`config/*.json`)
+- Workflows stored in `config/workflows.json` (file-based)
+- `express trust proxy` set to `true` for rate-limiter behind proxy
+- ElevenLabs voice `ewhDNMMyMBipnXXTYPwy` (Samuthra) is the active TTS; Azure `ta-IN-PallaviNeural` as fallback
+- Credit deduction: 2 min per call on initiation; campaigns auto-pause when credits run out
+- CreditsBadge component (top-right) polls every 2min + on window focus; color-coded green/amber/red
+- Campaign reports route placed BEFORE `/:id` in campaign.routes.js to avoid UUID validation conflict

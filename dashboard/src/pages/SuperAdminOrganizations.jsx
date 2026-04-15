@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { superadminApi } from '../api/client';
 import Sidebar from '../components/Sidebar';
 import styles from './SuperAdminOrganizations.module.css';
@@ -10,7 +9,6 @@ const ALL_MODULES = [
 ];
 
 export default function SuperAdminOrganizations() {
-  const navigate = useNavigate();
   const [orgs, setOrgs] = useState([]);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);

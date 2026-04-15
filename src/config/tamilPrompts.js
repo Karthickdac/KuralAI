@@ -183,7 +183,7 @@ COMPLAINTS & REQUESTS:
 
 EXAMPLES (noisy STT → correct intent):
 - "aamaa saar" → identity_confirm
-- "kattitten saar neethu" → already_paid  
+- "kattitten saar neethu" → already_paid
 - "ippo eduthaa evlo" → premature_withdrawal
 - "konjam kashtam saar panam illa" → payment_complaint
 - "ok participate pannuren" → lottery_participation

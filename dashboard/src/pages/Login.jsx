@@ -29,7 +29,7 @@ export default function Login() {
           <h1 className={styles.tagline}>Enterprise Tamil AI<br/>Voice Platform</h1>
           <p className={styles.description}>Automate outbound call campaigns, analyse conversations, and escalate intelligently — all in Tamil.</p>
           <div className={styles.features}>
-            {['GPT-4o Tamil conversations', 'Azure Neural TTS voices', 'Real-time analytics', 'Exotel call infrastructure'].map(f => (
+            {['GPT-4o Tamil conversations', 'ElevenLabs & Azure TTS', 'Real-time analytics', 'Twilio call infrastructure'].map(f => (
               <div key={f} className={styles.feature}>
                 <span className={styles.featureCheck}>✓</span>
                 <span>{f}</span>
