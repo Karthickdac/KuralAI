@@ -250,7 +250,7 @@ function PromptModal({ item, onSave, onClose }) {
             <textarea value={form.text}
               onChange={e => set('text', e.target.value)}
               className={styles.textarea} rows={5}
-              placeholder="வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார்..." />
+              placeholder="வணக்கம் சார்! நான் சமுத்ரா பேசுறேன் சார்..." />
           </div>
 
           <label className={styles.checkField}>

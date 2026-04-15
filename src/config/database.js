@@ -506,8 +506,8 @@ async function seedPromptTemplates() {
     {
       key: 'GREETING',
       label: 'Greeting — call திறக்கும்போது',
-      description: 'மகாலக்ஷ்மி customer-ஐ முதலில் greet பண்ணும் வாக்கியம். {{customerName}} வருகிறது.',
-      text: 'வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?',
+      description: 'சமுத்ரா customer-ஐ முதலில் greet பண்ணும் வாக்கியம். {{customerName}} வருகிறது.',
+      text: 'வணக்கம் சார்! நான் சமுத்ரா பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?',
     },
     {
       key: 'GREETING_REPEAT',

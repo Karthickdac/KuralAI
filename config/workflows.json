@@ -10,7 +10,7 @@
       "steps": [
         {
           "id": "greeting",
-          "agentMessage": "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?",
+          "agentMessage": "வணக்கம் சார்! நான் சமுத்ரா பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?",
           "branches": [
             {
               "id": "identity_no",
@@ -265,7 +265,7 @@
       "steps": [
         {
           "id": "lottery_invite",
-          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்க {{chitValue}} சீட்டோட அடுத்த குலுக்கல் {{nextDueDate}} தேதி இருக்கு சார். Due ₹{{dueAmount}} time-க்கு கட்டினா automatically include ஆகும் சார். Participate பண்ண விருப்பம் இருக்கா சார்?",
+          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் சமுத்ரா பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்க {{chitValue}} சீட்டோட அடுத்த குலுக்கல் {{nextDueDate}} தேதி இருக்கு சார். Due ₹{{dueAmount}} time-க்கு கட்டினா automatically include ஆகும் சார். Participate பண்ண விருப்பம் இருக்கா சார்?",
           "branches": [
             {
               "id": "identity_no",
@@ -358,7 +358,7 @@
       "steps": [
         {
           "id": "payment_status",
-          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்க {{chitValue}} சீட்டோட {{currentDue}}வது due — ₹{{dueAmount}} pending-ல இருக்கு சார். எப்போ pay பண்ண plan சார்?",
+          "agentMessage": "வணக்கம் {{customerName}} சார்! நான் சமுத்ரா பேசுறேன் சார், Automystic Company-யிட இருந்து. சார், உங்க {{chitValue}} சீட்டோட {{currentDue}}வது due — ₹{{dueAmount}} pending-ல இருக்கு சார். எப்போ pay பண்ண plan சார்?",
           "branches": [
             {
               "id": "identity_no",

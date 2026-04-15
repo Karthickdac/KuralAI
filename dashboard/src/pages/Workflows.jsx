@@ -432,7 +432,7 @@ function HowItWorksGuide() {
               <div className={styles.guideCardIcon} style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>1</div>
               <div>
                 <div className={styles.guideCardTitle}>Agent speaks first</div>
-                <div className={styles.guideCardDesc}>Each step starts with the AI agent (மகாலக்ஷ்மி) saying something to the customer — like asking their name or informing about a due.</div>
+                <div className={styles.guideCardDesc}>Each step starts with the AI agent (சமுத்ரா) saying something to the customer — like asking their name or informing about a due.</div>
               </div>
             </div>
             <div className={styles.guideCard}>
@@ -677,12 +677,12 @@ function ScriptFlowBuilder({ value, onChange }) {
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
                             What does the agent say?
                           </label>
-                          <div className={styles.sfFieldHint}>This is the Tamil message மகாலக்ஷ்மி speaks to the customer at this step. You can use template variables like {'{{customerName}}'}.</div>
+                          <div className={styles.sfFieldHint}>This is the Tamil message சமுத்ரா speaks to the customer at this step. You can use template variables like {'{{customerName}}'}.</div>
                           <textarea
                             className={`${styles.sfInput} ${styles.sfTextarea}`}
                             value={step.agentMessage}
                             onChange={e => updateStep(step.id, { agentMessage: e.target.value })}
-                            placeholder="e.g. வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன், Automystic Company-யிட இருந்து."
+                            placeholder="e.g. வணக்கம் சார்! நான் சமுத்ரா பேசுறேன், Automystic Company-யிட இருந்து."
                             rows={3}
                           />
                         </div>
@@ -1113,7 +1113,7 @@ export default function Workflows() {
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           <div>
-            <strong>What is a workflow?</strong> Each workflow defines a reusable call campaign for the AI agent (மகாலக்ஷ்மி). Use <strong>General Settings</strong> for naming and scheduling, and <strong>Call Flow</strong> to build the step-by-step conversation script the agent follows during calls.
+            <strong>What is a workflow?</strong> Each workflow defines a reusable call campaign for the AI agent (சமுத்ரா). Use <strong>General Settings</strong> for naming and scheduling, and <strong>Call Flow</strong> to build the step-by-step conversation script the agent follows during calls.
           </div>
         </div>
 

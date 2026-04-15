@@ -531,8 +531,8 @@ const HARDCODED_QA_PAIRS = [
     ],
     tokenKeywords: ['யாரு', 'who'],
     responses: [
-      'நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Chit Fund Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?',
-      'சார், Automystic Chit Fund Company-யிலிருந்து மகாலக்ஷ்மி பேசுறேன் சார். உங்க சீட் due பற்றி call பண்றேன் சார்.',
+      'நான் சமுத்ரா பேசுறேன் சார், Automystic Chit Fund Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?',
+      'சார், Automystic Chit Fund Company-யிலிருந்து சமுத்ரா பேசுறேன் சார். உங்க சீட் due பற்றி call பண்றேன் சார்.',
     ],
     action: 'continue',
   },

@@ -25,7 +25,7 @@ function TurnBubble({ speaker, text, audioUrl, onPlay }) {
   return (
     <div className={`${styles.bubble} ${isAi ? styles.aiBubble : styles.userBubble}`}>
       <div className={styles.bubbleHeader}>
-        <span className={styles.bubbleSpeaker}>{isAi ? 'மகாலக்ஷ்மி' : 'நீங்கள்'}</span>
+        <span className={styles.bubbleSpeaker}>{isAi ? 'சமுத்ரா' : 'நீங்கள்'}</span>
         {isAi && audioUrl && (
           <button className={styles.replayBtn} onClick={() => onPlay(audioUrl)} title="Replay audio">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -292,7 +292,7 @@ export default function Simulate() {
 
       if (audioUrl) {
         setPhase(AI_SPEAKING);
-        setStatusLabel('மகாலக்ஷ்மி பேசுகிறார்…');
+        setStatusLabel('சமுத்ரா பேசுகிறார்…');
         await playAudio(audioUrl);
       }
       setPhase(USER_TURN);
@@ -328,7 +328,7 @@ export default function Simulate() {
       if (ended) {
         if (audioUrl) {
           setPhase(AI_SPEAKING);
-          setStatusLabel('மகாலக்ஷ்மி பேசுகிறார்…');
+          setStatusLabel('சமுத்ரா பேசுகிறார்…');
           await playAudio(audioUrl);
         }
         setPhase(ENDED);
@@ -337,7 +337,7 @@ export default function Simulate() {
       } else {
         if (audioUrl) {
           setPhase(AI_SPEAKING);
-          setStatusLabel('மகாலக்ஷ்மி பேசுகிறார்…');
+          setStatusLabel('சமுத்ரா பேசுகிறார்…');
           await playAudio(audioUrl);
         }
         setPhase(USER_TURN);
@@ -688,7 +688,7 @@ export default function Simulate() {
               {selectedCustomer ? `${selectedCustomer.name} — Scenario` : 'Scenario'}
             </div>
             <ul className={styles.infoList}>
-              <li>Agent: மகாலக்ஷ்மி (Automystic Chit Fund)</li>
+              <li>Agent: சமுத்ரா (Automystic Chit Fund)</li>
               {meta.chitValue    && <li>சீட்: ₹{meta.chitValue} — {meta.chitGroup}</li>}
               {meta.currentDue  && <li>{meta.currentDue}வது due — ₹{meta.dueAmount}</li>}
               {meta.nextDueDate && <li>குலுக்கல்: {meta.nextDueDate}</li>}
