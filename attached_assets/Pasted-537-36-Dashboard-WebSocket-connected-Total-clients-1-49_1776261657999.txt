@@ -1,0 +1,27 @@
+537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: 49.37.193.38 - - [15/Apr/2026:14:00:30 +0000] "GET /api/templates/prompts HTTP/1.1" 304 - "https://www.artificialintellizence.com/templates" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:30 +0000] "GET /api/templates/qa HTTP/1.1" 304 - "https://www.artificialintellizence.com/templates" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:30 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/templates" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: 49.37.193.38 - - [15/Apr/2026:14:00:30 +0000] "GET /api/workflows HTTP/1.1" 304 - "https://www.artificialintellizence.com/workflows" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:30 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/workflows" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:31 +0000] "GET /api/campaigns HTTP/1.1" 304 - "https://www.artificialintellizence.com/campaigns" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:31 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/campaigns" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: 49.37.193.38 - - [15/Apr/2026:14:00:31 +0000] "GET /api/customers HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:31 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:31 +0000] "GET /api/calls?page=1&limit=25 HTTP/1.1" 304 - "https://www.artificialintellizence.com/calls" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:31 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/calls" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /api/dashboard/stats?days=7 HTTP/1.1" 200 134 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /api/dashboard/intents?days=7 HTTP/1.1" 304 - "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /api/dashboard/calls/timeline?days=14 HTTP/1.1" 200 79 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /api/dashboard/recent-calls?limit=10 HTTP/1.1" 200 1085 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.38 - - [15/Apr/2026:14:00:32 +0000] "GET /api/customers HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: Call initiated: 438d833e-a9b8-4125-af75-6ffbe428b3cd -> +917358337470 | customer=சுரேஷ் பாபு | chit=CG-2024-B
+]: Failed to initiate call:
+]: 49.37.193.38 - - [15/Apr/2026:14:00:35 +0000] "POST /api/calls/initiate HTTP/1.1" 500 63 "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
