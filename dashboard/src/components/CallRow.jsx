@@ -62,6 +62,10 @@ function RecordingPlayer({ callId }) {
       const audio = audioRef.current;
       if (audio && e.detail !== audio) {
         audio.pause();
+        audio.currentTime = 0;
+        setProgress(0);
+        setCurrentTime(0);
+        setPlaying(false);
       }
     };
     window.addEventListener('kuralai-audio-play', handler);
