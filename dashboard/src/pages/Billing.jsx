@@ -135,6 +135,9 @@ export default function Billing() {
                         <li>✓ {plan.maxCampaigns} campaigns</li>
                         <li>✓ {plan.maxWorkflows} workflows</li>
                         <li>✓ {plan.maxUsersPerOrg} team members</li>
+                        {plan.features?.voiceGenderSelection && <li>✓ Voice setup (Male/Female)</li>}
+                        {plan.features?.voiceCloning && <li>✓ Voice cloning ({plan.maxClonedVoices || 0} voices)</li>}
+                        {plan.features?.slangCustomization && <li>✓ Natural slang customization</li>}
                         {plan.features?.crmIntegration && <li>✓ CRM integration</li>}
                         {plan.features?.prioritySupport && <li>✓ Priority support</li>}
                         {plan.features?.apiConfig && <li>✓ API access</li>}

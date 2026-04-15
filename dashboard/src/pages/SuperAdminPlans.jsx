@@ -6,7 +6,7 @@ import styles from './SuperAdminPlans.module.css';
 const EMPTY_PLAN = {
   name: '', slug: '', description: '', price: 0, billingCycle: 'monthly',
   creditMinutes: 0, maxWorkflows: 3, maxCustomers: 100, maxCampaigns: 5,
-  maxUsersPerOrg: 3, features: {}, sortOrder: 0, isActive: true,
+  maxUsersPerOrg: 3, maxClonedVoices: 0, features: {}, sortOrder: 0, isActive: true,
 };
 
 const FEATURE_LIST = [
@@ -22,6 +22,9 @@ const FEATURE_LIST = [
   { key: 'dedicatedSupport', label: 'Dedicated Support' },
   { key: 'sla', label: 'SLA' },
   { key: 'whiteLabel', label: 'White Label' },
+  { key: 'voiceGenderSelection', label: 'Voice Setup (Male/Female)' },
+  { key: 'voiceCloning', label: 'Voice Cloning' },
+  { key: 'slangCustomization', label: 'Natural Slang Customization' },
 ];
 
 export default function SuperAdminPlans() {
@@ -156,6 +159,10 @@ export default function SuperAdminPlans() {
                   <label>Max Users per Org</label>
                   <input className={styles.input} type="number" value={form.maxUsersPerOrg} onChange={e => updateField('maxUsersPerOrg', Number(e.target.value))} />
                 </div>
+                <div className={styles.fieldGroup}>
+                  <label>Max Cloned Voices</label>
+                  <input className={styles.input} type="number" value={form.maxClonedVoices || 0} onChange={e => updateField('maxClonedVoices', Number(e.target.value))} />
+                </div>
                 <div className={styles.fieldGroupFull}>
                   <label>Description</label>
                   <textarea className={styles.textarea} value={form.description || ''} onChange={e => updateField('description', e.target.value)} rows={2} />
@@ -207,6 +214,7 @@ export default function SuperAdminPlans() {
                     <div><strong>{plan.maxCampaigns}</strong> campaigns</div>
                     <div><strong>{plan.maxWorkflows}</strong> workflows</div>
                     <div><strong>{plan.maxUsersPerOrg}</strong> users</div>
+                    <div><strong>{plan.maxClonedVoices || 0}</strong> cloned voices</div>
                   </div>
                   <div className={styles.planFeatures}>
                     {Object.entries(plan.features || {}).filter(([, v]) => v).map(([k]) => (

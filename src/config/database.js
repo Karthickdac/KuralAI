@@ -62,6 +62,9 @@ async function initDatabase() {
   // Add organizationId columns to existing tables
   await addOrgIdColumns();
 
+  // Add voice-related columns to plans table
+  await migratePlanVoiceColumns();
+
   // Sync schema (create tables if they don't exist)
   await sequelize.sync({ force: false });
 
@@ -141,6 +144,14 @@ async function addOrgIdColumns() {
   }
 }
 
+async function migratePlanVoiceColumns() {
+  try {
+    await sequelize.query(`ALTER TABLE plans ADD COLUMN IF NOT EXISTS "maxClonedVoices" INTEGER DEFAULT 0;`);
+  } catch (e) {
+    // table may not exist yet — sync will create it
+  }
+}
+
 async function seedPlans() {
   const Plan = sequelize.models.Plan;
   if (!Plan) return;
@@ -159,7 +170,8 @@ async function seedPlans() {
       maxCustomers: 100,
       maxCampaigns: 3,
       maxUsersPerOrg: 2,
-      features: { callRecording: true, reports: true, simulator: true },
+      maxClonedVoices: 0,
+      features: { callRecording: true, reports: true, simulator: true, voiceGenderSelection: true },
       sortOrder: 1,
     },
     {
@@ -173,7 +185,8 @@ async function seedPlans() {
       maxCustomers: 1000,
       maxCampaigns: 10,
       maxUsersPerOrg: 5,
-      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true },
+      maxClonedVoices: 2,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true },
       sortOrder: 2,
     },
     {
@@ -187,7 +200,8 @@ async function seedPlans() {
       maxCustomers: 5000,
       maxCampaigns: 25,
       maxUsersPerOrg: 10,
-      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true },
+      maxClonedVoices: 5,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true },
       sortOrder: 3,
     },
     {
@@ -201,7 +215,8 @@ async function seedPlans() {
       maxCustomers: 25000,
       maxCampaigns: 100,
       maxUsersPerOrg: 25,
-      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, dedicatedSupport: true, sla: true, whiteLabel: true },
+      maxClonedVoices: 15,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, dedicatedSupport: true, sla: true, whiteLabel: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true },
       sortOrder: 4,
     },
   ]);

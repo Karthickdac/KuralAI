@@ -104,6 +104,13 @@ All core routes enforce tenant scoping via `tenantScope` middleware:
 ### Payment Gateway
 - **Razorpay** (India-focused) — configurable via Settings → Payment Gateway (DB-backed), with env var fallback: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
 - Credentials read from `app_settings` DB first, then env vars; 30s in-memory cache in payment routes
+
+### Voice Features (Plan-Gated)
+- **Voice Setup (Male/Female)**: All plans — select between male and female agent voices
+- **Voice Cloning**: Professional+ — clone custom voices (limit per plan: 0/2/5/15 via `maxClonedVoices` column)
+- **Natural Slang Customization**: Professional+ — customize Tamil dialect and colloquial phrasing
+- Voice features are stored as boolean flags in Plan `features` JSONB (`voiceGenderSelection`, `voiceCloning`, `slangCustomization`)
+- `maxClonedVoices` is a dedicated integer column on the `plans` table with auto-migration in `database.js`
 - Plan purchase: select → create order → Razorpay checkout → verify → activate subscription + credit minutes
 - Credit recharge: select minutes → create order → pay → add minutes
 

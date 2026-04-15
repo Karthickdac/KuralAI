@@ -50,6 +50,10 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       defaultValue: 3,
     },
+    maxClonedVoices: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     features: {
       type: DataTypes.JSONB,
       defaultValue: {},
