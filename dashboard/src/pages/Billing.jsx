@@ -65,10 +65,14 @@ export default function Billing() {
         theme: { color: '#059669' },
       };
 
+      if (!window.Razorpay) {
+        alert('Payment gateway is loading. Please try again in a moment.');
+        return;
+      }
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      alert(err.response?.data?.error || 'Payment failed. Razorpay may not be configured.');
+      alert(err.response?.data?.error || 'Payment failed. Please try again.');
     }
   };
 
