@@ -6,7 +6,7 @@
 
 /* ─── LEFT PANEL ─── */
 .left {
-  flex: 1;
+  flex: 2;
   background: #020617;
   display: flex;
   align-items: flex-start;
@@ -338,8 +338,7 @@
 
 /* ─── RIGHT PANEL ─── */
 .right {
-  width: 480px;
-  flex-shrink: 0;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -360,9 +359,9 @@
 }
 
 .headerLogo {
-  height: 120px;
+  height: 200px;
   object-fit: contain;
-  margin: 0 auto 20px;
+  margin: 0 auto 24px;
   display: block;
 }
 
@@ -514,7 +513,8 @@
 @media (max-width: 1100px) {
   .left { padding: 36px; }
   .tagline { font-size: 30px; }
-  .right { width: 440px; padding: 36px; }
+  .right { padding: 36px; }
+  .headerLogo { height: 160px; }
 }
 
 @media (max-width: 900px) {
@@ -523,7 +523,8 @@
   .statsRow { gap: 10px; }
   .stat { padding: 12px 8px; }
   .statValue { font-size: 22px; }
-  .right { width: 400px; padding: 28px; }
+  .right { padding: 28px; }
+  .headerLogo { height: 120px; }
 }
 
 @media (max-width: 768px) {
