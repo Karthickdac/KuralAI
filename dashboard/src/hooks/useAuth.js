@@ -37,6 +37,7 @@ export function useAuth() {
     localStorage.removeItem('kuralai_token');
     localStorage.removeItem('kuralai_user');
     setUser(null);
+    window.location.href = '/login';
   }, []);
 
   return { user, login, logout, loading, error, isAuthenticated: !!user };
