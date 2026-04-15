@@ -205,10 +205,7 @@ export default function Login() {
             </button>
           </form>
 
-          <div className={styles.footer}>
-            <span className={styles.footerText}>A Product of</span>
-            <img src="/automystic-logo.png" alt="Automystic" className={styles.footerLogo} />
-          </div>
+          <p className={styles.footerText}>A Product of <strong>Automystic</strong></p>
         </div>
       </div>
     </div>
