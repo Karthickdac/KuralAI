@@ -57,12 +57,14 @@ function RecordingPlayer({ callId }) {
 
   const src = `/api/calls/${callId}/recording/stream`;
 
+  const pausedByOtherRef = useRef(false);
+
   useEffect(() => {
     const handler = (e) => {
       const audio = audioRef.current;
-      if (audio && e.detail !== audio) {
+      if (audio && e.detail !== audio && !audio.paused) {
+        pausedByOtherRef.current = true;
         audio.pause();
-        audio.currentTime = 0;
         setProgress(0);
         setCurrentTime(0);
         setPlaying(false);
@@ -74,12 +76,18 @@ function RecordingPlayer({ callId }) {
 
   function togglePlay(e) {
     e.stopPropagation();
-    if (error) return;
+    if (error) {
+      setError(false);
+    }
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
       audio.pause();
     } else {
+      if (pausedByOtherRef.current) {
+        audio.currentTime = 0;
+        pausedByOtherRef.current = false;
+      }
       window.dispatchEvent(new CustomEvent('kuralai-audio-play', { detail: audio }));
       audio.play().catch(() => setError(true));
     }
@@ -102,10 +110,6 @@ function RecordingPlayer({ callId }) {
     audio.currentTime = pct * audio.duration;
   }
 
-  if (error) {
-    return <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{'\u2014'}</span>;
-  }
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 140 }} onClick={e => e.stopPropagation()}>
       <audio
@@ -117,7 +121,9 @@ function RecordingPlayer({ callId }) {
         onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); }}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
-        onError={() => setError(true)}
+        onError={() => {
+          if (!pausedByOtherRef.current) setError(true);
+        }}
       />
       <button
         onClick={togglePlay}
