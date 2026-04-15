@@ -126,6 +126,7 @@ export const campaignsApi = {
   start: (id) => api.post(`/api/campaigns/${id}/start`),
   pause: (id) => api.post(`/api/campaigns/${id}/pause`),
   resume: (id) => api.post(`/api/campaigns/${id}/resume`),
+  reportSummary: (days) => api.get('/api/campaigns/reports/summary', { params: { days } }),
 };
 
 export const crmApi = {
