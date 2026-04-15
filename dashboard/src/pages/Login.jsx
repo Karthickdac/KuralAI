@@ -229,9 +229,10 @@ export default function Login() {
             </div>
           </div>
 
-          <p className={styles.footer}>
-            An <strong>Automystic</strong> Product
-          </p>
+          <div className={styles.footer}>
+            <span className={styles.footerText}>A Product of</span>
+            <img src="/automystic-logo.png" alt="Automystic" className={styles.footerLogo} />
+          </div>
         </div>
       </div>
     </div>
