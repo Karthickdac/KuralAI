@@ -28,5 +28,7 @@
   "escalationPhone": "",
   "escalationWebhookUrl": "",
   "inboundWorkflowId": "",
-  "apiKey": "kural_07930f9f93d3fd374fda9c474c18b979e2b3fdbe1f60b23e"
+  "apiKey": "kural_07930f9f93d3fd374fda9c474c18b979e2b3fdbe1f60b23e",
+  "razorpayKeyId": "rzp_test_SdkiXA7yISZdIL",
+  "razorpayKeySecret": "NsXz4nQl3TQDJ1ctHmMrtPKd"
 }
