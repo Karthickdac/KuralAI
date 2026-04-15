@@ -47,6 +47,8 @@ function fmtTime(sec) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+let activeAudio = null;
+
 function RecordingPlayer({ callId }) {
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
@@ -64,7 +66,12 @@ function RecordingPlayer({ callId }) {
     if (!audio) return;
     if (playing) {
       audio.pause();
+      activeAudio = null;
     } else {
+      if (activeAudio && activeAudio !== audio) {
+        activeAudio.pause();
+      }
+      activeAudio = audio;
       audio.play().catch(() => setError(true));
     }
   }
@@ -94,7 +101,7 @@ function RecordingPlayer({ callId }) {
         preload="none"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); }}
+        onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); activeAudio = null; }}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onError={() => setError(true)}
