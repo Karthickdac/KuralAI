@@ -62,8 +62,8 @@ async function initDatabase() {
   // Add organizationId columns to existing tables
   await addOrgIdColumns();
 
-  // Add voice-related columns to plans table
-  await migratePlanVoiceColumns();
+  // Add new plan columns (voice, parallel calls, assistants, etc.)
+  await migratePlanColumns();
 
   // Sync schema (create tables if they don't exist)
   await sequelize.sync({ force: false });
@@ -144,9 +144,20 @@ async function addOrgIdColumns() {
   }
 }
 
-async function migratePlanVoiceColumns() {
+async function migratePlanColumns() {
+  const columns = [
+    ['"maxClonedVoices"', 'INTEGER DEFAULT 0'],
+    ['"maxParallelCalls"', 'INTEGER DEFAULT 1'],
+    ['"maxAssistants"', 'INTEGER DEFAULT 1'],
+    ['"maxKnowledgebases"', 'INTEGER DEFAULT 0'],
+    ['"maxPhoneNumbers"', 'INTEGER DEFAULT 1'],
+    ['"extraMinuteRate"', 'FLOAT DEFAULT 15'],
+    ['"recommended"', 'BOOLEAN DEFAULT false'],
+  ];
   try {
-    await sequelize.query(`ALTER TABLE plans ADD COLUMN IF NOT EXISTS "maxClonedVoices" INTEGER DEFAULT 0;`);
+    for (const [col, def] of columns) {
+      await sequelize.query(`ALTER TABLE plans ADD COLUMN IF NOT EXISTS ${col} ${def};`);
+    }
   } catch (e) {
     // table may not exist yet — sync will create it
   }
@@ -170,7 +181,13 @@ async function seedPlans() {
       maxCustomers: 100,
       maxCampaigns: 3,
       maxUsersPerOrg: 2,
-      maxClonedVoices: 0,
+      maxClonedVoices: 1,
+      maxParallelCalls: 3,
+      maxAssistants: 1,
+      maxKnowledgebases: 0,
+      maxPhoneNumbers: 3,
+      extraMinuteRate: 12,
+      recommended: false,
       features: { callRecording: true, reports: true, simulator: true, voiceGenderSelection: true },
       sortOrder: 1,
     },
@@ -185,8 +202,14 @@ async function seedPlans() {
       maxCustomers: 1000,
       maxCampaigns: 10,
       maxUsersPerOrg: 5,
-      maxClonedVoices: 2,
-      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true },
+      maxClonedVoices: 5,
+      maxParallelCalls: 10,
+      maxAssistants: 5,
+      maxKnowledgebases: 1,
+      maxPhoneNumbers: 10,
+      extraMinuteRate: 10,
+      recommended: false,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true, midCallTools: true },
       sortOrder: 2,
     },
     {
@@ -200,8 +223,14 @@ async function seedPlans() {
       maxCustomers: 5000,
       maxCampaigns: 25,
       maxUsersPerOrg: 10,
-      maxClonedVoices: 5,
-      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true },
+      maxClonedVoices: 10,
+      maxParallelCalls: 50,
+      maxAssistants: 15,
+      maxKnowledgebases: 5,
+      maxPhoneNumbers: 25,
+      extraMinuteRate: 8,
+      recommended: true,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true, midCallTools: true, knowledgebases: true },
       sortOrder: 3,
     },
     {
@@ -215,8 +244,14 @@ async function seedPlans() {
       maxCustomers: 25000,
       maxCampaigns: 100,
       maxUsersPerOrg: 25,
-      maxClonedVoices: 15,
-      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, dedicatedSupport: true, sla: true, whiteLabel: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true },
+      maxClonedVoices: -1,
+      maxParallelCalls: 200,
+      maxAssistants: -1,
+      maxKnowledgebases: -1,
+      maxPhoneNumbers: -1,
+      extraMinuteRate: 6,
+      recommended: false,
+      features: { callRecording: true, reports: true, simulator: true, crmIntegration: true, templates: true, prioritySupport: true, apiConfig: true, bulkImport: true, customPrompts: true, dedicatedSupport: true, sla: true, whiteLabel: true, voiceGenderSelection: true, voiceCloning: true, slangCustomization: true, midCallTools: true, knowledgebases: true },
       sortOrder: 4,
     },
   ]);

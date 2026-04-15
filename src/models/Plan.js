@@ -54,6 +54,30 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    maxParallelCalls: {
+      type: DataTypes.INTEGER,
+      defaultValue: 1,
+    },
+    maxAssistants: {
+      type: DataTypes.INTEGER,
+      defaultValue: 1,
+    },
+    maxKnowledgebases: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    maxPhoneNumbers: {
+      type: DataTypes.INTEGER,
+      defaultValue: 1,
+    },
+    extraMinuteRate: {
+      type: DataTypes.FLOAT,
+      defaultValue: 15,
+    },
+    recommended: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     features: {
       type: DataTypes.JSONB,
       defaultValue: {},

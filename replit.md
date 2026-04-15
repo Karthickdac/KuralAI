@@ -105,12 +105,25 @@ All core routes enforce tenant scoping via `tenantScope` middleware:
 - **Razorpay** (India-focused) — configurable via Settings → Payment Gateway (DB-backed), with env var fallback: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
 - Credentials read from `app_settings` DB first, then env vars; 30s in-memory cache in payment routes
 
-### Voice Features (Plan-Gated)
-- **Voice Setup (Male/Female)**: All plans — select between male and female agent voices
-- **Voice Cloning**: Professional+ — clone custom voices (limit per plan: 0/2/5/15 via `maxClonedVoices` column)
-- **Natural Slang Customization**: Professional+ — customize Tamil dialect and colloquial phrasing
-- Voice features are stored as boolean flags in Plan `features` JSONB (`voiceGenderSelection`, `voiceCloning`, `slangCustomization`)
-- `maxClonedVoices` is a dedicated integer column on the `plans` table with auto-migration in `database.js`
+### Plan Features & Limits
+Each plan has these configurable limits (columns on `plans` table):
+- `creditMinutes` — included call minutes per billing cycle
+- `extraMinuteRate` — ₹ per extra minute after included minutes (Starter ₹12, Pro ₹10, Business ₹8, Enterprise ₹6)
+- `maxParallelCalls` — concurrent calls (3/10/50/200)
+- `maxAssistants` — AI agent personas (-1 = Unlimited)
+- `maxClonedVoices` — voice clones (1/5/10/Unlimited)
+- `maxKnowledgebases` — knowledge base limit (0/1/5/Unlimited)
+- `maxPhoneNumbers` — own phone numbers (3/10/25/Unlimited)
+- `maxWorkflows`, `maxCustomers`, `maxCampaigns`, `maxUsersPerOrg` — other limits
+- `recommended` — shows "Best deal" badge on billing page (Business plan)
+- `-1` value means Unlimited for any integer limit
+
+Feature flags in `features` JSONB:
+- `voiceGenderSelection`, `voiceCloning`, `slangCustomization` — voice features
+- `midCallTools`, `knowledgebases` — advanced features
+- `callRecording`, `reports`, `simulator`, `crmIntegration`, `templates`, `prioritySupport`, `apiConfig`, `bulkImport`, `customPrompts`, `dedicatedSupport`, `sla`, `whiteLabel`
+
+Auto-migration for all plan columns in `migratePlanColumns()` in `database.js`
 - Plan purchase: select → create order → Razorpay checkout → verify → activate subscription + credit minutes
 - Credit recharge: select minutes → create order → pay → add minutes
 

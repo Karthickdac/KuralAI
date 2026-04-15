@@ -4,6 +4,11 @@ import { useAuth } from '../hooks/useAuth';
 import Sidebar from '../components/Sidebar';
 import styles from './Billing.module.css';
 
+function fmt(v) {
+  if (v === -1) return 'Unlimited';
+  return v?.toLocaleString('en-IN') ?? '0';
+}
+
 export default function Billing() {
   const { user } = useAuth();
   const [plans, setPlans] = useState([]);
@@ -75,6 +80,8 @@ export default function Billing() {
     ? Math.max(0, balance.totalMinutes - balance.usedMinutes - (balance.reservedMinutes || 0))
     : 0;
 
+  const isCurrent = (plan) => subscription?.plan?.id === plan.id;
+
   return (
     <div className={styles.layout}>
       <Sidebar />
@@ -94,7 +101,7 @@ export default function Billing() {
               <div className={styles.topRow}>
                 <div className={styles.card}>
                   <div className={styles.cardLabel}>Current Plan</div>
-                  <div className={styles.planName}>{subscription?.plan?.name || 'No Plan'}</div>
+                  <div className={styles.currentPlanName}>{subscription?.plan?.name || 'No Plan'}</div>
                   {subscription?.currentPeriodEnd && (
                     <div className={styles.cardMeta}>
                       Renews: {new Date(subscription.currentPeriodEnd).toLocaleDateString('en-IN')}
@@ -113,49 +120,124 @@ export default function Billing() {
                 </div>
               </div>
 
-              
-
-              <div className={styles.section}>
-                <h3>Available Plans</h3>
-                <div className={styles.planGrid}>
-                  {plans.map(plan => (
-                    <div
-                      key={plan.id}
-                      className={`${styles.planCard} ${subscription?.plan?.id === plan.id ? styles.currentPlan : ''}`}
-                    >
-                      <div className={styles.planHeader}>
-                        <div className={styles.planTitle}>{plan.name}</div>
-                        <div className={styles.planPrice}>₹{plan.price.toLocaleString('en-IN')}<span>/{plan.billingCycle}</span></div>
-                      </div>
-                      <div className={styles.planDesc}>{plan.description}</div>
-                      <div className={styles.effectiveRate}>₹{(plan.price / plan.creditMinutes).toFixed(1)}/min effective</div>
-                      <ul className={styles.planFeatures}>
-                        <li>✓ {plan.creditMinutes.toLocaleString('en-IN')} minutes/month</li>
-                        <li>✓ Up to {plan.maxCustomers.toLocaleString('en-IN')} customers</li>
-                        <li>✓ {plan.maxCampaigns} campaigns</li>
-                        <li>✓ {plan.maxWorkflows} workflows</li>
-                        <li>✓ {plan.maxUsersPerOrg} team members</li>
-                        {plan.features?.voiceGenderSelection && <li>✓ Voice setup (Male/Female)</li>}
-                        {plan.features?.voiceCloning && <li>✓ Voice cloning ({plan.maxClonedVoices || 0} voices)</li>}
-                        {plan.features?.slangCustomization && <li>✓ Natural slang customization</li>}
-                        {plan.features?.crmIntegration && <li>✓ CRM integration</li>}
-                        {plan.features?.prioritySupport && <li>✓ Priority support</li>}
-                        {plan.features?.apiConfig && <li>✓ API access</li>}
-                        {plan.features?.bulkImport && <li>✓ Bulk import</li>}
-                        {plan.features?.customPrompts && <li>✓ Custom prompts</li>}
-                        {plan.features?.dedicatedSupport && <li>✓ Dedicated support</li>}
-                        {plan.features?.whiteLabel && <li>✓ White-label</li>}
-                      </ul>
-                      {subscription?.plan?.id === plan.id ? (
-                        <div className={styles.currentBadge}>Current Plan</div>
-                      ) : (
-                        <button className={styles.primaryBtn} onClick={() => handlePayment('plan', plan.id)}>
-                          {subscription?.plan ? 'Switch Plan' : 'Subscribe'}
-                        </button>
-                      )}
-                    </div>
-                  ))}
+              <div className={styles.sectionRow}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Available Plans</h3>
+                <div className={styles.billingToggle}>
+                  <button className={styles.toggleActive}>Monthly</button>
                 </div>
+              </div>
+
+              <div className={styles.planGrid}>
+                {plans.map(plan => (
+                  <div
+                    key={plan.id}
+                    className={`${styles.planCard} ${isCurrent(plan) ? styles.activePlan : ''} ${plan.recommended ? styles.recommendedPlan : ''}`}
+                  >
+                    {plan.recommended && <div className={styles.bestDeal}>Best deal</div>}
+
+                    <div className={styles.planName}>{plan.name}</div>
+                    <div className={styles.planPrice}>
+                      <span className={styles.priceSymbol}>₹</span>
+                      <span className={styles.priceAmount}>{plan.price.toLocaleString('en-IN')}</span>
+                      <span className={styles.pricePeriod}>/{plan.billingCycle}</span>
+                    </div>
+                    <div className={styles.planDesc}>{plan.description}</div>
+
+                    {isCurrent(plan) ? (
+                      <div className={styles.currentBadge}>Current Plan</div>
+                    ) : (
+                      <button className={`${styles.purchaseBtn} ${plan.recommended ? styles.purchaseBtnHighlight : ''}`} onClick={() => handlePayment('plan', plan.id)}>
+                        {subscription?.plan ? 'Switch plan' : 'Purchase plan'}
+                      </button>
+                    )}
+
+                    <div className={styles.includesLabel}>Includes:</div>
+                    <ul className={styles.featureList}>
+                      <li className={styles.featureHighlight}>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.creditMinutes)}</strong> included minutes, then <strong>₹{plan.extraMinuteRate || 15}</strong> / extra minute</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxAssistants)}</strong> assistant{plan.maxAssistants !== 1 ? 's' : ''}</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxCampaigns)}</strong> outbound campaign{plan.maxCampaigns !== 1 ? 's' : ''}</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxParallelCalls)}</strong> calls in parallel</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxClonedVoices)}</strong> cloned voice{plan.maxClonedVoices !== 1 ? 's' : ''}</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxWorkflows)}</strong> workflows</span>
+                      </li>
+                      {plan.maxKnowledgebases === 0 ? (
+                        <li className={styles.featureDisabled}>
+                          <span className={styles.checkX}>✕</span>
+                          <span>Knowledgebases</span>
+                        </li>
+                      ) : (
+                        <li>
+                          <span className={styles.checkGreen}>✓</span>
+                          <span><strong>{fmt(plan.maxKnowledgebases)}</strong> knowledgebase{plan.maxKnowledgebases !== 1 ? 's' : ''}</span>
+                        </li>
+                      )}
+                      {plan.features?.midCallTools ? (
+                        <li>
+                          <span className={styles.checkGreen}>✓</span>
+                          <span>Mid-call tools</span>
+                        </li>
+                      ) : (
+                        <li className={styles.featureDisabled}>
+                          <span className={styles.checkX}>✕</span>
+                          <span>Mid-call tools</span>
+                        </li>
+                      )}
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxPhoneNumbers)}</strong> own phone number{plan.maxPhoneNumbers !== 1 ? 's' : ''}</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span>Up to <strong>{fmt(plan.maxCustomers)}</strong> customers</span>
+                      </li>
+                      <li>
+                        <span className={styles.checkGreen}>✓</span>
+                        <span><strong>{fmt(plan.maxUsersPerOrg)}</strong> team member{plan.maxUsersPerOrg !== 1 ? 's' : ''}</span>
+                      </li>
+                      {plan.features?.voiceGenderSelection && (
+                        <li><span className={styles.checkGreen}>✓</span><span>Voice setup (Male/Female)</span></li>
+                      )}
+                      {plan.features?.voiceCloning && (
+                        <li><span className={styles.checkGreen}>✓</span><span>Voice cloning</span></li>
+                      )}
+                      {plan.features?.slangCustomization && (
+                        <li><span className={styles.checkGreen}>✓</span><span>Natural slang customization</span></li>
+                      )}
+                      {plan.features?.crmIntegration && (
+                        <li><span className={styles.checkGreen}>✓</span><span>CRM integration</span></li>
+                      )}
+                      {plan.features?.prioritySupport && (
+                        <li><span className={styles.checkGreen}>✓</span><span>Priority support</span></li>
+                      )}
+                      {plan.features?.apiConfig && (
+                        <li><span className={styles.checkGreen}>✓</span><span>API access</span></li>
+                      )}
+                      {plan.features?.dedicatedSupport && (
+                        <li><span className={styles.checkGreen}>✓</span><span>Dedicated support</span></li>
+                      )}
+                      {plan.features?.whiteLabel && (
+                        <li><span className={styles.checkGreen}>✓</span><span>White-label</span></li>
+                      )}
+                    </ul>
+                  </div>
+                ))}
               </div>
 
               <div className={styles.section}>
@@ -204,7 +286,7 @@ export default function Billing() {
                   {rechargeMinutes} minutes = ₹{(rechargeMinutes * RATE_PER_MIN).toLocaleString('en-IN')}
                 </div>
                 <div className={styles.rechargeActions}>
-                  <button className={styles.primaryBtn} onClick={() => handlePayment('recharge')}>Pay with Razorpay</button>
+                  <button className={styles.purchaseBtn + ' ' + styles.purchaseBtnHighlight} onClick={() => handlePayment('recharge')}>Pay with Razorpay</button>
                   <button className={styles.secondaryBtn} onClick={() => setShowRecharge(false)}>Cancel</button>
                 </div>
               </div>

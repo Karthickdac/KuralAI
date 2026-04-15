@@ -17,7 +17,7 @@
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px;
 }
 .cardLabel { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-.planName { font-size: 28px; font-weight: 700; color: var(--primary); margin-top: 4px; }
+.currentPlanName { font-size: 28px; font-weight: 700; color: var(--primary); margin-top: 4px; }
 .cardMeta { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
 .creditValue { font-size: 36px; font-weight: 700; color: var(--text-primary); margin-top: 4px; }
 .unit { font-size: 16px; font-weight: 400; color: var(--text-muted); }
@@ -29,16 +29,218 @@
 }
 .rechargeBtn:hover { background: rgba(16,185,129,0.15); }
 
+.section { margin-top: 24px; }
+.section h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; }
+
+.sectionRow {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 24px;
+}
+
+.billingToggle {
+  display: flex; gap: 0; border-radius: 24px; overflow: hidden;
+  border: 1px solid var(--border); background: var(--surface);
+}
+.toggleActive {
+  padding: 8px 24px; font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+  background: var(--primary); color: #fff; border-radius: 24px;
+}
+
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+}
+@media (max-width: 1200px) {
+  .planGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .planGrid { grid-template-columns: 1fr; }
+}
+
+.planCard {
+  padding: 28px 24px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: var(--surface);
+  transition: background 0.15s;
+}
+.planCard:last-child { border-right: none; }
+.planCard:hover { background: var(--surface-hover); }
+
+.activePlan {
+  background: rgba(16, 185, 129, 0.03);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+
+.recommendedPlan {
+  background: rgba(16, 185, 129, 0.02);
+}
+
+.bestDeal {
+  position: absolute;
+  top: -1px;
+  right: 20px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 14px 6px;
+  border-radius: 0 0 8px 8px;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.planName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.planPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+.priceSymbol {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.priceAmount {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+.pricePeriod {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
+.planDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  min-height: 36px;
+}
+
+.purchaseBtn {
+  width: 100%;
+  padding: 11px 20px;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 20px;
+}
+.purchaseBtn:hover {
+  background: rgba(16, 185, 129, 0.08);
+}
+.purchaseBtnHighlight {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.purchaseBtnHighlight:hover {
+  background: var(--primary-hover);
+}
+
+.currentBadge {
+  width: 100%;
+  text-align: center;
+  padding: 11px 20px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.includesLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+.featureList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0;
+  line-height: 1.5;
+}
+.featureList li strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.featureHighlight {
+  padding-bottom: 8px !important;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.featureHighlight span:last-child {
+  color: var(--primary);
+  font-weight: 500;
+}
+.featureHighlight strong {
+  color: var(--primary) !important;
+}
+
+.featureDisabled {
+  opacity: 0.5;
+}
+
+.checkGreen {
+  color: var(--primary);
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.checkX {
+  color: var(--text-muted);
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 .rechargeModal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
   z-index: 9999;
   backdrop-filter: blur(4px);
 }
@@ -57,147 +259,42 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .rechargeCard h4 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 20px;
+  font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px;
 }
 .rechargeForm { display: flex; flex-direction: column; gap: 14px; }
 .rechargeForm label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
 .rechargeSummary {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: center;
-  padding: 14px;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: var(--radius-sm);
+  font-size: 15px; font-weight: 600; color: var(--text-primary);
+  text-align: center; padding: 14px;
+  background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: var(--radius-sm);
 }
 .rechargeActions { display: flex; gap: 10px; margin-top: 4px; }
 
 .input {
-  padding: 10px 14px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 500;
-  background: #F8FAFC;
-  color: var(--text-primary);
-  width: 100%;
-  box-sizing: border-box;
+  padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 15px; font-weight: 500; background: #F8FAFC; color: var(--text-primary);
+  width: 100%; box-sizing: border-box;
   transition: border-color 0.15s, box-shadow 0.15s;
   -moz-appearance: textfield;
 }
 .input::-webkit-outer-spin-button,
 .input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+  -webkit-appearance: none; margin: 0;
 }
 .input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-  background: #fff;
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); background: #fff;
 }
 
-.primaryBtn {
-  padding: 10px 20px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  flex: 1;
-  transition: background 0.15s, transform 0.1s;
-}
-.primaryBtn:hover { background: var(--primary-hover); }
-.primaryBtn:active { transform: scale(0.98); }
 .secondaryBtn {
-  padding: 10px 20px;
-  background: #F8FAFC;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
+  padding: 10px 20px; background: #F8FAFC; color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 8px;
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s;
+  flex: 1;
 }
 .secondaryBtn:hover { background: #F1F5F9; }
 
-.section { margin-top: 24px; }
-.section h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
-
-.planGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-@media (max-width: 1200px) {
-  .planGrid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 640px) {
-  .planGrid { grid-template-columns: 1fr; }
-}
-.planCard {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  display: flex;
-  flex-direction: column;
-}
-.planCard:hover {
-  border-color: var(--primary);
-  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08);
-}
-.currentPlan {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary), 0 4px 16px rgba(5, 150, 105, 0.12);
-}
-.planHeader { margin-bottom: 8px; }
-.planTitle { font-size: 18px; font-weight: 700; color: var(--text-primary); }
-.planPrice { font-size: 26px; font-weight: 800; color: var(--primary); margin-top: 4px; }
-.planPrice span { font-size: 14px; font-weight: 400; color: var(--text-muted); }
-.planDesc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
-.effectiveRate {
-  font-size: 11px;
-  font-weight: 600;
-  color: #059669;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 20px;
-  padding: 3px 10px;
-  display: inline-block;
-  margin-bottom: 12px;
-  width: fit-content;
-}
-.planFeatures {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px;
-  flex: 1;
-}
-.planFeatures li {
-  font-size: 12px;
-  color: var(--text-secondary);
-  padding: 3px 0;
-}
-.currentBadge {
-  text-align: center;
-  padding: 10px;
-  background: rgba(16,185,129,0.1);
-  color: var(--primary);
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-top: 12px; }
 .tableHeader {
   display: grid; grid-template-columns: 1fr 0.8fr 0.7fr 0.7fr 2fr;
   padding: 12px 20px; font-size: 11px; font-weight: 600; text-transform: uppercase;

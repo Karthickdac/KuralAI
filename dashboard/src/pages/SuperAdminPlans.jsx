@@ -6,7 +6,9 @@ import styles from './SuperAdminPlans.module.css';
 const EMPTY_PLAN = {
   name: '', slug: '', description: '', price: 0, billingCycle: 'monthly',
   creditMinutes: 0, maxWorkflows: 3, maxCustomers: 100, maxCampaigns: 5,
-  maxUsersPerOrg: 3, maxClonedVoices: 0, features: {}, sortOrder: 0, isActive: true,
+  maxUsersPerOrg: 3, maxClonedVoices: 0, maxParallelCalls: 1, maxAssistants: 1,
+  maxKnowledgebases: 0, maxPhoneNumbers: 1, extraMinuteRate: 15, recommended: false,
+  features: {}, sortOrder: 0, isActive: true,
 };
 
 const FEATURE_LIST = [
@@ -25,6 +27,8 @@ const FEATURE_LIST = [
   { key: 'voiceGenderSelection', label: 'Voice Setup (Male/Female)' },
   { key: 'voiceCloning', label: 'Voice Cloning' },
   { key: 'slangCustomization', label: 'Natural Slang Customization' },
+  { key: 'midCallTools', label: 'Mid-Call Tools' },
+  { key: 'knowledgebases', label: 'Knowledgebases' },
 ];
 
 export default function SuperAdminPlans() {
@@ -163,6 +167,32 @@ export default function SuperAdminPlans() {
                   <label>Max Cloned Voices</label>
                   <input className={styles.input} type="number" value={form.maxClonedVoices || 0} onChange={e => updateField('maxClonedVoices', Number(e.target.value))} />
                 </div>
+                <div className={styles.fieldGroup}>
+                  <label>Parallel Calls</label>
+                  <input className={styles.input} type="number" value={form.maxParallelCalls || 1} onChange={e => updateField('maxParallelCalls', Number(e.target.value))} />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label>Max Assistants</label>
+                  <input className={styles.input} type="number" value={form.maxAssistants || 1} onChange={e => updateField('maxAssistants', Number(e.target.value))} />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label>Max Knowledgebases</label>
+                  <input className={styles.input} type="number" value={form.maxKnowledgebases || 0} onChange={e => updateField('maxKnowledgebases', Number(e.target.value))} />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label>Max Phone Numbers</label>
+                  <input className={styles.input} type="number" value={form.maxPhoneNumbers || 1} onChange={e => updateField('maxPhoneNumbers', Number(e.target.value))} />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label>Extra Minute Rate (₹)</label>
+                  <input className={styles.input} type="number" step="0.5" value={form.extraMinuteRate || 15} onChange={e => updateField('extraMinuteRate', Number(e.target.value))} />
+                </div>
+                <div className={styles.fieldGroupFull}>
+                  <label className={styles.featureCheck}>
+                    <input type="checkbox" checked={form.recommended || false} onChange={e => updateField('recommended', e.target.checked)} />
+                    <span>Recommended (Best Deal badge)</span>
+                  </label>
+                </div>
                 <div className={styles.fieldGroupFull}>
                   <label>Description</label>
                   <textarea className={styles.textarea} value={form.description || ''} onChange={e => updateField('description', e.target.value)} rows={2} />
@@ -214,7 +244,11 @@ export default function SuperAdminPlans() {
                     <div><strong>{plan.maxCampaigns}</strong> campaigns</div>
                     <div><strong>{plan.maxWorkflows}</strong> workflows</div>
                     <div><strong>{plan.maxUsersPerOrg}</strong> users</div>
-                    <div><strong>{plan.maxClonedVoices || 0}</strong> cloned voices</div>
+                    <div><strong>{plan.maxParallelCalls || 1}</strong> parallel calls</div>
+                    <div><strong>{plan.maxAssistants === -1 ? '∞' : plan.maxAssistants || 1}</strong> assistants</div>
+                    <div><strong>{plan.maxClonedVoices === -1 ? '∞' : plan.maxClonedVoices || 0}</strong> cloned voices</div>
+                    <div><strong>{plan.maxKnowledgebases === -1 ? '∞' : plan.maxKnowledgebases || 0}</strong> KBs</div>
+                    <div>₹{plan.extraMinuteRate || 15}/extra min</div>
                   </div>
                   <div className={styles.planFeatures}>
                     {Object.entries(plan.features || {}).filter(([, v]) => v).map(([k]) => (
