@@ -131,27 +131,70 @@
 .section { margin-top: 24px; }
 .section h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
 
-.planGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-.planCard {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
-  padding: 24px; transition: border-color 0.15s;
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
-.planCard:hover { border-color: var(--primary); }
-.currentPlan { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+@media (max-width: 1200px) {
+  .planGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .planGrid { grid-template-columns: 1fr; }
+}
+.planCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+}
+.planCard:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08);
+}
+.currentPlan {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary), 0 4px 16px rgba(5, 150, 105, 0.12);
+}
 .planHeader { margin-bottom: 8px; }
 .planTitle { font-size: 18px; font-weight: 700; color: var(--text-primary); }
-.planPrice { font-size: 24px; font-weight: 700; color: var(--primary); margin-top: 4px; }
+.planPrice { font-size: 26px; font-weight: 800; color: var(--primary); margin-top: 4px; }
 .planPrice span { font-size: 14px; font-weight: 400; color: var(--text-muted); }
-.planDesc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-.planFeatures { list-style: none; padding: 0; margin: 0 0 16px; }
-.planFeatures li {
-  font-size: 13px; color: var(--text-secondary); padding: 4px 0; padding-left: 20px;
-  position: relative;
+.planDesc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
+.effectiveRate {
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 20px;
+  padding: 3px 10px;
+  display: inline-block;
+  margin-bottom: 12px;
+  width: fit-content;
 }
-.planFeatures li::before { content: '\2713'; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
+.planFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  flex: 1;
+}
+.planFeatures li {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 3px 0;
+}
 .currentBadge {
-  text-align: center; padding: 8px; background: rgba(16,185,129,0.1); color: var(--primary);
-  border-radius: var(--radius-sm); font-size: 13px; font-weight: 600;
+  text-align: center;
+  padding: 10px;
+  background: rgba(16,185,129,0.1);
+  color: var(--primary);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .table { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }

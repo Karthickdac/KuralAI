@@ -14,7 +14,7 @@ export default function Billing() {
   const [showRecharge, setShowRecharge] = useState(false);
   const [rechargeMinutes, setRechargeMinutes] = useState(60);
 
-  const RATE_PER_MIN = 10;
+  const RATE_PER_MIN = 15;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,12 +128,20 @@ export default function Billing() {
                         <div className={styles.planPrice}>₹{plan.price.toLocaleString('en-IN')}<span>/{plan.billingCycle}</span></div>
                       </div>
                       <div className={styles.planDesc}>{plan.description}</div>
+                      <div className={styles.effectiveRate}>₹{(plan.price / plan.creditMinutes).toFixed(1)}/min effective</div>
                       <ul className={styles.planFeatures}>
-                        <li>{plan.creditMinutes} minutes/month</li>
-                        <li>Up to {plan.maxCustomers} customers</li>
-                        <li>{plan.maxCampaigns} campaigns</li>
-                        <li>{plan.maxWorkflows} workflows</li>
-                        <li>{plan.maxUsersPerOrg} users</li>
+                        <li>✓ {plan.creditMinutes.toLocaleString('en-IN')} minutes/month</li>
+                        <li>✓ Up to {plan.maxCustomers.toLocaleString('en-IN')} customers</li>
+                        <li>✓ {plan.maxCampaigns} campaigns</li>
+                        <li>✓ {plan.maxWorkflows} workflows</li>
+                        <li>✓ {plan.maxUsersPerOrg} team members</li>
+                        {plan.features?.crmIntegration && <li>✓ CRM integration</li>}
+                        {plan.features?.prioritySupport && <li>✓ Priority support</li>}
+                        {plan.features?.apiConfig && <li>✓ API access</li>}
+                        {plan.features?.bulkImport && <li>✓ Bulk import</li>}
+                        {plan.features?.customPrompts && <li>✓ Custom prompts</li>}
+                        {plan.features?.dedicatedSupport && <li>✓ Dedicated support</li>}
+                        {plan.features?.whiteLabel && <li>✓ White-label</li>}
                       </ul>
                       {subscription?.plan?.id === plan.id ? (
                         <div className={styles.currentBadge}>Current Plan</div>

@@ -50,7 +50,7 @@ KuralAI is a multi-tenant SaaS platform. Each tenant (organization) has isolated
 
 ### Tenant Models (src/models/)
 - `Organization.js` — tenant entity (name, slug, email, phone, logo, settings JSONB)
-- `Plan.js` — subscription plans (Starter ₹999, Growth ₹2999, Enterprise ₹9999/month)
+- `Plan.js` — subscription plans (Starter ₹2,499, Professional ₹6,999, Business ₹14,999, Enterprise ₹29,999/month — 50%+ profit margin on ~₹6/min cost)
 - `Subscription.js` — org↔plan binding with period tracking & Razorpay integration
 - `CreditBalance.js` — per-org credit minutes (totalMinutes, usedMinutes, reservedMinutes)
 - `CreditTransaction.js` — audit log of all credit operations (usage, recharge, plan_credit, adjustment)

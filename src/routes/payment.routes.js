@@ -44,10 +44,13 @@ router.post('/create-order', authenticateToken, requireOrgAccess, async (req, re
       description = `KuralAI ${plan.name} Plan — ${plan.billingCycle}`;
       notes = { type: 'plan', planId, orgId };
     } else if (type === 'recharge') {
-      amount = (rechargeAmount || 0) * 100;
-      if (amount < 10000) return res.status(400).json({ error: 'Minimum recharge is ₹100' });
-      description = `KuralAI Credit Recharge — ${rechargeMinutes} minutes`;
-      notes = { type: 'recharge', minutes: rechargeMinutes, orgId };
+      const SERVER_RATE_PER_MIN = 15;
+      const minutes = parseInt(rechargeMinutes) || 0;
+      if (minutes < 10) return res.status(400).json({ error: 'Minimum recharge is 10 minutes' });
+      if (minutes > 10000) return res.status(400).json({ error: 'Maximum recharge is 10,000 minutes' });
+      amount = minutes * SERVER_RATE_PER_MIN * 100;
+      description = `KuralAI Credit Recharge — ${minutes} minutes`;
+      notes = { type: 'recharge', minutes, orgId };
     } else {
       return res.status(400).json({ error: 'Invalid order type' });
     }
@@ -133,8 +136,14 @@ router.post('/verify', authenticateToken, requireOrgAccess, async (req, res) => 
         description: `Plan: ${plan.name} — ${plan.creditMinutes} minutes`,
       });
     } else if (notes.type === 'recharge') {
+      const SERVER_RATE_PER_MIN = 15;
       const minutes = parseInt(notes.minutes) || 0;
       const amountPaid = order.amount / 100;
+      const expectedAmount = minutes * SERVER_RATE_PER_MIN;
+      if (amountPaid < expectedAmount) {
+        logger.warn(`Recharge amount mismatch: paid ₹${amountPaid}, expected ₹${expectedAmount} for ${minutes} min (org ${orgId})`);
+        return res.status(400).json({ error: 'Payment amount does not match expected recharge amount' });
+      }
 
       await creditService.addMinutes(orgId, minutes, {
         type: 'recharge',
