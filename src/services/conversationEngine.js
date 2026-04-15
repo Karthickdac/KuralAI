@@ -277,13 +277,35 @@ async function handleScriptFlowTurn(callId, turn, userText, scriptFlow, startTim
   logEvent(callId, 'script_flow_matched', 'info', response, {
     done: result.done,
     escalate: result.escalate,
+    outOfScope: result.outOfScope,
   });
+
+  if (result.outOfScope) {
+    const callMeta = meta;
+    const { intent } = await detectIntent(userText, callMeta);
+    const ctx = getConversationContext(callId);
+    const aiResult = await generateResponse(intent, userText, ctx.history, callMeta);
+    updateConversationContext(callId, userText, aiResult.response, intent, aiResult.confidence);
+
+    const combinedResponse = aiResult.response;
+
+    if (aiResult.action === 'escalate' || intent === 'human_request') {
+      return handleEscalation(callId, turn, 'oos_user_requested');
+    }
+    if (aiResult.action === 'end_call' || intent === 'end_call' || intent === 'identity_deny' || intent === 'callback_request') {
+      return handleEndCall(callId, turn, intent);
+    }
+
+    const tts = await synthesizeSpeech(combinedResponse);
+    await saveTranscript(callId, turn + 1, 'ai', combinedResponse, null, `oos_${intent}`, aiResult.confidence, tts.playableUrl, Date.now() - startTime);
+    await notifyDashboard({ type: 'TURN_COMPLETED', callId, turn, intent: `oos_${intent}` });
+    return generateConversationExoML(tts.playableUrl, callId, turn + 1, combinedResponse);
+  }
 
   if (result.escalate) {
     if (response) {
       const tts = await synthesizeSpeech(response);
       await saveTranscript(callId, turn + 1, 'ai', response, null, 'script_escalation', 1.0, tts.playableUrl, Date.now() - startTime);
-      return generateConversationExoML(tts.playableUrl, callId, turn + 1, response);
     }
     return handleEscalation(callId, turn, 'script_no_match');
   }
@@ -312,11 +334,30 @@ async function handleSilence(callId, turn) {
   logEvent(callId, 'silence_detected', 'warn', `Silence count: ${silenceCount}`);
 
   if (silenceCount >= 3) {
-    return handleEndCall(callId, turn);
+    const meta = await getCallMeta(callId);
+    const endText = applyTemplate(
+      'சார், network issue-ஆ இருக்கலாம். அப்புறம் call பண்றோம் சார். நன்றி சார்.',
+      meta
+    );
+    const tts = await synthesizeSpeech(endText);
+    await saveTranscript(callId, turn, 'ai', endText, null, 'silence_end', 1.0, tts.playableUrl);
+    clearConversationContext(callId);
+    scriptEngine.clearFlow(callId);
+    await Call.update({ status: 'completed', endedAt: new Date() }, { where: { id: callId } });
+    return generateEndCallExoML(tts.playableUrl, endText);
   }
 
-  // Ask user to repeat
-  const silenceText = await getPromptText('FALLBACK_SILENCE', await getCallMeta(callId));
+  const meta = await getCallMeta(callId);
+  let silenceText;
+  if (silenceCount === 1) {
+    silenceText = await getPromptText('FALLBACK_SILENCE', meta);
+  } else {
+    silenceText = applyTemplate(
+      'சார்? Line-ல இருக்கீங்களா? உங்க {{chitValue}} சீட் due பற்றி பேசுறேன் சார்.',
+      meta
+    );
+  }
+
   const tts = await synthesizeSpeech(silenceText);
   await saveTranscript(callId, turn, 'ai', silenceText, null, 'silence_handler', 1.0, tts.playableUrl);
 

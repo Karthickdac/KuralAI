@@ -26,12 +26,32 @@ Business Context:
 - When customer says something vague, interpret it generously in the chit fund context
 
 CRITICAL SPEECH UNDERSTANDING RULES:
-- Customer speech comes from STT (Speech-to-Text) which is NOISY
+- Customer speech comes from STT (Speech-to-Text) which is NOISY and IMPERFECT
 - Short words like "ஆமா", "ம்", "ஹா", "ஓ", "ok", "hmm" = YES/AGREEMENT
 - "இல்ல", "வேண்டாம்", "no" = NO/DECLINE
 - Partial words, phonetic Tamil, Tanglish mixing is NORMAL — interpret generously
 - If unsure about exact meaning, respond to the CLOSEST likely intent in chit fund context
-- Never say "I don't understand" — instead, rephrase what you think they mean and confirm
+- NEVER say "I don't understand" or "புரியல" — instead, respond to what you THINK they mean and gently confirm
+- If the customer sounds confused, re-explain the current topic briefly
+
+EMOTIONAL INTELLIGENCE:
+- If customer is ANGRY/FRUSTRATED → acknowledge first ("புரிஞ்சுக்கிறோம் சார்"), then address their concern
+- If customer is HESITANT → be encouraging, offer alternatives (partial payment, callback)
+- If customer is RUSHED → be brief, offer to call back later
+- If customer seems CONFUSED → patiently re-explain in simpler terms
+- NEVER argue, NEVER be defensive, NEVER interrupt
+
+MULTI-TURN AWARENESS:
+- Remember what was discussed in previous turns
+- Don't repeat information already given
+- If customer asks a follow-up, connect it to the previous answer
+- Track whether the main purpose of the call (due reminder / lottery / payment follow-up) has been addressed
+
+CONVERSATION FLOW PRIORITIES:
+1. Confirm identity (if not confirmed yet)
+2. Deliver main message (due reminder / lottery invite / payment follow-up)
+3. Answer any customer questions
+4. Close the call politely with clear next steps
 
 விதிகள்:
 - எப்பவும் தமிழிலே பேசுங்க
@@ -50,7 +70,6 @@ JSON format-ல பதில் கொடு:
 }`,
 
   // ─── Greeting ──────────────────────────────────────────────────────────────
-  // Uses {{customerName}} — resolved at call time from customer metadata.
   GREETING: "வணக்கம் சார்! நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?",
 
   GREETING_REPEAT: "ஒரு நிமிஷம் சார் — சரியா கேட்கல. மறுபடியும் சொல்லுங்களா சார்?",
@@ -81,10 +100,27 @@ JSON format-ல பதில் கொடு:
   GENERAL_HELP_CONTEXT: `Customer general question கேக்குறாங்க.
 Call purpose explain பண்ணு: "சார், அடுத்த மாசம் 7ம் தேதி உங்களுக்கு 5 லட்சம் சீட் இருக்கு சார். 3வது due, amount ₹18,750 சார். குலுக்கல்ல கலந்துகிறதுக்கு விருப்பம் இருக்கா சார்?"`,
 
+  PARTIAL_PAYMENT_CONTEXT: `Customer full amount கட்ட முடியாது, partial/installment-ஆ கட்டலாமான்னு கேக்குறாங்க.
+Positive-ஆ respond பண்ணு: "Partial payment okay சார். எவ்ளோ possible-ஓ அவ்ளோ கட்டுங்க. Remaining-ஐ due date-க்குள்ள settle பண்ணுங்க சார்."`,
+
+  ANGRY_CUSTOMER_CONTEXT: `Customer கோபமா/frustrated-ஆ இருக்காங்க. FIRST acknowledge their frustration, THEN address the concern.
+Tone: Extra polite, empathetic. Never defensive.
+Example: "மிகவும் மன்னிக்கணும் சார். உங்க concern புரியுது சார். உங்க request-ஐ note பண்றோம் சார்."`,
+
+  CHIT_COMPLETION_CONTEXT: `Customer சீட் எப்போ முடியும் / எத்தன due remaining-ன்னு கேக்குறாங்க.
+Data-based answer: "Total {{totalDues}} dues-ல {{currentDue}}வது போய்ட்டு இருக்கு சார்."`,
+
+  ACCOUNT_SUMMARY_CONTEXT: `Customer full account details/summary கேக்குறாங்க.
+Complete info: "{{chitValue}} சீட், {{currentDue}}வது due, ₹{{dueAmount}}, next date {{nextDueDate}}, premature-ஆ எடுத்தா ₹{{withdrawalAmount}} சார்."`,
+
   // ─── Fallback Messages ─────────────────────────────────────────────────────
   FALLBACK_LOW_CONFIDENCE: "ஒரு நிமிஷம் சார் — சரியா புரியல. கொஞ்சம் மறுபடியும் சொல்லுங்களா சார்?",
 
   FALLBACK_SILENCE: "ஹலோ சார்? கேக்குறீங்களா? மறுபடியும் பேசுங்களா சார்?",
+
+  FALLBACK_SILENCE_2: "சார்? Line-ல இருக்கீங்களா? உங்க {{chitValue}} சீட் due பற்றி பேசுறேன் சார்.",
+
+  FALLBACK_SILENCE_3: "சார், network issue-ஆ இருக்கலாம். அப்புறம் call பண்றோம் சார். நன்றி சார்.",
 
   FALLBACK_REPEATED: "சரி சார், இந்த விஷயத்தை எங்க senior-கிட்ட பாக்குறோம். இப்போ transfer பண்றேன் சார்.",
 
@@ -100,30 +136,73 @@ Call purpose explain பண்ணு: "சார், அடுத்த மா�
   RECORDING_CONSENT: "இந்த call quality improvement-க்காக record ஆகும் சார். தொடர்ந்தா agree பண்றீங்கன்னு அர்த்தம்.",
 
   // ─── Intent Detection Prompt ───────────────────────────────────────────────
-  INTENT_DETECTION_PROMPT: `கீழே உள்ள Tamil வாக்கியத்தோட intent என்னன்னு கண்டுபிடி:
+  INTENT_DETECTION_PROMPT: `You are a Tamil/Tanglish intent classifier for Automystic Chit Fund customer calls.
 
-"{USER_TEXT}"
+CRITICAL: Speech-to-text output is NOISY. Expect misspellings, partial words, phonetic approximations, and Tanglish mixing. Be GENEROUS in interpretation.
 
-Possible intents (chit fund context):
-1. seat_due_status — இன்னொரு சீட்-ல எத்தன due போய்ட்டு இருக்குன்னு கேக்குறாங்க
-2. premature_withdrawal — இப்போ எடுத்தா எவ்ளோ amount கிடைக்கும்னு / சீட் close / cancel / refund
-3. jamin_documents — jamin / security / documents என்ன குடுக்கணும்னு கேக்குறாங்க
-4. payment_complaint — amount குடுக்க மாட்டீங்க / afford பண்ண முடியல / salary வரல / EMI
-5. reduce_calls — எத்தன பேரு call / ஒருத்தர் மட்டும் / DND / too many calls / disturb
-6. no_office_calls — ஆஃபீஸ்-ல இருந்து call வேண்டாம் / staff-கிட்ட / workplace
-7. lottery_participation — குலுக்கல்ல விருப்பம் / interested / கலந்துக்கிறேன் / participate
-8. lottery_decline — குலுக்கல் வேண்டாம் / this time வேண்டாம் / skip
-9. identity_confirm — ஆமா / நான் தான் / yes / correct / பேசுறேன்
-10. identity_deny — wrong number / நான் இல்ல / தவறான number / available இல்ல
-11. already_paid — கட்டிட்டேன் / paid already / UPI பண்ணிட்டேன் / GPay / bank-ல போட்டேன்
-12. callback_request — later call / busy / driving / tomorrow / அப்புறம் call
-13. payment_date_inquiry — எப்போ கட்டணும் / due date / last date / penalty / fine
-14. chit_value_inquiry — சீட் value / எவ்ளோ சீட் / scheme details / plan details
-15. payment_mode — எப்படி கட்டணும் / UPI / GPay / account details / bank details
-16. human_request — ஆளை கூப்பிடுங்க / senior / manager / complaint / புகார்
-17. end_call — நன்றி / bye / வேண்டாம் / முடிஞ்சது / ok thanks
+Customer said: "{USER_TEXT}"
 
-JSON-ல பதில் கொடு:
+Classify into ONE intent:
+
+IDENTITY & CALL MANAGEMENT:
+1. identity_confirm — Confirms they are the right person ("ஆமா", "நான் தான்", "yes", "சொல்லுங்க", "பேசுறேன்")
+2. identity_deny — Wrong person/number ("wrong number", "தப்பு", "நான் இல்ல", "யாரு நீங்க")
+3. callback_request — Busy now, call later ("busy", "driving", "meeting", "tomorrow", "அப்புறம்", "later")
+4. human_request — Wants human/manager ("senior", "manager", "complaint", "ஆளை கூப்பிடுங்க")
+5. end_call — Wants to end ("bye", "நன்றி", "வைங்க", "முடிஞ்சது", "ok thanks")
+6. caller_identity — Asks who is calling ("யாரு", "who is this", "எந்த company")
+7. repeat_request — Asks to repeat ("மறுபடி", "again", "புரியல", "pardon")
+
+PAYMENT RELATED:
+8. already_paid — Claims payment done ("கட்டிட்டேன்", "paid", "UPI பண்ணிட்டேன்", "GPay போட்டேன்")
+9. payment_complaint — Can't afford/frustrated ("கஷ்டம்", "பணம் இல்ல", "முடியல", "afford")
+10. payment_date_inquiry — Asks due date ("எப்போ கட்டணும்", "due date", "last date", "penalty")
+11. payment_mode — Asks how to pay ("எப்படி கட்டணும்", "account number", "UPI", "bank details")
+12. partial_payment — Wants to pay partially ("கொஞ்சம் கட்டலாமா", "half", "installment", "partial")
+
+CHIT FUND SPECIFIC:
+13. seat_due_status — Asks about another seat/due count ("இன்னொரு சீட்", "எத்தன due", "other seat")
+14. premature_withdrawal — Asks withdrawal amount ("இப்போ எடுத்தா", "withdraw", "premature", "cancel")
+15. jamin_documents — Asks about security docs ("jamin", "ஜாமீன்", "cheque", "document")
+16. chit_value_inquiry — Asks chit scheme details ("சீட் value", "scheme details", "plan")
+17. chit_completion — Asks when chit ends ("எப்போ முடியும்", "எத்தன month", "remaining")
+
+LOTTERY:
+18. lottery_participation — Interested in lottery ("கலந்துக்கிறேன்", "interested", "participate", "விருப்பம்")
+19. lottery_decline — Declines lottery ("குலுக்கல் வேண்டாம்", "skip", "next time")
+
+COMPLAINTS & REQUESTS:
+20. reduce_calls — Too many calls ("எத்தன பேரு call", "ஒருத்தர் மட்டும்", "stop calling")
+21. no_office_calls — Don't call at office ("office-ல call வேண்டாம்", "staff கிட்ட")
+22. angry_customer — Angry/frustrated ("disturb", "irritating", "harass", "bore", "நிறுத்துங்க")
+23. whatsapp_request — Send details via WhatsApp ("WhatsApp-ல அனுப்புங்க", "message போடுங்க")
+24. nominee_inquiry — Nominee/beneficiary questions ("nominee", "name change", "transfer")
+25. profit_inquiry — Asks about returns ("profit", "interest", "லாபம்", "return")
+26. account_summary — Wants full account details ("full details", "account summary", "all details")
+27. appreciation — Thanks/praise ("நல்லா explain", "helpful", "good service")
+
+EXAMPLES (noisy STT → correct intent):
+- "aamaa saar" → identity_confirm
+- "kattitten saar neethu" → already_paid  
+- "ippo eduthaa evlo" → premature_withdrawal
+- "konjam kashtam saar panam illa" → payment_complaint
+- "ok participate pannuren" → lottery_participation
+- "hmm sari" → identity_confirm (agreement)
+- "busy ah irukken later call pannunga" → callback_request
+- "wrong number saar" → identity_deny
+- "WhatsApp la details anuppunga" → whatsapp_request
+- "enna disturb pannatheenga" → angry_customer
+- "half amount katturen" → partial_payment
+
+DISAMBIGUATION RULES:
+- "இல்ல" alone after a yes/no question = decline (not identity_deny)
+- "வேண்டாம்" = decline (not identity_deny)
+- Single "ஆமா"/"ok"/"சரி" = identity_confirm (agreement to whatever was asked)
+- "கட்டுறேன்" = agreement to pay (not already_paid — past tense "கட்டிட்டேன்" = already_paid)
+- "busy" with "call later" = callback_request (not end_call)
+- Angry words + specific request = handle the request first (not just angry_customer)
+
+JSON response:
 {"intent": "intent_name", "confidence": 0.95, "keywords": ["detected", "keywords"]}`,
 };
 
@@ -243,6 +322,44 @@ const TAMIL_KEYWORDS = {
     'சரி வைங்க', 'ok bye', 'வைங்க சார்', 'that\'s all', 'goodbye', 'போறேன்',
     'thank you', 'thanks சார்', 'ok ok', 'சரி சரி', 'ok fine',
     'noted', 'கவனிச்சுக்கிறேன்', 'பாக்குறேன்', 'சரி பாக்குறேன்',
+  ],
+  partial_payment: [
+    'partial', 'கொஞ்சம் கட்டுறேன்', 'half amount', 'பாதி', 'installment',
+    'கொஞ்சம் மட்டும்', 'split', 'part payment', 'EMI-ஆ',
+    'full amount இல்ல', 'கொஞ்சம் கட்டலாமா', 'half கட்டலாமா',
+  ],
+  angry_customer: [
+    'irritating', 'disturb', 'harass', 'bore', 'torture',
+    'stop calling', 'call பண்ணாதீங்க', 'நிறுத்துங்க',
+    'ஏன் call', 'திரும்ப திரும்ப call', 'கோபம்', 'tension',
+  ],
+  whatsapp_request: [
+    'whatsapp', 'message அனுப்புங்க', 'SMS', 'text',
+    'details அனுப்புங்க', 'send பண்ணுங்க', 'WhatsApp-ல',
+  ],
+  caller_identity: [
+    'யாரு பேசுறீங்க', 'யாரு call', 'who is calling', 'எந்த company',
+    'எங்கிருந்து', 'from where', 'யாரு சார்',
+  ],
+  chit_completion: [
+    'எப்போ முடியும்', 'எத்தன மாசம்', 'completion', 'maturity',
+    'balance due', 'remaining', 'இன்னும் எத்தன', 'tenure',
+  ],
+  nominee_inquiry: [
+    'nominee', 'beneficiary', 'name change', 'nominee மாற்ற',
+    'வேற ஆளுக்கு', 'transfer to another',
+  ],
+  profit_inquiry: [
+    'profit', 'லாபம்', 'dividend', 'yield',
+    'profit rate', 'லாபம் எவ்ளோ', 'interest rate',
+  ],
+  account_summary: [
+    'full details', 'account details', 'summary', 'all details',
+    'எல்லாமே சொல்லுங்க', 'complete details', 'என் account',
+  ],
+  repeat_request: [
+    'மறுபடி', 'repeat', 'again', 'pardon', 'புரியல',
+    'கேட்கல', 'once more', 'come again',
   ],
 };
 

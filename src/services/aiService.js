@@ -442,6 +442,186 @@ const HARDCODED_QA_PAIRS = [
     ],
     action: 'continue',
   },
+
+  // ── 17. Partial payment negotiation ──────────────────────────────────
+  {
+    intent: 'partial_payment',
+    minScore: 1,
+    phraseKeywords: [
+      'கொஞ்சம் கட்டலாமா', 'partial pay', 'partial amount', 'half கட்டலாமா',
+      'பாதி கட்டலாமா', 'கொஞ்சம் மட்டும்', 'கொஞ்சம் கட்டுறேன்',
+      'full amount இல்ல', 'full இல்ல', 'சில்லறை இல்ல',
+      'installment-ஆ', 'EMI-ஆ கட்டலாமா', 'split பண்ணலாமா',
+      'ரெண்டு தடவையா', 'two installments', 'part payment',
+    ],
+    tokenKeywords: ['partial', 'installment', 'half', 'பாதி', 'கொஞ்சம்'],
+    responses: [
+      'Partial payment okay சார். எவ்ளோ possible-ஓ அவ்ளோ கட்டுங்க சார் — remaining-ஐ due date-க்குள்ள settle பண்ணுங்க சார். Office-ல discuss பண்ணலாம் சார்.',
+      'சார், கொஞ்சம் கட்டினாலும் okay. Balance-ஐ due date-க்குள்ள கட்டினா penalty avoid ஆகும் சார். Office-ல payment plan arrange பண்ணலாம் சார்.',
+    ],
+    action: 'continue',
+  },
+
+  // ── 18. Send details on WhatsApp ────────────────────────────────────
+  {
+    intent: 'whatsapp_request',
+    minScore: 1,
+    phraseKeywords: [
+      'WhatsApp-ல', 'whatsapp message', 'whatsapp அனுப்புங்க',
+      'message அனுப்புங்க', 'SMS அனுப்புங்க', 'text பண்ணுங்க',
+      'details அனுப்புங்க', 'message போடுங்க', 'WhatsApp-ல போடுங்க',
+      'phone-ல அனுப்புங்க', 'details send பண்ணுங்க',
+    ],
+    tokenKeywords: ['whatsapp', 'message', 'SMS', 'text'],
+    responses: [
+      'சரி சார்! Due details-ஐ உங்க WhatsApp-க்கு send பண்றோம் சார். நன்றி சார்.',
+      'ஓகே சார்! எங்க team WhatsApp-ல details அனுப்புவாங்க சார். நன்றி சார்.',
+    ],
+    action: 'continue',
+  },
+
+  // ── 19. Chit completion / maturity questions ────────────────────────
+  {
+    intent: 'chit_completion',
+    minScore: 1,
+    phraseKeywords: [
+      'எப்போ முடியும்', 'எத்தன மாசம் இருக்கு', 'எத்தன month balance',
+      'சீட் எப்போ முடியும்', 'chit completion', 'maturity date',
+      'எத்தன due இருக்கு', 'இன்னும் எத்தன', 'balance due எத்தன',
+      'எப்போ complete ஆகும்', 'chit முடியும்', 'எத்தன மாதம் remaining',
+      'total எத்தன மாசம்', 'full term', 'tenure எவ்ளோ',
+    ],
+    tokenKeywords: ['completion', 'maturity', 'முடியும்', 'remaining', 'balance'],
+    responses: [
+      'உங்க சீட் {{chitValue}} சார். Total {{totalDues}} dues — இப்போ {{currentDue}}வது due போய்ட்டு இருக்கு சார். இன்னும் சீட் complete ஆக time இருக்கு சார்.',
+      '{{currentDue}}வது due முடிஞ்சது சார். Total {{totalDues}} dues இருக்கு. Due time-க்கு கட்டுங்க சார்.',
+    ],
+    action: 'continue',
+  },
+
+  // ── 20. Angry / frustrated customer ─────────────────────────────────
+  {
+    intent: 'angry_customer',
+    minScore: 2,
+    phraseKeywords: [
+      'ஏன் call பண்றீங்க', 'ஏன் திரும்ப திரும்ப', 'bore அடிக்குது',
+      'irritating', 'disturb பண்றீங்க', 'disturb பண்ணாதீங்க',
+      'நிறுத்துங்க', 'stop calling', 'don\'t call', 'call பண்ணாதீங்க',
+      'வேண்டாம் call', 'harass பண்றீங்க', 'harassment',
+      'tension ஆகுது', 'கோபம் வருது', 'torture பண்றீங்க',
+      'கொஞ்சம் நிம்மதியா', 'peace-ஆ இருக்க விடுங்க',
+    ],
+    tokenKeywords: ['irritating', 'disturb', 'harass', 'stop', 'bore', 'torture'],
+    responses: [
+      'மிகவும் மன்னிக்கணும் சார். உங்களுக்கு trouble பண்ணும் intention இல்ல சார். உங்க request-ஐ note பண்றோம் சார். Inconvenience-க்கு sorry சார்.',
+      'மன்னிக்கணும் சார். உங்க concern புரியுது. இனிமே unnecessary-ஆ call பண்ண மாட்டோம் சார். நன்றி சார்.',
+      'Sorry சார். உங்களை disturb பண்றது எங்க intention இல்ல. உங்க feedback note பண்ணிக்கிறோம் சார். மன்னிக்கணும் சார்.',
+    ],
+    action: 'end_call',
+  },
+
+  // ── 21. "Who is this?" / unclear about caller ──────────────────────
+  {
+    intent: 'caller_identity',
+    minScore: 1,
+    phraseKeywords: [
+      'யாரு பேசுறீங்க', 'யாரு call', 'யாரு நீங்க', 'who is calling',
+      'எந்த company', 'எங்கிருந்து call', 'from where',
+      'எந்த office', 'யாருடைய call', 'யாரு சார்',
+    ],
+    tokenKeywords: ['யாரு', 'who'],
+    responses: [
+      'நான் மகாலக்ஷ்மி பேசுறேன் சார், Automystic Chit Fund Company-யிட இருந்து. {{customerName}} சார்ங்களா சார்?',
+      'சார், Automystic Chit Fund Company-யிலிருந்து மகாலக்ஷ்மி பேசுறேன் சார். உங்க சீட் due பற்றி call பண்றேன் சார்.',
+    ],
+    action: 'continue',
+  },
+
+  // ── 22. Nominee / beneficiary questions ─────────────────────────────
+  {
+    intent: 'nominee_inquiry',
+    minScore: 1,
+    phraseKeywords: [
+      'nominee யாரு', 'nominee change', 'beneficiary', 'nominee மாற்றணும்',
+      'வேற ஆள் பேரு போடணும்', 'name change', 'nominee update',
+      'transfer to another person', 'வேற ஆளுக்கு மாற்ற',
+    ],
+    tokenKeywords: ['nominee', 'beneficiary'],
+    responses: [
+      'சார், nominee change/update-க்கு office-ல directly வந்து application submit பண்ணுங்க சார். ID proof-ம் கொண்டு வாங்க சார்.',
+      'Nominee update-க்கு எங்க office visit பண்ணுங்க சார். Documents எடுத்துட்டு வாங்க சார்.',
+    ],
+    action: 'continue',
+  },
+
+  // ── 23. Profit / interest / dividend questions ──────────────────────
+  {
+    intent: 'profit_inquiry',
+    minScore: 1,
+    phraseKeywords: [
+      'interest rate', 'லாபம் எவ்ளோ', 'profit எவ்ளோ', 'dividend',
+      'return எவ்ளோ', 'yield', 'எவ்ளோ percentage', 'rate of return',
+      'benefit என்ன', 'advantage என்ன', 'என்ன benefit',
+      'profit rate', 'interest percentage',
+    ],
+    tokenKeywords: ['profit', 'லாபம்', 'dividend', 'yield'],
+    responses: [
+      'சார், chit fund-ல exact return bid amount-ஐ பொறுத்து மாறும் சார். Details-க்கு எங்க office-ஐ contact பண்ணுங்க சார். Overall good returns சார்.',
+      'Chit fund returns bid-ஐ depend பண்ணும் சார். Detailed calculation-க்கு office-ல discuss பண்ணலாம் சார்.',
+    ],
+    action: 'continue',
+  },
+
+  // ── 24. "Tell me everything about my account" ──────────────────────
+  {
+    intent: 'account_summary',
+    minScore: 1,
+    phraseKeywords: [
+      'full details', 'எல்லாமே சொல்லுங்க', 'account details',
+      'en account', 'என் account', 'my account',
+      'complete details', 'all details', 'summary சொல்லுங்க',
+      'என் சீட் details', 'my chit details',
+    ],
+    tokenKeywords: ['summary', 'details'],
+    responses: [
+      '{{customerName}} சார், உங்க {{chitValue}} சீட் — {{currentDue}}வது due, ₹{{dueAmount}} சார். அடுத்த due date {{nextDueDate}} சார். Premature-ஆ எடுத்தா ₹{{withdrawalAmount}} கிடைக்கும் சார். வேற ஏதாவது கேள்வி இருக்கா சார்?',
+    ],
+    action: 'continue',
+  },
+
+  // ── 25. Repeat / didn't hear ───────────────────────────────────────
+  {
+    intent: 'repeat_request',
+    minScore: 1,
+    phraseKeywords: [
+      'மறுபடியும் சொல்லுங்க', 'repeat பண்ணுங்க', 'என்ன சொன்னீங்க',
+      'சரியா கேட்கல', 'புரியல', 'again சொல்லுங்க',
+      'pardon', 'come again', 'கேட்கல', 'சொல்லுங்க please',
+      'ஒரு தடவை சொல்லுங்க', 'once more', 'மறுபடி',
+    ],
+    tokenKeywords: ['repeat', 'again', 'pardon', 'மறுபடி'],
+    responses: [
+      'சரி சார்! {{customerName}} சார், உங்க {{chitValue}} சீட் — {{currentDue}}வது due ₹{{dueAmount}} சார். {{nextDueDate}} last date சார். வேற ஏதாவது கேள்வி சார்?',
+    ],
+    action: 'continue',
+  },
+
+  // ── 26. Thank you / appreciation ───────────────────────────────────
+  {
+    intent: 'appreciation',
+    minScore: 2,
+    phraseKeywords: [
+      'நல்லா explain', 'நல்லா சொன்னீங்க', 'good service',
+      'thanks for info', 'நன்றி information-க்கு',
+      'clear-ஆ சொன்னீங்க', 'helpful', 'useful info',
+    ],
+    tokenKeywords: ['helpful', 'useful'],
+    responses: [
+      'நன்றி சார்! வேற ஏதாவது கேள்வி இருந்தா எப்பவும் call பண்ணுங்க சார். நல்லா இருங்க சார்.',
+      'Thank you சார்! எப்பவும் help பண்ண ready சார். நன்றி சார்.',
+    ],
+    action: 'continue',
+  },
 ];
 
 /**
@@ -501,21 +681,48 @@ function normalizeForQA(text) {
     [/\bokay\b/g, 'ok'],
     [/\bvendaam\b/g, 'வேண்டாம்'],
     [/\bvenaam\b/g, 'வேண்டாம்'],
+    [/\bvendum\b/g, 'வேணும்'],
     [/\billa\b/g, 'இல்ல'],
     [/\billai\b/g, 'இல்ல'],
     [/\bsari\b/g, 'சரி'],
     [/\bpanam\b/g, 'பணம்'],
     [/\bkashtam\b/g, 'கஷ்டம்'],
     [/\bkatturen\b/g, 'கட்டுறேன்'],
+    [/\bkattiduren\b/g, 'கட்டிடுறேன்'],
     [/\bkattitten\b/g, 'கட்டிட்டேன்'],
     [/\bkattachu\b/g, 'கட்டாச்சு'],
     [/\bpottachu\b/g, 'போட்டாச்சு'],
+    [/\bpottutten\b/g, 'போட்டுட்டேன்'],
+    [/\bkudukanum\b/g, 'குடுக்கணும்'],
+    [/\bkuduthaachu\b/g, 'குடுத்தாச்சு'],
+    [/\bmudiyala?\b/g, 'முடியல'],
+    [/\bpuriyala?\b/g, 'புரியல'],
+    [/\bnandri\b/g, 'நன்றி'],
+    [/\bvanakkam\b/g, 'வணக்கம்'],
+    [/\bsollunga\b/g, 'சொல்லுங்க'],
+    [/\bnaalaiku\b/g, 'நாளைக்கு'],
+    [/\bnaalaikku\b/g, 'நாளைக்கு'],
+    [/\bappuram\b/g, 'அப்புறம்'],
     [/\bg[\s-]?pay\b/g, 'gpay'],
     [/\bphone[\s-]?pe\b/g, 'phonepe'],
     [/\bkulukkal\b/g, 'குலுக்கல்'],
+    [/\bkalanthukiren\b/g, 'கலந்துக்கிறேன்'],
+    [/\bkalanthukka\b/g, 'கலந்துக்க'],
     [/\bjameen\b/g, 'jamin'],
     [/\bseetu?\b/g, 'சீட்'],
     [/\bwrong\s*number\b/g, 'wrong number'],
+    [/\bwhatsapp?\b/g, 'whatsapp'],
+    [/\bnominee?\b/g, 'nominee'],
+    [/\binstall?ment\b/g, 'installment'],
+    [/\bdisturb\b/g, 'disturb'],
+    [/\birritat(?:ing|e)\b/g, 'irritating'],
+    [/\bharass(?:ment)?\b/g, 'harass'],
+    [/\binterest(?:ed)?\b/g, 'interested'],
+    [/\beppo\b/g, 'எப்போ'],
+    [/\beppadi\b/g, 'எப்படி'],
+    [/\benna\b/g, 'என்ன'],
+    [/\bevlo\b/g, 'எவ்ளோ'],
+    [/\bethana\b/g, 'எத்தன'],
   ];
 
   for (const [pattern, replacement] of phonetics) {
@@ -679,8 +886,8 @@ async function generateResponse(intent, userText, conversationHistory = [], call
   // Build context-aware system prompt
   const systemPrompt = buildSystemPrompt(intent, callMetadata);
 
-  // Prepare messages with conversation history (last 6 turns = 3 exchanges)
-  const recentHistory = conversationHistory.slice(-6);
+  // Prepare messages with conversation history (last 10 turns = 5 exchanges for better context)
+  const recentHistory = conversationHistory.slice(-10);
   const messages = [
     { role: 'system', content: systemPrompt },
     ...recentHistory,
@@ -693,7 +900,7 @@ async function generateResponse(intent, userText, conversationHistory = [], call
       messages,
       response_format: { type: 'json_object' },
       max_tokens: 300,
-      temperature: 0.7,
+      temperature: 0.5,
     });
 
     const result = JSON.parse(response.choices[0].message.content);
@@ -732,41 +939,47 @@ async function generateResponse(intent, userText, conversationHistory = [], call
  * Build intent-specific system prompt with context
  */
 function buildSystemPrompt(intent, metadata = {}) {
-  let contextAddition = '';
+  const CONTEXT_MAP = {
+    seat_due_status: TAMIL_PROMPTS.SEAT_DUE_CONTEXT,
+    premature_withdrawal: TAMIL_PROMPTS.PREMATURE_WITHDRAWAL_CONTEXT,
+    jamin_documents: TAMIL_PROMPTS.JAMIN_CONTEXT,
+    payment_complaint: TAMIL_PROMPTS.PAYMENT_COMPLAINT_CONTEXT,
+    reduce_calls: TAMIL_PROMPTS.REDUCE_CALLS_CONTEXT,
+    no_office_calls: TAMIL_PROMPTS.NO_OFFICE_CALLS_CONTEXT,
+    lottery_participation: TAMIL_PROMPTS.LOTTERY_PARTICIPATION_CONTEXT,
+    lottery_decline: TAMIL_PROMPTS.LOTTERY_PARTICIPATION_CONTEXT,
+    partial_payment: TAMIL_PROMPTS.PARTIAL_PAYMENT_CONTEXT,
+    angry_customer: TAMIL_PROMPTS.ANGRY_CUSTOMER_CONTEXT,
+    chit_completion: TAMIL_PROMPTS.CHIT_COMPLETION_CONTEXT,
+    account_summary: TAMIL_PROMPTS.ACCOUNT_SUMMARY_CONTEXT,
+    identity_confirm: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    identity_deny: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    callback_request: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    caller_identity: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    repeat_request: TAMIL_PROMPTS.ACCOUNT_SUMMARY_CONTEXT,
+    already_paid: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    payment_date_inquiry: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    payment_mode: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    chit_value_inquiry: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    whatsapp_request: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    nominee_inquiry: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    profit_inquiry: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+    appreciation: TAMIL_PROMPTS.GENERAL_HELP_CONTEXT,
+  };
 
-  switch (intent) {
-    case 'seat_due_status':
-      contextAddition = TAMIL_PROMPTS.SEAT_DUE_CONTEXT;
-      break;
-    case 'premature_withdrawal':
-      contextAddition = TAMIL_PROMPTS.PREMATURE_WITHDRAWAL_CONTEXT;
-      break;
-    case 'jamin_documents':
-      contextAddition = TAMIL_PROMPTS.JAMIN_CONTEXT;
-      break;
-    case 'payment_complaint':
-      contextAddition = TAMIL_PROMPTS.PAYMENT_COMPLAINT_CONTEXT;
-      break;
-    case 'reduce_calls':
-      contextAddition = TAMIL_PROMPTS.REDUCE_CALLS_CONTEXT;
-      break;
-    case 'no_office_calls':
-      contextAddition = TAMIL_PROMPTS.NO_OFFICE_CALLS_CONTEXT;
-      break;
-    case 'lottery_participation':
-      contextAddition = TAMIL_PROMPTS.LOTTERY_PARTICIPATION_CONTEXT;
-      break;
-    case 'human_request':
-      return applyTemplate(`${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் senior / manager-கிட்ட பேசணும்னு கேக்குறாங்க.
+  if (intent === 'human_request') {
+    return applyTemplate(`${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் senior / manager-கிட்ட பேசணும்னு கேக்குறாங்க.
 action: "escalate" என்று திரும்பவும்.
 response: "${TAMIL_PROMPTS.HUMAN_REQUESTED}"`, metadata);
-    case 'end_call':
-      return applyTemplate(`${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் call முடிக்கணும்னு சொல்றாங்க.
+  }
+
+  if (intent === 'end_call') {
+    return applyTemplate(`${TAMIL_PROMPTS.SYSTEM_PROMPT}\n\nவாடிக்கையாளர் call முடிக்கணும்னு சொல்றாங்க.
 action: "end_call" என்று திரும்பவும்.
 response: "${TAMIL_PROMPTS.GOODBYE}"`, metadata);
-    default:
-      contextAddition = TAMIL_PROMPTS.GENERAL_HELP_CONTEXT;
   }
+
+  let contextAddition = CONTEXT_MAP[intent] || TAMIL_PROMPTS.GENERAL_HELP_CONTEXT;
 
   if (metadata.customerName) {
     contextAddition += `\nவாடிக்கையாளர் பெயர்: ${metadata.customerName}`;

@@ -101,8 +101,36 @@ Each flow uses the `scriptEngine.js` to branch based on customer responses (keyw
 - `POST /api/calls/:id/recording/push` — push recording + transcript to external system
 - Auto-push: when `callbackUrl` is set (campaign/call metadata), webhook auto-POSTs payload on recording ready
 
-## Intent Detection (17 intents)
-seat_due_status, premature_withdrawal, jamin_documents, payment_complaint, reduce_calls, no_office_calls, lottery_participation, lottery_decline, identity_confirm, identity_deny, already_paid, callback_request, payment_date_inquiry, chit_value_inquiry, payment_mode, human_request, end_call
+## Intent Detection (27 intents)
+seat_due_status, premature_withdrawal, jamin_documents, payment_complaint, reduce_calls, no_office_calls, lottery_participation, lottery_decline, identity_confirm, identity_deny, already_paid, callback_request, payment_date_inquiry, chit_value_inquiry, payment_mode, human_request, end_call, partial_payment, whatsapp_request, chit_completion, angry_customer, caller_identity, nominee_inquiry, profit_inquiry, account_summary, repeat_request, appreciation
+
+## Conversation Engine Architecture
+Multi-layer intent detection pipeline:
+1. **Q&A Exact Match** — 26 hardcoded Q&A pairs with phrase/token keyword scoring (phraseKeywords → 3pts, tokenKeywords → 1pt, multi-phrase bonus)
+2. **Keyword Detection** — Fast keyword-based pre-detection against `TAMIL_KEYWORDS` map (no API call)
+3. **GPT-4o-mini Classification** — Semantic intent detection with few-shot examples for ambiguous cases
+4. **GPT-4o Response Generation** — Context-aware response with 5-exchange conversation history
+
+### Speech Normalization (dual-layer)
+- `normalizeTamilSpeech()` in scriptEngine.js — Romanized Tamil→Tamil script (80+ patterns: "katturen"→"கட்டுறேன்", "vendaam"→"வேண்டாம்", etc.)
+- `normalizeForQA()` in aiService.js — Same phonetic mappings for Q&A matching consistency
+
+### Script Flow Intelligence
+- Branch priority: specific intents (wrong person, busy, complaints) checked BEFORE generic affirmatives
+- Out-of-scope handling: When customer asks something not in workflow branches, falls back to AI Q&A engine (doesn't consume retry count)
+- Context-aware GPT classifier: Includes agent's last question in prompt for better interpretation
+- Multi-intent support: GPT picks the MORE SPECIFIC/ACTIONABLE branch when customer says two things
+
+### Silence Handling (progressive)
+1. First silence: "ஹலோ சார்? கேக்குறீங்களா?"
+2. Second silence: Context-aware "சார்? Line-ல இருக்கீங்களா? உங்க {{chitValue}} சீட் due பற்றி பேசுறேன் சார்."
+3. Third silence: Graceful end with "network issue-ஆ இருக்கலாம், அப்புறம் call பண்றோம்"
+
+### Emotional Intelligence
+- Angry/frustrated → acknowledge first, then address concern
+- Hesitant → encouraging, offer alternatives (partial payment, callback)
+- Rushed → brief, offer callback
+- Confused → patient re-explanation
 
 ## CRM Integration Module
 - **Page**: `/crm` — 3-tab dashboard (Configuration, Fetch Customers, Push Recordings)

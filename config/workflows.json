@@ -61,16 +61,31 @@
           "agentMessage": "சார், உங்களுக்கு {{nextDueDate}} தேதி {{chitValue}} சீட்டோட {{currentDue}}வது due இருக்கு சார். Due amount {{dueAmount}}ரூபாய் சார். Time-க்கு கட்டிடுங்க சார்.",
           "branches": [
             {
+              "id": "payment_mode_question",
+              "label": "Customer asks how to pay or about payment methods",
+              "expectedPhrases": [
+                "எப்படி கட்டணும்", "எப்படி pay", "account",
+                "bank details", "online", "cash",
+                "account number", "account details", "QR code",
+                "payment link", "how to pay", "எந்த account",
+                "எந்த bank", "payment method",
+                "UPI எப்படி", "GPay எப்படி"
+              ],
+              "agentResponse": "Cash-ஆ office-ல கட்டலாம் அல்லது UPI/bank transfer பண்ணலாம் சார். Account details-க்கு எங்க office-ஐ contact பண்ணுங்க சார்.",
+              "nextStep": "lottery_ask"
+            },
+            {
               "id": "already_paid",
-              "label": "Customer says already paid",
+              "label": "Customer says already paid (past tense)",
               "expectedPhrases": [
                 "கட்டிட்டேன்", "paid", "போட்டாச்சு", "கட்டாச்சு",
-                "UPI", "GPay", "transfer", "PhonePe", "NEFT",
                 "already paid", "pay பண்ணிட்டேன்",
                 "நேத்து கட்டினேன்", "today கட்டினேன்",
                 "online போட்டேன்", "bank-ல போட்டேன்",
                 "amount குடுத்தாச்சு", "செலுத்திட்டேன்",
-                "போட்டுட்டேன்", "send பண்ணிட்டேன்"
+                "போட்டுட்டேன்", "send பண்ணிட்டேன்",
+                "UPI பண்ணிட்டேன்", "GPay-ல போட்டேன்",
+                "PhonePe-ல போட்டேன்", "NEFT பண்ணிட்டேன்"
               ],
               "agentResponse": "நன்றி சார்! Payment receive ஆனதும் update பண்றோம் சார்.",
               "nextStep": "lottery_ask"
@@ -80,7 +95,7 @@
               "label": "Customer has difficulty paying or expresses financial trouble",
               "expectedPhrases": [
                 "கஷ்டம்", "முடியல", "பணம் இல்ல", "afford",
-                "salary வரல", "later", "அப்புறம்", "next month",
+                "salary வரல", "next month",
                 "கஷ்டமா இருக்கு", "pay பண்ண முடியல",
                 "இப்போ கொடுக்க முடியாது", "time குடுங்க", "நேரம் குடுங்க",
                 "loan இருக்கு", "EMI இருக்கு", "வேலை இல்ல",
@@ -100,19 +115,6 @@
                 "எத்தனை நாள்", "time limit"
               ],
               "agentResponse": "{{nextDueDate}} தேதிக்குள்ள கட்டிடணும் சார். ₹{{dueAmount}} ready-ஆ வைங்க சார்.",
-              "nextStep": "lottery_ask"
-            },
-            {
-              "id": "payment_mode_question",
-              "label": "Customer asks how to pay or about payment methods",
-              "expectedPhrases": [
-                "எப்படி கட்டணும்", "எப்படி pay", "UPI", "account",
-                "bank details", "online", "cash", "GPay", "PhonePe",
-                "account number", "account details", "QR code",
-                "payment link", "how to pay", "எந்த account",
-                "எந்த bank", "payment method"
-              ],
-              "agentResponse": "Cash-ஆ office-ல கட்டலாம் அல்லது UPI/bank transfer பண்ணலாம் சார். Account details-க்கு எங்க office-ஐ contact பண்ணுங்க சார்.",
               "nextStep": "lottery_ask"
             },
             {
@@ -242,16 +244,6 @@
               ],
               "agentResponse": "நல்லது சார்! Due ₹{{dueAmount}} time-க்கு கட்டுங்க சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
-            },
-            {
-              "id": "confirm_no",
-              "label": "Customer declines",
-              "expectedPhrases": [
-                "வேண்டாம்", "no", "இல்ல", "இல்லை", "skip",
-                "வேணாம்", "nah", "nope", "leave it", "போகட்டும்"
-              ],
-              "agentResponse": "சரி சார். Due மட்டும் time-க்கு கட்டுங்க சார். நன்றி சார்! வணக்கம்!",
-              "action": "end_call"
             }
           ],
           "fallbackMessage": "சார், ஆமான்னோ வேண்டாம்னோ சொல்லுங்க சார்.",
@@ -310,11 +302,13 @@
             },
             {
               "id": "already_paid",
-              "label": "Customer says already paid the due",
+              "label": "Customer says already paid the due (past tense)",
               "expectedPhrases": [
-                "கட்டிட்டேன்", "paid", "போட்டாச்சு", "transfer",
-                "already paid", "கட்டாச்சு", "UPI", "GPay",
-                "pay பண்ணிட்டேன்", "போட்டுட்டேன்", "send பண்ணிட்டேன்"
+                "கட்டிட்டேன்", "paid", "போட்டாச்சு", "கட்டாச்சு",
+                "already paid", "pay பண்ணிட்டேன்",
+                "நேத்து கட்டினேன்", "today கட்டினேன்",
+                "போட்டுட்டேன்", "send பண்ணிட்டேன்",
+                "UPI பண்ணிட்டேன்", "GPay-ல போட்டேன்"
               ],
               "agentResponse": "நன்றி சார்! Payment receive ஆனதும் குலுக்கல்ல automatically include ஆகும் சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"
@@ -400,15 +394,16 @@
             },
             {
               "id": "already_paid",
-              "label": "Customer says already paid",
+              "label": "Customer says already paid (past tense)",
               "expectedPhrases": [
                 "கட்டிட்டேன்", "paid", "போட்டாச்சு", "கட்டாச்சு",
-                "transfer", "UPI", "GPay", "PhonePe", "NEFT",
                 "already paid", "pay பண்ணிட்டேன்",
                 "நேத்து கட்டினேன்", "today கட்டினேன்",
                 "online போட்டேன்", "bank-ல போட்டேன்",
                 "போட்டுட்டேன்", "send பண்ணிட்டேன்",
-                "amount குடுத்தாச்சு", "செலுத்திட்டேன்"
+                "amount குடுத்தாச்சு", "செலுத்திட்டேன்",
+                "UPI பண்ணிட்டேன்", "GPay-ல போட்டேன்",
+                "PhonePe-ல போட்டேன்", "NEFT பண்ணிட்டேன்"
               ],
               "agentResponse": "நன்றி சார்! Payment receive ஆனதும் records-ல update பண்றோம் சார். நன்றி சார்! நல்லா இருங்க சார். வணக்கம்!",
               "action": "end_call"

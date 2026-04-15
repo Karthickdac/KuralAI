@@ -81,19 +81,37 @@ function normalizeTamilSpeech(text) {
     [/\bO\.?K\.?\b/g, 'ok'],
     [/\bvendaam\b/gi, 'வேண்டாம்'],
     [/\bvenaam\b/gi, 'வேண்டாம்'],
+    [/\bvendum\b/gi, 'வேணும்'],
     [/\billa\b/gi, 'இல்ல'],
     [/\billai\b/gi, 'இல்ல'],
     [/\bsari\b/gi, 'சரி'],
     [/\bpanam\b/gi, 'பணம்'],
     [/\bkashtam\b/gi, 'கஷ்டம்'],
     [/\bkatturen\b/gi, 'கட்டுறேன்'],
+    [/\bkattiduren\b/gi, 'கட்டிடுறேன்'],
     [/\bkattitten\b/gi, 'கட்டிட்டேன்'],
     [/\bkattachu\b/gi, 'கட்டாச்சு'],
     [/\bpottachu\b/gi, 'போட்டாச்சு'],
+    [/\bpottutten\b/gi, 'போட்டுட்டேன்'],
+    [/\bkudukanum\b/gi, 'குடுக்கணும்'],
+    [/\bkuduthaachu\b/gi, 'குடுத்தாச்சு'],
+    [/\bmudiyala?\b/gi, 'முடியல'],
+    [/\bpuriyala?\b/gi, 'புரியல'],
+    [/\bnandri\b/gi, 'நன்றி'],
+    [/\bvanakkam\b/gi, 'வணக்கம்'],
+    [/\bsollunga\b/gi, 'சொல்லுங்க'],
+    [/\bnaalaiku\b/gi, 'நாளைக்கு'],
+    [/\bnaalaikku\b/gi, 'நாளைக்கு'],
+    [/\btomorrow\b/gi, 'நாளைக்கு'],
+    [/\bappuram\b/gi, 'அப்புறம்'],
+    [/\bpaarkkurom\b/gi, 'பாக்குறோம்'],
+    [/\bpaakkuren\b/gi, 'பாக்குறேன்'],
     [/\bgpay\b/gi, 'GPay'],
     [/\bg[\s-]?pay\b/gi, 'GPay'],
     [/\bphone[\s-]?pe\b/gi, 'PhonePe'],
     [/\bkulukkal\b/gi, 'குலுக்கல்'],
+    [/\bkalanthukiren\b/gi, 'கலந்துக்கிறேன்'],
+    [/\bkalanthukka\b/gi, 'கலந்துக்க'],
     [/\blottery\b/gi, 'lottery'],
     [/\bparticipate\b/gi, 'participate'],
     [/\bjamin\b/gi, 'jamin'],
@@ -115,6 +133,23 @@ function normalizeTamilSpeech(text) {
     [/\bdriving\b/gi, 'driving'],
     [/\bwrong\s*number\b/gi, 'wrong number'],
     [/\bavailable\s*(?:இல்ல|illa)\b/gi, 'available இல்ல'],
+    [/\bwhatsapp?\b/gi, 'WhatsApp'],
+    [/\bnominee?\b/gi, 'nominee'],
+    [/\binstall?ment\b/gi, 'installment'],
+    [/\bpartial\b/gi, 'partial'],
+    [/\bdisturb\b/gi, 'disturb'],
+    [/\birritat(?:ing|e)\b/gi, 'irritating'],
+    [/\bharass(?:ment)?\b/gi, 'harass'],
+    [/\binterest(?:ed)?\b/gi, 'interested'],
+    [/\bpenalty\b/gi, 'penalty'],
+    [/\bdeadline\b/gi, 'deadline'],
+    [/\beppo\b/gi, 'எப்போ'],
+    [/\beppadi\b/gi, 'எப்படி'],
+    [/\benna\b/gi, 'என்ன'],
+    [/\bevlo\b/gi, 'எவ்ளோ'],
+    [/\bethana\b/gi, 'எத்தன'],
+    [/\bnaan\b/gi, 'நான்'],
+    [/\bthan\b/gi, 'தான்'],
   ];
 
   for (const [pattern, replacement] of replacements) {
@@ -167,19 +202,30 @@ async function processStep(callId, customerText, scriptFlow) {
   const match = await matchBranch(customerText, currentStep);
 
   if (!match.matched) {
-    // No branch matched — retry with fallback
-    state.retryCount += 1;
     const maxRetries = currentStep.maxRetries ?? 2;
+
+    if (!state._oosUsed && customerText.length > 5) {
+      state._oosUsed = true;
+      logger.info(`[ScriptEngine] No branch match for step ${currentStep.id}, trying out-of-scope Q&A for: "${customerText}"`);
+      return {
+        response: '',
+        done: false,
+        escalate: false,
+        outOfScope: true,
+      };
+    }
+
+    state.retryCount += 1;
 
     if (state.retryCount >= maxRetries) {
       logger.info(`[ScriptEngine] Max retries for step ${currentStep.id} — escalating`);
       clearFlow(callId);
-      return { response: currentStep.fallbackMessage || 'மன்னிக்கணும் மாப்ளா, புரியல.', done: false, escalate: true };
+      return { response: currentStep.fallbackMessage || 'மன்னிக்கணும் சார், புரியல.', done: false, escalate: true };
     }
 
     logger.info(`[ScriptEngine] No match for step ${currentStep.id}, retry ${state.retryCount}/${maxRetries}`);
     return {
-      response: currentStep.fallbackMessage || 'மறுபடியும் சொல்லுங்களா மாப்ளா?',
+      response: currentStep.fallbackMessage || 'மறுபடியும் சொல்லுங்களா சார்?',
       done: false,
       escalate: false,
     };
@@ -249,7 +295,7 @@ async function matchBranch(customerText, step) {
   // Semantic classification via GPT-4o-mini (fast + accurate for classification)
   try {
     const branchList = branches
-      .map((b, i) => `${i + 1}. ${b.label}${b.expectedPhrases?.length ? ` [clues: ${b.expectedPhrases.join(', ')}]` : ''}`)
+      .map((b, i) => `${i + 1}. [${b.id}] ${b.label}${b.expectedPhrases?.length ? ` [clues: ${b.expectedPhrases.slice(0, 8).join(', ')}]` : ''}`)
       .join('\n');
 
     const completion = await getOpenAI().chat.completions.create({
@@ -261,12 +307,16 @@ async function matchBranch(customerText, step) {
 
 DOMAIN: Automystic Chit Fund — customers call about dues, lottery (குலுக்கல்), premature withdrawal, jamin (security documents), payments.
 
+AGENT JUST SAID: "${step.agentMessage || '(greeting/question)'}"
+
 CRITICAL RULES:
 - Tamil speech-to-text is NOISY — expect misspellings, phonetic approximations, and partial words
-- "ஆமா", "ஆமாம்", "ம்", "ஹா", "ஹாங்", "ஓ", "ஓகே", "சரி", "yes", "yeah", "haan", "hmm", "ok" ALL mean affirmative/agreement
+- CONTEXT MATTERS: Interpret the customer's response in light of what the agent just asked them
+- "ஆமா", "ஆமாம்", "ஹா", "ஹாங்", "ஓ", "ஓகே", "சரி", "yes", "yeah", "haan", "hmm", "ok" ALL mean affirmative/agreement
 - "வேண்டாம்", "இல்ல", "வேணாம்", "no", "nah", "இல்லை" mean negative/decline
 - Short utterances like "ஆமா சார்", "ok சார்", "சரி" = agreement with whatever was asked
 - "கட்டுறேன்", "கட்டிடுறேன்", "pay பண்றேன்" = will pay
+- MULTI-INTENT: If customer says two things (e.g., "paid already but lottery interested"), match the MORE SPECIFIC/ACTIONABLE branch
 - "கட்டிட்டேன்", "கட்டாச்சு", "போட்டாச்சு", "paid" = already paid
 - "busy", "meeting", "driving", "அப்புறம்", "later" = busy/callback
 - Be GENEROUS in matching — if the customer's intent is roughly close to a category, match it
