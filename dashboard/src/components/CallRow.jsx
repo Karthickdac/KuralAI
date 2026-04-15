@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const STATUS_STYLES = {
   completed:    { bg: 'var(--success-bg)', color: 'var(--success-text)' },
@@ -47,8 +47,6 @@ function fmtTime(sec) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-let activeAudio = null;
-
 function RecordingPlayer({ callId }) {
   const audioRef = useRef(null);
   const [playing, setPlaying] = useState(false);
@@ -59,6 +57,17 @@ function RecordingPlayer({ callId }) {
 
   const src = `/api/calls/${callId}/recording/stream`;
 
+  useEffect(() => {
+    const handler = (e) => {
+      const audio = audioRef.current;
+      if (audio && e.detail !== audio) {
+        audio.pause();
+      }
+    };
+    window.addEventListener('kuralai-audio-play', handler);
+    return () => window.removeEventListener('kuralai-audio-play', handler);
+  }, []);
+
   function togglePlay(e) {
     e.stopPropagation();
     if (error) return;
@@ -66,12 +75,8 @@ function RecordingPlayer({ callId }) {
     if (!audio) return;
     if (playing) {
       audio.pause();
-      activeAudio = null;
     } else {
-      if (activeAudio && activeAudio !== audio) {
-        activeAudio.pause();
-      }
-      activeAudio = audio;
+      window.dispatchEvent(new CustomEvent('kuralai-audio-play', { detail: audio }));
       audio.play().catch(() => setError(true));
     }
   }
@@ -101,7 +106,7 @@ function RecordingPlayer({ callId }) {
         preload="none"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
-        onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); activeAudio = null; }}
+        onEnded={() => { setPlaying(false); setProgress(0); setCurrentTime(0); }}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onError={() => setError(true)}
