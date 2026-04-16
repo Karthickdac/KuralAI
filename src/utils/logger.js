@@ -12,9 +12,22 @@ if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
+function safeStringify(obj) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) return '[Circular]';
+      seen.add(value);
+    }
+    return value;
+  });
+}
+
 const logFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
   let log = `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
-  if (Object.keys(meta).length) log += ` ${JSON.stringify(meta)}`;
+  try {
+    if (Object.keys(meta).length) log += ` ${safeStringify(meta)}`;
+  } catch {}
   return log;
 });
 
