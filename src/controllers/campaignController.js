@@ -265,7 +265,7 @@ async function executeCampaign(campaignId) {
 
       if (orgId) {
         try {
-          await creditService.deductMinutes(orgId, 2, `Campaign ${campaign.name}: call ${call.id}`);
+          await creditService.deductMinutes(orgId, 2, call.id, `Campaign ${campaign.name}: call ${call.id}`);
         } catch (e) {
           logger.warn(`Credit deduction failed for campaign call ${call.id}:`, e.message);
         }

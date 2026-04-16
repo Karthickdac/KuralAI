@@ -70,7 +70,7 @@ async function initiateCallController(req, res) {
 
     if (orgId) {
       try {
-        await creditService.deductMinutes(orgId, 2, `Call initiated: ${call.id}`);
+        await creditService.deductMinutes(orgId, 2, call.id, `Call initiated: ${call.id}`);
       } catch (e) {
         logger.warn(`Credit deduction failed for call ${call.id}:`, e.message);
       }

@@ -191,7 +191,12 @@ async function synthesizeSpeech(text, outputPath = null) {
   const spokenText = tamilizeText(text);
   const provider = getTtsProvider();
   if (provider === 'elevenlabs') {
-    return synthesizeSpeechElevenLabs(spokenText);
+    try {
+      return await synthesizeSpeechElevenLabs(spokenText);
+    } catch (err) {
+      logger.warn(`ElevenLabs TTS failed (${err.message}), falling back to Azure`);
+      return synthesizeSpeechAzure(spokenText, outputPath);
+    }
   }
   return synthesizeSpeechAzure(spokenText, outputPath);
 }
