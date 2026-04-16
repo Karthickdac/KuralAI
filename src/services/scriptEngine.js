@@ -37,15 +37,11 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
-const SETTINGS_FILE_SE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('./settingsService');
 
 function getOpenAIKey() {
-  try {
-    if (fs.existsSync(SETTINGS_FILE_SE)) {
-      const s = JSON.parse(fs.readFileSync(SETTINGS_FILE_SE, 'utf-8'));
-      if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
-    }
-  } catch {}
+  const s = getSettingsSync();
+  if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
   return process.env.OPENAI_API_KEY || 'placeholder';
 }
 

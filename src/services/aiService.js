@@ -15,15 +15,11 @@ const {
   TAMIL_KEYWORDS
 } = require('../config/tamilPrompts');
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('./settingsService');
 
 function getOpenAIKey() {
-  try {
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-      if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
-    }
-  } catch {}
+  const s = getSettingsSync();
+  if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
   return process.env.OPENAI_API_KEY || 'placeholder';
 }
 

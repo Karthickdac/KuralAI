@@ -11,9 +11,9 @@ const creditService = require('../services/creditService');
 const { notifyDashboard } = require('../websocket/wsServer');
 const logger = require('../utils/logger');
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('../services/settingsService');
 function getSettings() {
-  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
+  return getSettingsSync();
 }
 
 const activeCampaigns = new Map();

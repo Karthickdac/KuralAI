@@ -29,9 +29,9 @@ async function resolveCustomerMeta(toPhone, organizationId) {
   }
 }
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('../services/settingsService');
 function getSettings() {
-  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
+  return getSettingsSync();
 }
 
 async function initiateCallController(req, res) {

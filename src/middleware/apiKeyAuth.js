@@ -9,19 +9,12 @@
  * Falls back to the KURAL_API_KEY environment variable.
  */
 
-const fs   = require('fs');
-const path = require('path');
 const logger = require('../utils/logger');
-
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('../services/settingsService');
 
 function getStoredApiKey() {
-  try {
-    const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-    return s.apiKey || process.env.KURAL_API_KEY || '';
-  } catch {
-    return process.env.KURAL_API_KEY || '';
-  }
+  const s = getSettingsSync();
+  return s.apiKey || process.env.KURAL_API_KEY || '';
 }
 
 /**

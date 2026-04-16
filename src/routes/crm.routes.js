@@ -12,18 +12,10 @@ const Transcript = require('../models/Transcript');
 const logger = require('../utils/logger');
 const { Op } = require('sequelize');
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettings: getSettingsAsync, getSettingsSync } = require('../services/settingsService');
 
 async function loadSettings() {
-  try {
-    const AppSetting = require('../models/AppSetting');
-    const row = await AppSetting.findByPk('main');
-    if (row) return row.data;
-  } catch {}
-  try {
-    if (fs.existsSync(SETTINGS_FILE)) return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-  } catch {}
-  return {};
+  return getSettingsAsync();
 }
 
 async function saveSettings(data) {

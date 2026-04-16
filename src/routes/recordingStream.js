@@ -4,7 +4,7 @@ const path = require('path');
 const Call = require('../models/Call');
 const logger = require('../utils/logger');
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('../services/settingsService');
 
 module.exports = async function recordingStream(req, res) {
   try {
@@ -19,7 +19,7 @@ module.exports = async function recordingStream(req, res) {
 
     let authConfig = {};
     try {
-      const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+      const s = getSettingsSync();
       const sid = s.twilioAccountSid || process.env.TWILIO_ACCOUNT_SID;
       const token = s.twilioAuthToken || process.env.TWILIO_AUTH_TOKEN;
       if (sid && token && url.includes('api.twilio.com')) {

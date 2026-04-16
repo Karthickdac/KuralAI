@@ -13,6 +13,7 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
 const { clearTtsCache } = require('../services/speechService');
+const { clearCache: clearSettingsCache } = require('../services/settingsService');
 
 // Fields that are credentials — masked in GET response as '••••••••'
 const CREDENTIAL_FIELDS = [
@@ -177,6 +178,7 @@ router.post('/generate-api-key', requireAdmin, async (req, res) => {
     current.apiKey = newKey;
     await writeSettingsToDb(current);
     writeSettingsToFile(current);
+    clearSettingsCache();
     syncEnv(current);
 
     res.json({ success: true, apiKey: newKey });
@@ -224,6 +226,7 @@ router.put('/', requireAdmin, async (req, res) => {
     // Write to DB (primary) and file (backward compat for services)
     await writeSettingsToDb(updated);
     writeSettingsToFile(updated);
+    clearSettingsCache();
 
     // Sync to running process env
     syncEnv(updated);

@@ -4,17 +4,11 @@
  * All call code should import from here, not from exotelService/twilioService directly.
  */
 
-const fs   = require('fs');
-const path = require('path');
-
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('./settingsService');
 
 function getProvider() {
-  try {
-    const s = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-    return (s.telephonyProvider || 'twilio').toLowerCase();
-  } catch {}
-  return process.env.TELEPHONY_PROVIDER || 'twilio';
+  const s = getSettingsSync();
+  return (s.telephonyProvider || 'twilio').toLowerCase();
 }
 
 function getService() {

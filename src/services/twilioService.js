@@ -18,9 +18,9 @@ const crypto = require('crypto');
 const logger = require('../utils/logger');
 const { TAMIL_PROMPTS } = require('../config/tamilPrompts');
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
+const { getSettingsSync } = require('./settingsService');
 function getStoredSettings() {
-  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch { return {}; }
+  return getSettingsSync();
 }
 
 function getTwilioBase() {

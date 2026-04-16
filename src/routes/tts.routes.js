@@ -12,19 +12,10 @@ const path = require('path');
 const { authenticateToken } = require('../middleware/auth');
 const { buildTamilSSML, getTtsProvider, getElevenLabsConfig } = require('../services/speechService');
 
-const SETTINGS_FILE = path.join(__dirname, '../../config/app-settings.json');
-
-function readSettings() {
-  try {
-    if (fs.existsSync(SETTINGS_FILE)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
-    }
-  } catch {}
-  return {};
-}
+const { getSettingsSync } = require('../services/settingsService');
 
 function getAzureConfig() {
-  const stored = readSettings();
+  const stored = getSettingsSync();
   return {
     key:    stored.azureSpeechKey    || process.env.AZURE_SPEECH_KEY    || '',
     region: stored.azureSpeechRegion || process.env.AZURE_SPEECH_REGION || '',

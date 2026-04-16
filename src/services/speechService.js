@@ -13,59 +13,35 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const { uploadAudioToS3, getSignedUrl } = require('./s3Service');
+const { getSettingsSync } = require('./settingsService');
 
 // ─── Local audio temp dir (fallback when S3 not configured) ───────────────────
 const LOCAL_AUDIO_DIR = path.join('/tmp', 'kuralai-audio');
 if (!fs.existsSync(LOCAL_AUDIO_DIR)) fs.mkdirSync(LOCAL_AUDIO_DIR, { recursive: true });
 
 function isS3Configured() {
-  try {
-    const sf = path.join(__dirname, '../../config/app-settings.json');
-    if (fs.existsSync(sf)) {
-      const s = JSON.parse(fs.readFileSync(sf, 'utf-8'));
-      if (s.awsAccessKeyId && s.awsSecretAccessKey && s.s3BucketName) return true;
-    }
-  } catch {}
-  return !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.S3_BUCKET_NAME);
+  const s = getSettingsSync();
+  return !!(s.awsAccessKeyId && s.awsSecretAccessKey && s.s3BucketName);
 }
 
 async function storeAudioLocally(audioBuffer, filename) {
   const filePath = path.join(LOCAL_AUDIO_DIR, filename);
   fs.writeFileSync(filePath, audioBuffer);
-  // Schedule cleanup after 2 hours
   setTimeout(() => fs.unlink(filePath, () => {}), 2 * 60 * 60 * 1000);
 
-  let appUrl = process.env.APP_URL || '';
-  try {
-    const sf = path.join(__dirname, '../../config/app-settings.json');
-    if (fs.existsSync(sf)) {
-      const s = JSON.parse(fs.readFileSync(sf, 'utf-8'));
-      if (s.appUrl) appUrl = s.appUrl;
-    }
-  } catch {}
-  appUrl = appUrl.replace(/\/$/, '');
+  const s = getSettingsSync();
+  const appUrl = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
   const playableUrl = `${appUrl}/audio/${filename}`;
   return { localPath: filePath, playableUrl };
 }
 
-const SETTINGS_FILE_STT = path.join(__dirname, '../../config/app-settings.json');
-
-function readAppSettings() {
-  try {
-    if (fs.existsSync(SETTINGS_FILE_STT)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE_STT, 'utf-8'));
-    }
-  } catch {}
-  return {};
-}
-
 function getTtsProvider() {
-  const s = readAppSettings();
+  const s = getSettingsSync();
   return s.ttsProvider || process.env.TTS_PROVIDER || 'azure';
 }
 
 function getElevenLabsConfig() {
-  const s = readAppSettings();
+  const s = getSettingsSync();
   return {
     apiKey:  s.elevenLabsApiKey  || process.env.ELEVENLABS_API_KEY  || '',
     voiceId: s.elevenLabsVoiceId || process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
@@ -74,12 +50,8 @@ function getElevenLabsConfig() {
 }
 
 function getOpenAIKey() {
-  try {
-    if (fs.existsSync(SETTINGS_FILE_STT)) {
-      const s = JSON.parse(fs.readFileSync(SETTINGS_FILE_STT, 'utf-8'));
-      if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
-    }
-  } catch {}
+  const s = getSettingsSync();
+  if (s.openaiApiKey && s.openaiApiKey.length > 20) return s.openaiApiKey;
   return process.env.OPENAI_API_KEY || 'placeholder';
 }
 
@@ -205,19 +177,10 @@ async function synthesizeSpeechAzure(text, outputPath = null) {
   const startTime = Date.now();
 
   return new Promise((resolve, reject) => {
-    // Read credentials — settings file takes priority over env vars
-    let _azureKey = process.env.AZURE_SPEECH_KEY;
-    let _azureRegion = process.env.AZURE_SPEECH_REGION;
-    let _azureVoice = process.env.AZURE_SPEECH_VOICE;
-    try {
-      const _sf = path.join(__dirname, '../../config/app-settings.json');
-      if (fs.existsSync(_sf)) {
-        const _s = JSON.parse(fs.readFileSync(_sf, 'utf-8'));
-        if (_s.azureSpeechKey)    _azureKey    = _s.azureSpeechKey;
-        if (_s.azureSpeechRegion) _azureRegion = _s.azureSpeechRegion;
-        if (_s.azureSpeechVoice)  _azureVoice  = _s.azureSpeechVoice;
-      }
-    } catch {}
+    const _cfg = getSettingsSync();
+    const _azureKey = _cfg.azureSpeechKey || process.env.AZURE_SPEECH_KEY;
+    const _azureRegion = _cfg.azureSpeechRegion || process.env.AZURE_SPEECH_REGION;
+    const _azureVoice = _cfg.azureSpeechVoice || process.env.AZURE_SPEECH_VOICE;
 
     // Azure Speech SDK configuration
     const speechConfig = sdk.SpeechConfig.fromSubscription(_azureKey, _azureRegion);
