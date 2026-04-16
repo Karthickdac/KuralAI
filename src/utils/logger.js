@@ -15,17 +15,52 @@ try {
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
-const SKIP_KEYS = new Set([
-  'req', 'res', 'socket', 'client', 'connection', 'agent', '_httpMessage',
-  'config', 'request', 'response', '_currentRequest', '_redirectable',
-]);
+function sanitizeError(err) {
+  if (!err || typeof err !== 'object') return err;
+  const clean = {
+    message: err.message,
+    name: err.name,
+    code: err.code,
+    status: err.status || err.statusCode,
+  };
+  if (err.stack) clean.stack = err.stack;
+  if (err.isAxiosError) {
+    clean.isAxiosError = true;
+    if (err.response) {
+      clean.responseStatus = err.response.status;
+      clean.responseStatusText = err.response.statusText;
+    }
+  }
+  return clean;
+}
+
+const sanitizeFormat = winston.format((info) => {
+  try {
+    const dangerous = ['req', 'res', 'socket', 'client', 'connection',
+      'agent', '_httpMessage', 'config', 'request', 'response',
+      '_currentRequest', '_redirectable', '_writableState', '_readableState'];
+    for (const key of dangerous) {
+      if (info[key]) delete info[key];
+    }
+
+    if (info.splat && Array.isArray(info.splat)) {
+      info.splat = info.splat.map(arg => {
+        if (arg instanceof Error || (arg && arg.isAxiosError)) return sanitizeError(arg);
+        return arg;
+      });
+    }
+  } catch {}
+  return info;
+});
 
 function safeStringify(obj) {
   try {
     const seen = new WeakSet();
     return JSON.stringify(obj, (key, value) => {
-      if (SKIP_KEYS.has(key)) return undefined;
       if (typeof value === 'object' && value !== null) {
+        if (value.constructor && /^(ClientRequest|IncomingMessage|Socket|TLSSocket|Agent)$/.test(value.constructor.name)) {
+          return `[${value.constructor.name}]`;
+        }
         if (seen.has(value)) return '[Circular]';
         seen.add(value);
       }
@@ -38,18 +73,23 @@ function safeStringify(obj) {
   }
 }
 
-const logFormat = printf(({ level, message, timestamp, stack, ...meta }) => {
-  let log = `${timestamp} [${level.toUpperCase()}]: ${stack || message}`;
+const logFormat = printf((info) => {
   try {
-    const keys = Object.keys(meta);
-    if (keys.length) log += ` ${safeStringify(meta)}`;
-  } catch {}
-  return log;
+    const { level, message, timestamp: ts, stack, ...meta } = info;
+    let log = `${ts} [${level.toUpperCase()}]: ${stack || message}`;
+    try {
+      const keys = Object.keys(meta);
+      if (keys.length) log += ` ${safeStringify(meta)}`;
+    } catch {}
+    return log;
+  } catch (e) {
+    return `[LOG_FORMAT_ERROR] ${e.message}`;
+  }
 });
 
 const transports = [
   new winston.transports.Console({
-    format: combine(colorize(), timestamp({ format: 'HH:mm:ss' }), logFormat),
+    format: combine(colorize(), timestamp({ format: 'HH:mm:ss' }), sanitizeFormat(), logFormat),
   }),
 ];
 
@@ -76,6 +116,7 @@ const logger = winston.createLogger({
   format: combine(
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     errors({ stack: true }),
+    sanitizeFormat(),
     logFormat
   ),
   transports,

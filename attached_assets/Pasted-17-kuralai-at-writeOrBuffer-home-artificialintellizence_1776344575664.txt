@@ -1,0 +1,58 @@
+17|kuralai |     at writeOrBuffer (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:381:5)
+17|kuralai |     at Writable.write (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:302:11)
+17|kuralai | TypeError: Converting circular structure to JSON
+17|kuralai |     --> starting at object with constructor 'ClientRequest'
+17|kuralai |     |     property 'res' -> object with constructor 'IncomingMessage'
+17|kuralai |     --- property 'req' closes the circle
+17|kuralai |     at JSON.stringify (<anonymous>)
+17|kuralai |     at Printf.template (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/utils/logger.js:17:49)
+17|kuralai |     at Printf.transform (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/logform/printf.js:11:26)
+17|kuralai |     at Format.transform (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/logform/combine.js:20:24)
+17|kuralai |     at DerivedLogger._transform (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/lib/winston/logger.js:337:29)
+17|kuralai |     at Transform._read (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_transform.js:166:10)
+17|kuralai |     at Transform._write (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_transform.js:155:83)
+17|kuralai |     at doWrite (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+17|kuralai |     at writeOrBuffer (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:381:5)
+17|kuralai |     at Writable.write (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:302:11)
+17|kuralai | TypeError: Converting circular structure to JSON
+17|kuralai |     --> starting at object with constructor 'ClientRequest'
+17|kuralai |     |     property 'res' -> object with constructor 'IncomingMessage'
+17|kuralai |     --- property 'req' closes the circle
+17|kuralai |     at JSON.stringify (<anonymous>)
+17|kuralai |     at Printf.template (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/utils/logger.js:17:49)
+17|kuralai |     at Printf.transform (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/logform/printf.js:11:26)
+17|kuralai |     at Format.transform (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/logform/combine.js:20:24)
+17|kuralai |     at DerivedLogger._transform (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/lib/winston/logger.js:337:29)
+17|kuralai |     at Transform._read (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_transform.js:166:10)
+17|kuralai |     at Transform._write (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_transform.js:155:83)
+17|kuralai |     at doWrite (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:390:139)
+17|kuralai |     at writeOrBuffer (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:381:5)
+17|kuralai |     at Writable.write (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/winston/node_modules/readable-stream/lib/_stream_writable.js:302:11)
+
+/root/.pm2/logs/kuralai-out.log last 30 lines:
+17|kuralai | ity":"","CallStatus":"in-progress","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: Call status update: in-progress for callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b, sid=CAa4400140c39197edc3ad1f60f38e94c0
+]: 184.72.100.32 - - [16/Apr/2026:13:02:32 +0000] "POST /webhook/call/status?callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b&wt=kuralai-secret-2026 HTTP/1.1" 200 2 "-" "TwilioProxy/1.1"
+]: WEBHOOK HIT: POST /call/answer | ip=100.53.146.219 | qs={"callId":"8ce832c6-ffc9-426c-8bc7-a18234f0691b","wt":"kuralai-secret-2026"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","CallerState":"IA","ToZip":"","CallSid":"CAa4400140c39197edc3ad1f60f38e94c0","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"in-progress","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: Call answered: callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b, sid=CAa4400140c39197edc3ad1f60f38e94c0
+]: Greeting cache MISS for 8ce832c6-ffc9-426c-8bc7-a18234f0691b — building TwiML from scratch
+]: [ScriptEngine] Call 8ce832c6-ffc9-426c-8bc7-a18234f0691b started at step: greeting
+]: AxiosError: Request failed with status code 401
+17|kuralai |     at settle (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/axios/dist/node/axios.cjs:1956:12)
+17|kuralai |     at Unzip.handleStreamEnd (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/axios/dist/node/axios.cjs:3279:11)
+17|kuralai |     at Unzip.emit (node:events:519:28)
+17|kuralai |     at endReadableNT (node:internal/streams/readable:1698:12)
+17|kuralai |     at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+17|kuralai |     at Axios.request (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/node_modules/axios/dist/node/axios.cjs:4339:41)
+17|kuralai |     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+17|kuralai |     at async synthesizeSpeechElevenLabs (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/services/speechService.js:383:20)
+17|kuralai |     at async processCallAnswer (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/services/conversationEngine.js:131:15)
+17|kuralai |     at async handleCallAnswer (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/controllers/webhookController.js:64:19) {"name":"AxiosError","isAxiosError":true,"code":"ERR_BAD_REQUEST","status":401}
+]: 100.53.146.219 - - [16/Apr/2026:13:02:32 +0000] "POST /webhook/call/answer?callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b&wt=kuralai-secret-2026 HTTP/1.1" 200 323 "-" "TwilioProxy/1.1"
+]: WEBHOOK HIT: POST /call/status | ip=54.210.124.252 | qs={"callId":"8ce832c6-ffc9-426c-8bc7-a18234f0691b","wt":"kuralai-secret-2026"} | body={"Called":"+917358337470","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/RE2d4255683e09fc3194225eed87ef4569","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Thu, 16 Apr 2026 13:02:33 +0000","CallbackSource":"call-progress-events","SipResponseCode":"200","CallerState":"IA","ToZip":"","SequenceNumber":"3","CallSid":"CAa4400140c39197edc3ad1f60f38e94c0","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"completed","RecordingSid":"RE2d4255683e09fc3194225eed87ef4569","Duration":"1","From":"+16416666746","CallDuration":"1","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","RecordingDuration":"2","FromState":"IA"}
+]: Call status update: completed for callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b, sid=CAa4400140c39197edc3ad1f60f38e94c0
+]: 54.210.124.252 - - [16/Apr/2026:13:02:33 +0000] "POST /webhook/call/status?callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b&wt=kuralai-secret-2026 HTTP/1.1" 200 2 "-" "TwilioProxy/1.1"
+]: 103.197.112.20 - - [16/Apr/2026:13:02:33 +0000] "GET /api/dashboard/recent-calls?limit=10 HTTP/1.1" 304 - "https://www.artificialintellizence.com/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: WEBHOOK HIT: POST /recording/status | ip=3.91.32.199 | qs={"callId":"8ce832c6-ffc9-426c-8bc7-a18234f0691b","wt":"kuralai-secret-2026"} | body={"RecordingSource":"OutboundAPI","RecordingTrack":"both","RecordingSid":"RE2d4255683e09fc3194225eed87ef4569","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/RE2d4255683e09fc3194225eed87ef4569","RecordingStatus":"completed","RecordingChannels":"2","ErrorCode":"0","CallSid":"CAa4400140c39197edc3ad1f60f38e94c0","RecordingStartTime":"Thu, 16 Apr 2026 13:02:32 +0000","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","RecordingDuration":"1"}
+]: Recording saved for call 8ce832c6-ffc9-426c-8bc7-a18234f0691b: https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/RE2d4255683e09fc3194225eed87ef4569.mp3
+]: 3.91.32.199 - - [16/Apr/2026:13:02:37 +0000] "POST /webhook/recording/status?callId=8ce832c6-ffc9-426c-8bc7-a18234f0691b&wt=kuralai-secret-2026 HTTP/1.1" 200 2 "-" "TwilioProxy/1.1"

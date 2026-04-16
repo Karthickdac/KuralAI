@@ -254,7 +254,7 @@ async function processSpeechInput(callId, turn, speechResultUrl, speechResultTex
     return generateConversationExoML(tts.playableUrl, callId, turn + 1, aiResult.response);
 
   } catch (error) {
-    logger.error(`Conversation processing error for call ${callId}:`, error);
+    logger.error(`Conversation processing error for call ${callId}:`, error?.message || error);
     await logEvent(callId, 'processing_error', 'error', error.message);
 
     // Play error fallback and continue

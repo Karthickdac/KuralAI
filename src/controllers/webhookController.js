@@ -64,7 +64,7 @@ async function handleCallAnswer(req, res) {
     const exoml = await processCallAnswer(callId);
     res.type('text/xml').send(exoml);
   } catch (error) {
-    logger.error('handleCallAnswer error:', error);
+    logger.error('handleCallAnswer error:', error?.message || error);
     res.type('text/xml').send(_errorExoML());
   }
 }
@@ -81,7 +81,7 @@ async function handleConversationStart(req, res) {
     const exoml = await processCallAnswer(callId);
     res.type('text/xml').send(exoml);
   } catch (error) {
-    logger.error('handleConversationStart error:', error);
+    logger.error('handleConversationStart error:', error?.message || error);
     res.type('text/xml').send(_errorExoML());
   }
 }
@@ -107,7 +107,7 @@ async function handleSpeechInput(req, res) {
     );
     res.type('text/xml').send(exoml);
   } catch (error) {
-    logger.error('handleSpeechInput error:', error);
+    logger.error('handleSpeechInput error:', error?.message || error);
     res.type('text/xml').send(_errorExoML());
   }
 }
@@ -124,7 +124,7 @@ async function handleSilenceTimeout(req, res) {
     const exoml = await processSpeechInput(callId, parseInt(turn), null, null);
     res.type('text/xml').send(exoml);
   } catch (error) {
-    logger.error('handleSilenceTimeout error:', error);
+    logger.error('handleSilenceTimeout error:', error?.message || error);
     res.type('text/xml').send(_errorExoML());
   }
 }
@@ -162,7 +162,7 @@ async function handleCallStatus(req, res) {
 
     await call.update(updateData);
   } catch (error) {
-    logger.error('handleCallStatus error:', error);
+    logger.error('handleCallStatus error:', error?.message || error);
   }
 
   res.sendStatus(200);
@@ -310,7 +310,7 @@ async function handleIncomingCall(req, res) {
     res.type('text/xml').send(exoml);
     return;
   } catch (error) {
-    logger.error('handleIncomingCall error:', error);
+    logger.error('handleIncomingCall error:', error?.message || error);
     res.type('text/xml').send(_errorExoML());
   }
 }
