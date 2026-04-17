@@ -280,13 +280,13 @@ export default function DynamicCall() {
           <Modal title="Import CSV / Excel" onClose={() => setModal(null)}>
             <form onSubmit={handleImport} style={{ padding: '16px 24px' }}>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>
-                New rows will be <b>added</b> to your existing table. The table is only cleared when you click Delete. Supported formats: .csv, .xlsx, .xls
+                Importing will <b>replace</b> the existing dynamic table. Supported formats: .csv, .xlsx, .xls
               </p>
               <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls,.tsv" required
                 style={{ display: 'block', marginBottom: 16 }} />
               {importResult && (
                 <div style={{ background: 'var(--success-bg)', color: 'var(--success-text)', padding: 12, borderRadius: 6, marginBottom: 12, fontSize: 13 }}>
-                  ✓ Added {importResult.imported} rows{importResult.total != null ? ` • ${importResult.total} total` : ''} • {importResult.columns.length} columns
+                  ✓ Imported {importResult.imported} rows • {importResult.columns.length} columns
                   <br/>Phone: <b>{importResult.phoneColumn}</b> • Name: <b>{importResult.nameColumn}</b>
                 </div>
               )}

@@ -98,29 +98,17 @@ router.post('/import', upload.single('file'), async (req, res) => {
       data: r,
     }));
 
-    // Append-only: preserve existing rows, keep/update schema, add new rows.
-    // The table is only cleared via explicit DELETE.
+    // Atomically wipe + recreate
     await sequelize.transaction(async (t) => {
-      const existing = await DynamicTableSchema.findOne({ where: { organizationId: orgId }, transaction: t });
-      if (existing) {
-        // Merge column list so older rows' fields stay represented
-        const merged = Array.from(new Set([...(existing.columns || []), ...columns]));
-        await existing.update({
-          tableName: existing.tableName || tableName,
-          columns: merged,
-          phoneColumn: existing.phoneColumn || phoneColumn,
-          nameColumn: existing.nameColumn || nameColumn,
-        }, { transaction: t });
-      } else {
-        await DynamicTableSchema.create({
-          organizationId: orgId, tableName, columns, phoneColumn, nameColumn,
-        }, { transaction: t });
-      }
+      await DynamicCustomer.destroy({ where: { organizationId: orgId }, transaction: t });
+      await DynamicTableSchema.destroy({ where: { organizationId: orgId }, transaction: t });
+      await DynamicTableSchema.create({
+        organizationId: orgId, tableName, columns, phoneColumn, nameColumn,
+      }, { transaction: t });
       await DynamicCustomer.bulkCreate(rowsToInsert, { transaction: t });
     });
 
-    const total = await DynamicCustomer.count({ where: { organizationId: orgId } });
-    res.json({ success: true, imported: rowsToInsert.length, total, columns, phoneColumn, nameColumn, tableName, appended: true });
+    res.json({ success: true, imported: rowsToInsert.length, columns, phoneColumn, nameColumn, tableName });
   } catch (e) {
     logger.error('[dynamic-call] import failed:', e);
     res.status(500).json({ success: false, error: e.message });
