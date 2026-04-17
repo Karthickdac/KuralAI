@@ -76,6 +76,16 @@ export const settingsApi = {
   update: (data) => api.put('/api/settings', data),
 };
 
+export const dynamicCallApi = {
+  list: () => api.get('/api/dynamic-call'),
+  import: (formData) => api.post('/api/dynamic-call/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  deleteAll: () => api.delete('/api/dynamic-call'),
+  deleteRow: (id) => api.delete(`/api/dynamic-call/${id}`),
+  call: (id, callType = 'dynamic') => api.post(`/api/dynamic-call/call/${id}`, { callType }),
+};
+
 export const workflowsApi = {
   list: () => api.get('/api/workflows'),
   create: (data) => api.post('/api/workflows', data),

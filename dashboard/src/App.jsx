@@ -12,6 +12,7 @@ import Reports from './pages/Reports';
 import Simulate from './pages/Simulate';
 import Templates from './pages/Templates';
 import Customers from './pages/Customers';
+import DynamicCall from './pages/DynamicCall';
 import Campaigns from './pages/Campaigns';
 import ApiConfig from './pages/ApiConfig';
 import CrmIntegration from './pages/CrmIntegration';
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/users" element={<SuperAdminRoute><Users /></SuperAdminRoute>} />
         <Route path="/settings" element={<SuperAdminRoute><Settings /></SuperAdminRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+        <Route path="/dynamic-call" element={<ProtectedRoute><DynamicCall /></ProtectedRoute>} />
         <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
         <Route path="/simulate" element={<ProtectedRoute><Simulate /></ProtectedRoute>} />
         <Route path="/api-config" element={<SuperAdminRoute><ApiConfig /></SuperAdminRoute>} />

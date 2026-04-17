@@ -95,6 +95,7 @@ app.use('/api/workflows', workflowRoutes);
 app.use('/api/tts', ttsRoutes);
 app.use('/api/simulate', simulateRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/dynamic-call', require('./routes/dynamicCall.routes'));
 app.use('/api/templates', templateRoutes);
 app.use('/api/external/v1', externalRoutes);
 app.use('/api/campaigns', campaignRoutes);

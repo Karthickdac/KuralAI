@@ -49,6 +49,15 @@ async function initiateCall(toPhone, callId, callMeta = {}) {
     office_hours:  s.officeHours  || 'காலை 10 மணி முதல் மாலை 6 மணி வரை',
     support_number: s.supportNumber || s.escalationPhone || '',
     office_address: s.officeAddress || '',
+    // Spread arbitrary fields from a Dynamic Call import (sanitized keys)
+    ...(callMeta.customData && typeof callMeta.customData === 'object'
+      ? Object.fromEntries(
+          Object.entries(callMeta.customData).map(([k, v]) => [
+            String(k).toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '') || 'field',
+            v == null ? '' : String(v),
+          ])
+        )
+      : {}),
   };
 
   const url = `${ELEVENLABS_API}/v1/convai/twilio/outbound-call`;

@@ -97,6 +97,7 @@ const TENANT_NAV = [
       { key: 'dashboard', label: 'Dashboard', path: '/', icon: ICON.dashboard },
       { key: 'calls', label: 'All Calls', path: '/calls', icon: ICON.calls },
       { key: 'customers', label: 'Customers', path: '/customers', icon: ICON.customers },
+      { key: 'dynamic-call', label: 'Dynamic Call', path: '/dynamic-call', icon: ICON.calls },
     ],
   },
   {

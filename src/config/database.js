@@ -47,6 +47,8 @@ async function initDatabase() {
   require('../models/CallLog');
   require('../models/User');
   require('../models/Customer');
+  require('../models/DynamicCustomer');
+  require('../models/DynamicTableSchema');
   require('../models/ChitAccount');
   require('../models/QaTemplate');
   require('../models/PromptTemplate');
