@@ -26,6 +26,7 @@ const DEFAULTS = {
   inboundWorkflowId: '',
   apiKey: '',
   razorpayKeyId: '', razorpayKeySecret: '',
+  elevenlabsToolKey: '',
 };
 
 function readFromFile() {
