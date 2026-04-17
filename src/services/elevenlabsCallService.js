@@ -32,8 +32,6 @@ async function initiateCall(toPhone, callId, callMeta = {}) {
   if (!agentId)    throw new Error('ElevenLabs agent ID not configured (set elevenlabsAgentId in Settings)');
   if (!phoneNumId) throw new Error('ElevenLabs phone number ID not configured (import Twilio number in ElevenLabs and paste ID in Settings)');
 
-  const disclaimer = (s.recordingDisclaimer || '').trim();
-
   // Build dynamic variables for the agent's prompt + first message
   const dynamicVariables = {
     customer_id:   callMeta.customerId || callId,
@@ -51,7 +49,6 @@ async function initiateCall(toPhone, callId, callMeta = {}) {
     office_hours:  s.officeHours  || 'காலை 10 மணி முதல் மாலை 6 மணி வரை',
     support_number: s.supportNumber || s.escalationPhone || '',
     office_address: s.officeAddress || '',
-    recording_disclaimer: disclaimer,
   };
 
   const url = `${ELEVENLABS_API}/v1/convai/twilio/outbound-call`;
@@ -61,14 +58,6 @@ async function initiateCall(toPhone, callId, callMeta = {}) {
     to_number: toPhone,
     conversation_initiation_client_data: {
       dynamic_variables: dynamicVariables,
-      // Prepend the recording disclaimer to the agent's first message
-      ...(disclaimer ? {
-        conversation_config_override: {
-          agent: {
-            first_message: `${disclaimer} ${callMeta.customerName ? `வணக்கம் ${callMeta.customerName}!` : 'வணக்கம்!'} நான் ${callMeta.companyName || s.companyName || 'Automystics'}-ல இருந்து சமுத்ரா பேசுறேன்.`,
-          },
-        },
-      } : {}),
     },
   };
 
