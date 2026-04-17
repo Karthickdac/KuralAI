@@ -102,6 +102,7 @@ app.use('/api/api-config', apiConfigRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/elevenlabs/tools', require('./routes/elevenlabsTools.routes'));
 
 // Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);
