@@ -83,6 +83,10 @@ const DEFAULTS = {
   officeHours:     process.env.OFFICE_HOURS || '',
   supportNumber:   process.env.SUPPORT_NUMBER || '',
   officeAddress:   process.env.OFFICE_ADDRESS || '',
+  // Currency conversion (USD -> INR rate, super-admin cost display)
+  usdToInrRate:    parseFloat(process.env.USD_TO_INR_RATE) || 83.5,
+  // Recording disclaimer played/spoken at the start of every call
+  recordingDisclaimer: process.env.RECORDING_DISCLAIMER || 'இந்த அழைப்பு பயிற்சி மற்றும் தர நோக்கங்களுக்காக பதிவு செய்யப்படுகிறது.',
 };
 
 // ── DB helpers ─────────────────────────────────────────────────────────────────
@@ -167,6 +171,8 @@ const ENV_MAP = {
   apiKey:                  'KURAL_API_KEY',
   razorpayKeyId:           'RAZORPAY_KEY_ID',
   razorpayKeySecret:       'RAZORPAY_KEY_SECRET',
+  usdToInrRate:                    'USD_TO_INR_RATE',
+  recordingDisclaimer:             'RECORDING_DISCLAIMER',
   elevenlabsToolKey:               'ELEVENLABS_TOOL_KEY',
   elevenlabsAgentId:               'ELEVENLABS_AGENT_ID',
   elevenlabsAgentPhoneNumberId:    'ELEVENLABS_AGENT_PHONE_NUMBER_ID',

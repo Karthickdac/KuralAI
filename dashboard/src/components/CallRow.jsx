@@ -1,5 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { settingsApi } from '../api/client';
+
+// Module-level cache so we fetch the FX rate only once across all rows
+let _rate = 83.5;
+let _ratePromise = null;
+function loadRate() {
+  if (!_ratePromise) {
+    _ratePromise = settingsApi.get()
+      .then(res => { _rate = parseFloat(res?.data?.usdToInrRate) || 83.5; return _rate; })
+      .catch(() => _rate);
+  }
+  return _ratePromise;
+}
+function useInrRate() {
+  const [rate, setRate] = useState(_rate);
+  useEffect(() => { loadRate().then(setRate); }, []);
+  return rate;
+}
 
 const STATUS_STYLES = {
   completed:    { bg: 'var(--success-bg)', color: 'var(--success-text)' },
@@ -171,29 +189,36 @@ function RecordingPlayer({ callId }) {
   );
 }
 
-function fmtElCost(cost) {
-  if (!cost) return null;
-  const parts = [];
-  if (cost.credits != null) parts.push(`${Math.round(cost.credits).toLocaleString()} cr`);
-  if (cost.totalUsd != null) parts.push(`$${Number(cost.totalUsd).toFixed(4)}`);
-  else if (cost.llmPriceUsd != null) parts.push(`$${Number(cost.llmPriceUsd).toFixed(4)}`);
-  return parts.length ? parts.join(' \u00b7 ') : null;
+function inr(n) {
+  if (n == null || isNaN(n)) return null;
+  return `\u20B9${Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`;
 }
 
-function fmtTwCost(tw) {
+function fmtElCost(cost, rate) {
+  if (!cost) return null;
+  const usd = cost.totalUsd ?? cost.llmPriceUsd;
+  if (usd != null) return inr(usd * rate);
+  if (cost.credits != null) return `${Math.round(cost.credits).toLocaleString()} cr`;
+  return null;
+}
+
+function fmtTwCost(tw, rate) {
   if (!tw || tw.price == null) return null;
-  const unit = tw.priceUnit === 'USD' ? '$' : `${tw.priceUnit} `;
-  return `${unit}${Number(tw.price).toFixed(4)}`;
+  const usd = tw.priceUnit === 'USD' ? Number(tw.price) : Number(tw.price);
+  return inr(usd * rate);
 }
 
 export default function CallRow({ call, onView }) {
   const { user } = useAuth();
+  const rate = useInrRate();
   const isSuperAdmin = user?.role === 'superadmin';
   const hasRecording = !!call.recordingUrl;
   const elCost = call.metadata?.elevenlabs?.cost;
   const twCost = call.metadata?.twilio;
-  const elLabel = isSuperAdmin ? fmtElCost(elCost) : null;
-  const twLabel = isSuperAdmin ? fmtTwCost(twCost) : null;
+  const elLabel = isSuperAdmin ? fmtElCost(elCost, rate) : null;
+  const twLabel = isSuperAdmin ? fmtTwCost(twCost, rate) : null;
+  const totalUsd = (elCost?.totalUsd || elCost?.llmPriceUsd || 0) + (twCost?.price || 0);
+  const totalLabel = isSuperAdmin && totalUsd > 0 ? inr(totalUsd * rate) : null;
 
   return (
     <tr style={{ transition: 'background 0.15s' }}
@@ -229,30 +254,17 @@ export default function CallRow({ call, onView }) {
       <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(call.createdAt)}</td>
       <td style={{ paddingRight: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-          {elLabel && (
+          {totalLabel && (
             <span
-              title="ElevenLabs charges (super admin only)"
+              title={`Total cost (super admin only)${elLabel ? `\nElevenLabs: ${elLabel}` : ''}${twLabel ? `\nTwilio: ${twLabel}` : ''}`}
               style={{
-                fontSize: 11, fontWeight: 600, color: '#92400E',
-                background: '#FEF3C7', border: '1px solid #FDE68A',
+                fontSize: 11, fontWeight: 700, color: '#065F46',
+                background: '#D1FAE5', border: '1px solid #A7F3D0',
                 padding: '3px 8px', borderRadius: 6, fontFamily: 'var(--font-mono)',
                 whiteSpace: 'nowrap',
               }}
             >
-              EL {elLabel}
-            </span>
-          )}
-          {twLabel && (
-            <span
-              title="Twilio charges (super admin only)"
-              style={{
-                fontSize: 11, fontWeight: 600, color: '#1E40AF',
-                background: '#DBEAFE', border: '1px solid #BFDBFE',
-                padding: '3px 8px', borderRadius: 6, fontFamily: 'var(--font-mono)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              TW {twLabel}
+              {totalLabel}
             </span>
           )}
           <button
