@@ -8,7 +8,11 @@ let _ratePromise = null;
 function loadRate() {
   if (!_ratePromise) {
     _ratePromise = settingsApi.get()
-      .then(res => { _rate = parseFloat(res?.data?.usdToInrRate) || 83.5; return _rate; })
+      .then(res => {
+        const s = res?.data?.settings || res?.data || {};
+        _rate = parseFloat(s.usdToInrRate) || 83.5;
+        return _rate;
+      })
       .catch(() => _rate);
   }
   return _ratePromise;
