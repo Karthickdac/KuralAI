@@ -22,9 +22,17 @@ async function resolveEngine(explicitEngine, callMeta = {}) {
     try {
       const Campaign = require('../models/Campaign');
       const c = await Campaign.findByPk(callMeta.campaignId);
-      if (c?.engine) return c.engine;
+      if (c?.engine) return String(c.engine).toLowerCase();
     } catch {}
   }
+
+  // Fallback: global default engine from app settings
+  try {
+    const { getSettings } = require('./settingsService');
+    const s = await getSettings();
+    if (s?.defaultEngine) return String(s.defaultEngine).toLowerCase();
+  } catch {}
+
   return 'kuralai';
 }
 

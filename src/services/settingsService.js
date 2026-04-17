@@ -29,6 +29,7 @@ const DEFAULTS = {
   elevenlabsToolKey: '',
   elevenlabsAgentId: '',
   elevenlabsAgentPhoneNumberId: '',
+  defaultEngine: 'kuralai',
   companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 

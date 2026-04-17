@@ -48,7 +48,7 @@ export default function Campaigns() {
   const [customers, setCustomers] = useState([]);
   const [form, setForm] = useState({
     name: '', type: 'due_reminder', concurrency: 1,
-    customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '', engine: 'kuralai',
+    customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -90,7 +90,7 @@ export default function Campaigns() {
   }
 
   function openCreate() {
-    setForm({ name: '', type: 'due_reminder', concurrency: 1, customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '', engine: 'kuralai' });
+    setForm({ name: '', type: 'due_reminder', concurrency: 1, customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '' });
     loadCustomers();
     setShowCreate(true);
   }
@@ -215,8 +215,10 @@ export default function Campaigns() {
               <tr>
                 <th>Name</th>
                 <th>Type</th>
+                <th>Engine</th>
                 <th>Status</th>
                 <th>Progress</th>
+                <th>Customers</th>
                 <th>Concurrency</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -224,17 +226,26 @@ export default function Campaigns() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32 }}>Loading...</td></tr>
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 32 }}>Loading...</td></tr>
               ) : campaigns.length === 0 ? (
-                <tr><td colSpan={7} className={styles.empty}>No campaigns yet. Create one to start calling.</td></tr>
+                <tr><td colSpan={9} className={styles.empty}>No campaigns yet. Create one to start calling.</td></tr>
               ) : campaigns.map(c => (
                 <tr key={c.id}>
                   <td>
-                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', fontSize: 13 }} onClick={() => openDetail(c.id)}>
+                    <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, color: 'var(--primary)', fontSize: 13, textAlign: 'left' }} onClick={() => openDetail(c.id)}>
                       {c.name}
                     </button>
                   </td>
                   <td>{TYPE_LABELS[c.type] || c.type}</td>
+                  <td>
+                    <span style={{
+                      display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                      background: (c.engine === 'elevenlabs') ? '#ede9fe' : '#e0f2fe',
+                      color:      (c.engine === 'elevenlabs') ? '#5b21b6' : '#075985',
+                    }}>
+                      {c.engine === 'elevenlabs' ? 'ElevenLabs' : 'KuralAI'}
+                    </span>
+                  </td>
                   <td><span className={`${styles.badge} ${styles[c.status]}`}>{c.status}</span></td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -243,6 +254,10 @@ export default function Campaigns() {
                       </div>
                       <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{c.completedCalls || 0}/{c.totalCalls}</span>
                     </div>
+                  </td>
+                  <td style={{ textAlign: 'center', fontSize: 12 }}>
+                    <div>{c.totalCalls || 0}</div>
+                    {c.failedCalls > 0 && <div style={{ color: '#dc2626', fontSize: 11 }}>{c.failedCalls} failed</div>}
                   </td>
                   <td style={{ textAlign: 'center' }}>{c.concurrency}</td>
                   <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatDate(c.createdAt)}</td>
@@ -295,12 +310,9 @@ export default function Campaigns() {
                 <label htmlFor="recordCalls">Record all calls</label>
               </div>
 
-              <Field label="Voice Engine" hint="KuralAI = scripted engine (default). ElevenLabs = Conversational AI agent (Samuthra) — requires Agent ID + Phone Number ID in Settings.">
-                <select className={styles.input} value={form.engine} onChange={e => setForm(p => ({ ...p, engine: e.target.value }))}>
-                  <option value="kuralai">KuralAI Scripted Engine (default)</option>
-                  <option value="elevenlabs">ElevenLabs Conversational AI (Samuthra)</option>
-                </select>
-              </Field>
+              <div style={{ padding: '10px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6, fontSize: 12, color: '#075985', marginBottom: 4 }}>
+                Voice engine is configured globally in <strong>Settings → AI &amp; Voice → Default Voice Engine</strong>. All calls in this campaign will use the engine selected there.
+              </div>
 
               <Field label="Callback URL (optional - push recordings to external system)">
                 <input className={styles.input} value={form.callbackUrl} onChange={e => setForm(p => ({ ...p, callbackUrl: e.target.value }))} placeholder="https://your-crm.com/api/webhooks/calls" />
@@ -361,6 +373,18 @@ export default function Campaigns() {
                 <div className={styles.detailCard}>
                   <div className={styles.detailLabel}>Recording</div>
                   <div className={styles.detailValue}>{detail.recordCalls ? 'On' : 'Off'}</div>
+                </div>
+                <div className={styles.detailCard}>
+                  <div className={styles.detailLabel}>Engine</div>
+                  <div className={styles.detailValue} style={{ fontSize: 13 }}>
+                    <span style={{
+                      display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 600,
+                      background: (detail.engine === 'elevenlabs') ? '#ede9fe' : '#e0f2fe',
+                      color:      (detail.engine === 'elevenlabs') ? '#5b21b6' : '#075985',
+                    }}>
+                      {detail.engine === 'elevenlabs' ? 'ElevenLabs Samuthra' : 'KuralAI Scripted'}
+                    </span>
+                  </div>
                 </div>
               </div>
 

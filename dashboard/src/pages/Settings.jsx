@@ -278,6 +278,12 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
 
         {s.ttsProvider === 'elevenlabs' && (
           <div className={styles.grid}>
+            <Field label="Default Voice Engine" hint="Applies to ALL outbound calls (Campaigns + customer Call buttons + bulk + retries). Switch to ElevenLabs to use Samuthra agent everywhere.">
+              <select className={styles.input} value={s.defaultEngine || 'kuralai'} onChange={e => onChange('defaultEngine', e.target.value)}>
+                <option value="kuralai">KuralAI Scripted Engine</option>
+                <option value="elevenlabs">ElevenLabs Conversational AI (Samuthra)</option>
+              </select>
+            </Field>
             <Field label="ElevenLabs API Key" hint="elevenlabs.io → Profile → API Key">
               <SecretInput name="elevenLabsApiKey" value={s.elevenLabsApiKey || ''} onChange={e => onChange('elevenLabsApiKey', e.target.value)} placeholder="sk_..." alreadySaved={savedCreds.has('elevenLabsApiKey')} />
             </Field>
