@@ -6,6 +6,7 @@ const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { buildChitMetadata } = require('./customerController');
 const { initiateCall } = require('../services/telephonyService');
+const { dispatchCall } = require('../services/callDispatcher');
 const creditService = require('../services/creditService');
 const logger = require('../utils/logger');
 
@@ -61,7 +62,7 @@ async function initiateCallController(req, res) {
 
     logger.info(`Call initiated: ${call.id} -> ${toPhone} | customer=${enrichedMeta.customerName || 'unknown'} | chit=${enrichedMeta.chitGroup || 'none'}`);
 
-    const exotelCall = await initiateCall(toPhone, call.id, enrichedMeta);
+    const exotelCall = await dispatchCall(toPhone, call.id, enrichedMeta);
 
     await call.update({
       callSid: exotelCall.sid,
@@ -227,7 +228,7 @@ async function bulkCallController(req, res) {
           organizationId: orgId,
         });
 
-        const exotelCall = await initiateCall(toPhone, call.id, enrichedMeta);
+        const exotelCall = await dispatchCall(toPhone, call.id, enrichedMeta);
         await call.update({ callSid: exotelCall.sid, status: 'queued' });
         logger.info(`Bulk call ${i + 1}/${targets.length}: ${call.id} -> ${toPhone}`);
 
@@ -327,7 +328,7 @@ async function retryCall(req, res) {
   }
 
   try {
-    const exotelCall = await initiateCall(call.toPhone, call.id, call.metadata);
+    const exotelCall = await dispatchCall(call.toPhone, call.id, call.metadata);
 
     await call.update({
       callSid: exotelCall.sid,

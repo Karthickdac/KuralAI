@@ -48,7 +48,7 @@ export default function Campaigns() {
   const [customers, setCustomers] = useState([]);
   const [form, setForm] = useState({
     name: '', type: 'due_reminder', concurrency: 1,
-    customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '',
+    customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '', engine: 'kuralai',
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -90,7 +90,7 @@ export default function Campaigns() {
   }
 
   function openCreate() {
-    setForm({ name: '', type: 'due_reminder', concurrency: 1, customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '' });
+    setForm({ name: '', type: 'due_reminder', concurrency: 1, customerIds: [], scheduledAt: '', recordCalls: true, callbackUrl: '', engine: 'kuralai' });
     loadCustomers();
     setShowCreate(true);
   }
@@ -294,6 +294,13 @@ export default function Campaigns() {
                 <input type="checkbox" checked={form.recordCalls} onChange={e => setForm(p => ({ ...p, recordCalls: e.target.checked }))} id="recordCalls" />
                 <label htmlFor="recordCalls">Record all calls</label>
               </div>
+
+              <Field label="Voice Engine" hint="KuralAI = scripted engine (default). ElevenLabs = Conversational AI agent (Samuthra) — requires Agent ID + Phone Number ID in Settings.">
+                <select className={styles.input} value={form.engine} onChange={e => setForm(p => ({ ...p, engine: e.target.value }))}>
+                  <option value="kuralai">KuralAI Scripted Engine (default)</option>
+                  <option value="elevenlabs">ElevenLabs Conversational AI (Samuthra)</option>
+                </select>
+              </Field>
 
               <Field label="Callback URL (optional - push recordings to external system)">
                 <input className={styles.input} value={form.callbackUrl} onChange={e => setForm(p => ({ ...p, callbackUrl: e.target.value }))} placeholder="https://your-crm.com/api/webhooks/calls" />

@@ -31,7 +31,7 @@ const CREDENTIAL_KEYS = [
   'exotelSid', 'exotelApiKey', 'exotelApiToken', 'exotelWebhookToken',
   'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
-  'elevenLabsApiKey', 'razorpayKeyId', 'razorpayKeySecret',
+  'elevenLabsApiKey', 'razorpayKeyId', 'razorpayKeySecret', 'elevenlabsToolKey',
 ];
 
 const NAV_ITEMS = [
@@ -280,6 +280,15 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
           <div className={styles.grid}>
             <Field label="ElevenLabs API Key" hint="elevenlabs.io → Profile → API Key">
               <SecretInput name="elevenLabsApiKey" value={s.elevenLabsApiKey || ''} onChange={e => onChange('elevenLabsApiKey', e.target.value)} placeholder="sk_..." alreadySaved={savedCreds.has('elevenLabsApiKey')} />
+            </Field>
+            <Field label="Conversational Agent ID" hint="ElevenLabs → Conversational AI → Agent → settings → Agent ID (only needed for the ElevenLabs engine)">
+              <input className={styles.input} value={s.elevenlabsAgentId || ''} onChange={e => onChange('elevenlabsAgentId', e.target.value)} placeholder="agent_xxxxxxxxxxxxxxxxxxxxxxxx" />
+            </Field>
+            <Field label="Agent Phone Number ID" hint="ElevenLabs → Phone Numbers → your imported Twilio number → ID">
+              <input className={styles.input} value={s.elevenlabsAgentPhoneNumberId || ''} onChange={e => onChange('elevenlabsAgentPhoneNumberId', e.target.value)} placeholder="phnum_xxxxxxxxxxxxxxxxxxxxxxxx" />
+            </Field>
+            <Field label="Tool Webhook Key" hint="X-API-Key value used in the 7 ElevenLabs tools — must match what tools send to /api/elevenlabs/tools/*">
+              <SecretInput name="elevenlabsToolKey" value={s.elevenlabsToolKey || ''} onChange={e => onChange('elevenlabsToolKey', e.target.value)} placeholder="kuralai_automystics" alreadySaved={savedCreds.has('elevenlabsToolKey')} />
             </Field>
             <Field label="Voice Preset" hint="Pick a built-in voice or enter a custom Voice ID">
               <select className={styles.input} value={elVoicePreset} onChange={e => {

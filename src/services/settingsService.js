@@ -27,6 +27,9 @@ const DEFAULTS = {
   apiKey: '',
   razorpayKeyId: '', razorpayKeySecret: '',
   elevenlabsToolKey: '',
+  elevenlabsAgentId: '',
+  elevenlabsAgentPhoneNumberId: '',
+  companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 
 function readFromFile() {

@@ -69,6 +69,11 @@ const Campaign = sequelize.define('Campaign', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  engine: {
+    type: DataTypes.ENUM('kuralai', 'elevenlabs'),
+    defaultValue: 'kuralai',
+    comment: 'Voice engine: kuralai (default scripted engine) or elevenlabs (Conversational AI)',
+  },
   callbackUrl: {
     type: DataTypes.TEXT,
     allowNull: true,

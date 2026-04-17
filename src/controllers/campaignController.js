@@ -7,6 +7,7 @@ const Customer = require('../models/Customer');
 const ChitAccount = require('../models/ChitAccount');
 const { buildChitMetadata } = require('./customerController');
 const { initiateCall } = require('../services/telephonyService');
+const { dispatchCall } = require('../services/callDispatcher');
 const creditService = require('../services/creditService');
 const { notifyDashboard } = require('../websocket/wsServer');
 const logger = require('../utils/logger');
@@ -78,7 +79,7 @@ async function getCampaign(req, res) {
 }
 
 async function createCampaign(req, res) {
-  const { name, type = 'due_reminder', customerIds = [], concurrency = 1, scheduledAt, metadata = {}, workflowId, recordCalls = true, callbackUrl } = req.body;
+  const { name, type = 'due_reminder', customerIds = [], concurrency = 1, scheduledAt, metadata = {}, workflowId, recordCalls = true, callbackUrl, engine = 'kuralai' } = req.body;
   const orgId = req.user?.organizationId || null;
 
   if (!name) return res.status(400).json({ error: 'Campaign name is required' });
@@ -97,6 +98,7 @@ async function createCampaign(req, res) {
     workflowId,
     recordCalls,
     callbackUrl,
+    engine: ['kuralai','elevenlabs'].includes(engine) ? engine : 'kuralai',
     createdBy: req.user?.id,
     organizationId: orgId,
   });
@@ -112,7 +114,8 @@ async function updateCampaign(req, res) {
     return res.status(400).json({ error: 'Cannot edit a running or completed campaign' });
   }
 
-  const { name, type, customerIds, concurrency, scheduledAt, metadata, workflowId, recordCalls, callbackUrl } = req.body;
+  const { name, type, customerIds, concurrency, scheduledAt, metadata, workflowId, recordCalls, callbackUrl, engine } = req.body;
+  if (engine !== undefined && ['kuralai','elevenlabs'].includes(engine)) req.body._engineValid = engine;
   const update = {};
   if (name !== undefined) update.name = name;
   if (type !== undefined) update.type = type;
@@ -123,6 +126,7 @@ async function updateCampaign(req, res) {
   if (workflowId !== undefined) update.workflowId = workflowId;
   if (recordCalls !== undefined) update.recordCalls = recordCalls;
   if (callbackUrl !== undefined) update.callbackUrl = callbackUrl;
+  if (req.body._engineValid) update.engine = req.body._engineValid;
 
   await campaign.update(update);
   res.json({ success: true, campaign });
@@ -242,7 +246,8 @@ async function executeCampaign(campaignId) {
         organizationId: orgId,
       });
 
-      const result = await initiateCall(customer.phone, call.id, enrichedMeta);
+      const _enginedMeta = { ...enrichedMeta, campaignId, engine: campaign?.engine };
+      const result = await dispatchCall(customer.phone, call.id, _enginedMeta);
       await call.update({ callSid: result.sid, status: 'queued' });
 
       completedCallIds.push(call.id);
