@@ -171,21 +171,29 @@ function RecordingPlayer({ callId }) {
   );
 }
 
-function fmtCost(cost) {
+function fmtElCost(cost) {
   if (!cost) return null;
   const parts = [];
   if (cost.credits != null) parts.push(`${Math.round(cost.credits).toLocaleString()} cr`);
   if (cost.totalUsd != null) parts.push(`$${Number(cost.totalUsd).toFixed(4)}`);
-  else if (cost.llmPriceUsd != null) parts.push(`$${Number(cost.llmPriceUsd).toFixed(4)} LLM`);
+  else if (cost.llmPriceUsd != null) parts.push(`$${Number(cost.llmPriceUsd).toFixed(4)}`);
   return parts.length ? parts.join(' \u00b7 ') : null;
+}
+
+function fmtTwCost(tw) {
+  if (!tw || tw.price == null) return null;
+  const unit = tw.priceUnit === 'USD' ? '$' : `${tw.priceUnit} `;
+  return `${unit}${Number(tw.price).toFixed(4)}`;
 }
 
 export default function CallRow({ call, onView }) {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
   const hasRecording = !!call.recordingUrl;
-  const cost = call.metadata?.elevenlabs?.cost;
-  const costLabel = isSuperAdmin ? fmtCost(cost) : null;
+  const elCost = call.metadata?.elevenlabs?.cost;
+  const twCost = call.metadata?.twilio;
+  const elLabel = isSuperAdmin ? fmtElCost(elCost) : null;
+  const twLabel = isSuperAdmin ? fmtTwCost(twCost) : null;
 
   return (
     <tr style={{ transition: 'background 0.15s' }}
@@ -221,7 +229,7 @@ export default function CallRow({ call, onView }) {
       <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(call.createdAt)}</td>
       <td style={{ paddingRight: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-          {costLabel && (
+          {elLabel && (
             <span
               title="ElevenLabs charges (super admin only)"
               style={{
@@ -231,7 +239,20 @@ export default function CallRow({ call, onView }) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {costLabel}
+              EL {elLabel}
+            </span>
+          )}
+          {twLabel && (
+            <span
+              title="Twilio charges (super admin only)"
+              style={{
+                fontSize: 11, fontWeight: 600, color: '#1E40AF',
+                background: '#DBEAFE', border: '1px solid #BFDBFE',
+                padding: '3px 8px', borderRadius: 6, fontFamily: 'var(--font-mono)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              TW {twLabel}
             </span>
           )}
           <button

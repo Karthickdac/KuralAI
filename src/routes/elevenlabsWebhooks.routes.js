@@ -154,6 +154,52 @@ router.post('/post-call', express.json({ limit: '10mb' }), async (req, res) => {
     await call.update(update);
     logger.info(`[ElevenLabs webhook] call ${call.id} updated: duration=${durationSecs}s transcript=${transcript.length} turns`);
 
+    // Fetch Twilio call charges in the background (price may not be ready immediately)
+    if (call.callSid) {
+      (async () => {
+        try {
+          const sidEnv = s.twilioAccountSid || process.env.TWILIO_ACCOUNT_SID;
+          const tokenEnv = s.twilioAuthToken || process.env.TWILIO_AUTH_TOKEN;
+          if (!sidEnv || !tokenEnv) return;
+          const twilio = require('twilio')(sidEnv, tokenEnv);
+          // Retry up to 3 times — Twilio price can lag 30-60s after call ends
+          let tw = null;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            await new Promise(r => setTimeout(r, attempt === 0 ? 5000 : 30000));
+            try {
+              tw = await twilio.calls(call.callSid).fetch();
+              if (tw && tw.price != null) break;
+            } catch (e) {
+              logger.warn(`[ElevenLabs webhook] twilio fetch attempt ${attempt + 1} failed: ${e.message}`);
+            }
+          }
+          if (tw) {
+            const priceNum = tw.price != null ? Math.abs(parseFloat(tw.price)) : null;
+            const fresh = await Call.findByPk(call.id);
+            if (!fresh) return;
+            await fresh.update({
+              metadata: {
+                ...(fresh.metadata || {}),
+                twilio: {
+                  callSid: tw.sid,
+                  price: priceNum,
+                  priceUnit: tw.priceUnit || 'USD',
+                  duration: tw.duration ? parseInt(tw.duration, 10) : null,
+                  status: tw.status,
+                  fromCountry: tw.fromFormatted,
+                  toCountry: tw.toFormatted,
+                  fetchedAt: Date.now(),
+                },
+              },
+            });
+            logger.info(`[ElevenLabs webhook] twilio cost for call ${call.id}: ${priceNum} ${tw.priceUnit || 'USD'}`);
+          }
+        } catch (e) {
+          logger.warn(`[ElevenLabs webhook] twilio cost fetch failed: ${e.message}`);
+        }
+      })();
+    }
+
     // Mirror transcript turns into the Transcript table so the dashboard can show them
     if (transcript.length > 0) {
       try {
