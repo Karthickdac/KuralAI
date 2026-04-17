@@ -1,0 +1,42 @@
+[TAILING] Tailing last 40 lines for [kuralai] process (change the value with --lines option)
+/root/.pm2/logs/kuralai-error.log last 40 lines:
+0|kuralai  |   requireStack: [
+0|kuralai  |     '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+0|kuralai  |   ]
+0|kuralai  | }
+0|kuralai  | Error: Cannot find module 'dotenv'
+0|kuralai  | Require stack:
+0|kuralai  | - /home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js
+0|kuralai  |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+0|kuralai  |     at Hook._require.Module.require (/root/.nvm/versions/node/v22.22.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|kuralai  |     at require (node:internal/modules/helpers:147:16)
+0|kuralai  |     at Object.<anonymous> (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js:6:1)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+0|kuralai  |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+0|kuralai  |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+0|kuralai  |     at Object.<anonymous> (/root/.nvm/versions/node/v22.22.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14) {
+0|kuralai  |   code: 'MODULE_NOT_FOUND',
+0|kuralai  |   requireStack: [
+0|kuralai  |     '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+0|kuralai  |   ]
+0|kuralai  | }
+0|kuralai  | Error: Cannot find module 'dotenv'
+0|kuralai  | Require stack:
+0|kuralai  | - /home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js
+0|kuralai  |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+0|kuralai  |     at Hook._require.Module.require (/root/.nvm/versions/node/v22.22.0/lib/node_modules/pm2/node_modules/require-in-the-middle/index.js:81:25)
+0|kuralai  |     at require (node:internal/modules/helpers:147:16)
+0|kuralai  |     at Object.<anonymous> (/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js:6:1)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+0|kuralai  |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+0|kuralai  |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+0|kuralai  |     at Object.<anonymous> (/root/.nvm/versions/node/v22.22.0/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14) {
+0|kuralai  |   code: 'MODULE_NOT_FOUND',
+0|kuralai  |   requireStack: [
+0|kuralai  |     '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+0|kuralai  |   ]
+0|kuralai  | }
