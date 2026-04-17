@@ -1,0 +1,127 @@
+root@srv1286649:/home/artificialintellizence/htdocs/www.artificialintellizence.com/Kuralai# pm2 logs kuralai --lines 60 --nostream
+[TAILING] Tailing last 60 lines for [kuralai] process (change the value with --lines option)
+/root/.pm2/logs/kuralai-out.log last 60 lines:
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Error: ENOENT: no such file or directory, stat '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/dashboard/build/index.html'
+]: 216.73.216.68 - - [17/Apr/2026:15:14:34 +0000] "GET /robots.txt HTTP/1.1" 404 33 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
+]: Error: ENOENT: no such file or directory, stat '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/dashboard/build/index.html'
+]: 216.73.216.68 - - [17/Apr/2026:15:14:34 +0000] "GET /static/js/main.b5761bbe.js HTTP/1.1" 404 33 "-" "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)"
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
+
+/root/.pm2/logs/kuralai-error.log last 60 lines:
+17|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+17|kuralai |   code: 'MODULE_NOT_FOUND',
+17|kuralai |   requireStack: []
+17|kuralai | }
+17|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+17|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+17|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+17|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+17|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+17|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+17|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+17|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+17|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+17|kuralai |   code: 'MODULE_NOT_FOUND',
+17|kuralai |   requireStack: []
+17|kuralai | }
+17|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+17|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+17|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+17|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+17|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+17|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+17|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+17|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+17|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+17|kuralai |   code: 'MODULE_NOT_FOUND',
+17|kuralai |   requireStack: []
+17|kuralai | }
+17|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+17|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+17|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+17|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+17|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+17|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+17|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+17|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+17|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+17|kuralai |   code: 'MODULE_NOT_FOUND',
+17|kuralai |   requireStack: []
+17|kuralai | }
+17|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+17|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+17|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+17|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+17|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+17|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+17|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+17|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+17|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+17|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+17|kuralai |   code: 'MODULE_NOT_FOUND',
+17|kuralai |   requireStack: []
+17|kuralai | }
+
+root@srv1286649:/home/artific
