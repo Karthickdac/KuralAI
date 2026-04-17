@@ -67,13 +67,14 @@ router.post('/post-call', express.json({ limit: '10mb' }), async (req, res) => {
 
     logger.info(`[ElevenLabs webhook] post-call received conversation=${conversationId}`);
 
-    // Find the call by conversation_id stored in metadata
-    const { Op } = require('sequelize');
+    // Find the call by conversation_id stored in metadata (JSONB path query)
+    const { Op, literal } = require('sequelize');
+    const safeConvId = String(conversationId).replace(/'/g, "''");
     const call = await Call.findOne({
       where: {
         [Op.or]: [
-          { metadata: { elevenlabs: { conversationId } } },
           { callSid: conversationId },
+          literal(`"metadata"->'elevenlabs'->>'conversationId' = '${safeConvId}'`),
         ],
       },
       order: [['createdAt', 'DESC']],
