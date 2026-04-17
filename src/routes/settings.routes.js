@@ -70,6 +70,16 @@ const DEFAULTS = {
   // Payment Gateway — Razorpay
   razorpayKeyId:           process.env.RAZORPAY_KEY_ID || '',
   razorpayKeySecret:       process.env.RAZORPAY_KEY_SECRET || '',
+  // ElevenLabs Conversational AI (Samuthra)
+  elevenlabsToolKey:               process.env.ELEVENLABS_TOOL_KEY || '',
+  elevenlabsAgentId:               process.env.ELEVENLABS_AGENT_ID || '',
+  elevenlabsAgentPhoneNumberId:    process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID || '',
+  // Samuthra dynamic-variable defaults (company info)
+  companyName:     process.env.COMPANY_NAME || '',
+  servicesList:    process.env.SERVICES_LIST || '',
+  officeHours:     process.env.OFFICE_HOURS || '',
+  supportNumber:   process.env.SUPPORT_NUMBER || '',
+  officeAddress:   process.env.OFFICE_ADDRESS || '',
 };
 
 // ── DB helpers ─────────────────────────────────────────────────────────────────
@@ -154,6 +164,14 @@ const ENV_MAP = {
   apiKey:                  'KURAL_API_KEY',
   razorpayKeyId:           'RAZORPAY_KEY_ID',
   razorpayKeySecret:       'RAZORPAY_KEY_SECRET',
+  elevenlabsToolKey:               'ELEVENLABS_TOOL_KEY',
+  elevenlabsAgentId:               'ELEVENLABS_AGENT_ID',
+  elevenlabsAgentPhoneNumberId:    'ELEVENLABS_AGENT_PHONE_NUMBER_ID',
+  companyName:    'COMPANY_NAME',
+  servicesList:   'SERVICES_LIST',
+  officeHours:    'OFFICE_HOURS',
+  supportNumber:  'SUPPORT_NUMBER',
+  officeAddress:  'OFFICE_ADDRESS',
 };
 
 function syncEnv(updated) {
