@@ -1,0 +1,52 @@
+[TAILING] Tailing last 50 lines for [kuralai] process (change the value with --lines option)
+/root/.pm2/logs/kuralai-error.log last 50 lines:
+18|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+18|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+18|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+18|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+18|kuralai |   code: 'MODULE_NOT_FOUND',
+18|kuralai |   requireStack: []
+18|kuralai | }
+18|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+18|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+18|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+18|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+18|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+18|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+18|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+18|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+18|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+18|kuralai |   code: 'MODULE_NOT_FOUND',
+18|kuralai |   requireStack: []
+18|kuralai | }
+18|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+18|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+18|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+18|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+18|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+18|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+18|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+18|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+18|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+18|kuralai |   code: 'MODULE_NOT_FOUND',
+18|kuralai |   requireStack: []
+18|kuralai | }
+18|kuralai | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+18|kuralai |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+18|kuralai |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+18|kuralai |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+18|kuralai |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+18|kuralai |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+18|kuralai |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+18|kuralai |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+18|kuralai |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+18|kuralai |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+18|kuralai |   code: 'MODULE_NOT_FOUND',
+18|kuralai |   requireStack: []
+18|kuralai | }
