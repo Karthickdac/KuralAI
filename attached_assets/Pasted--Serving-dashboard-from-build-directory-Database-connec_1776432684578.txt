@@ -1,0 +1,104 @@
+]: 📦 Serving dashboard from build directory
+]: ✅ Database connected
+]: ✅ WebSocket server initialized
+]: Retry scheduler started (runs every minute)
+]: ✅ Retry scheduler started
+]: 🚀 KuralAI server running on port 500
+]:    Environment: production
+]:    App URL: https://www.artificialintellizence.com
+]: ElevenLabs TTS completed in 384ms for 85 chars
+]: ElevenLabs TTS completed in 364ms for 61 chars
+]: ElevenLabs TTS completed in 368ms for 69 chars
+]: ElevenLabs TTS completed in 369ms for 82 chars
+]: ElevenLabs TTS completed in 395ms for 51 chars
+]: ✅ Pre-warmed 5 static TTS phrases
+]: Dashboard WebSocket connected. Total clients: 1
+]: Call initiated: 9eef8483-a1eb-4255-9027-23f62f648682 -> +917358337470 | customer=கார்த்திக்  | chit=CG-2024-B
+]: [dispatcher] engine=elevenlabs call=9eef8483-a1eb-4255-9027-23f62f648682
+]: [ElevenLabs] Initiating call to +917358337470 via agent agent_6101kpdbj58jf7cat9gfvr1am094
+]: [ElevenLabs] Call queued: sid=CAedbd0f257739b0ad42323e006bc67ae5 conversation=conv_1101kpdt1k36enpa235ezpw0jp4e
+]: 49.37.193.99 - - [17/Apr/2026:13:28:20 +0000] "POST /api/calls/initiate HTTP/1.1" 201 155 "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: ElevenLabs TTS completed in 362ms for 101 chars
+]: Greeting TwiML pre-cached for call 9eef8483-a1eb-4255-9027-23f62f648682 in ring phase
+]: ElevenLabs TTS completed in 206ms for 6 chars
+]: ElevenLabs TTS completed in 232ms for 60 chars
+]: ElevenLabs TTS completed in 314ms for 70 chars
+]: ElevenLabs TTS completed in 315ms for 87 chars
+]: ElevenLabs TTS completed in 469ms for 138 chars
+]: ElevenLabs TTS completed in 702ms for 168 chars
+]: ElevenLabs TTS completed in 224ms for 55 chars
+]: ElevenLabs TTS completed in 236ms for 50 chars
+]: ElevenLabs TTS completed in 343ms for 103 chars
+]: ElevenLabs TTS completed in 359ms for 112 chars
+]: ElevenLabs TTS completed in 362ms for 122 chars
+]: ElevenLabs TTS completed in 390ms for 143 chars
+]: ElevenLabs TTS completed in 151ms for 11 chars
+]: ElevenLabs TTS completed in 236ms for 85 chars
+]: ElevenLabs TTS completed in 245ms for 83 chars
+]: ElevenLabs TTS completed in 262ms for 70 chars
+]: ElevenLabs TTS completed in 553ms for 101 chars
+]: ElevenLabs TTS completed in 1086ms for 109 chars
+]: ElevenLabs TTS completed in 148ms for 19 chars
+]: ElevenLabs TTS completed in 218ms for 39 chars
+]: ElevenLabs TTS completed in 223ms for 40 chars
+]: ElevenLabs TTS completed in 230ms for 67 chars
+]: ElevenLabs TTS completed in 371ms for 120 chars
+]: ElevenLabs TTS completed in 624ms for 199 chars
+]: ElevenLabs TTS completed in 165ms for 30 chars
+]: ElevenLabs TTS completed in 211ms for 53 chars
+]: ElevenLabs TTS completed in 219ms for 70 chars
+]: ElevenLabs TTS completed in 222ms for 63 chars
+]: ElevenLabs TTS completed in 235ms for 85 chars
+]: ElevenLabs TTS completed in 247ms for 77 chars
+]: ElevenLabs TTS completed in 235ms for 68 chars
+]: ElevenLabs TTS completed in 259ms for 75 chars
+]: ElevenLabs TTS completed in 269ms for 81 chars
+]: ElevenLabs TTS completed in 273ms for 81 chars
+]: ElevenLabs TTS completed in 274ms for 88 chars
+]: ElevenLabs TTS completed in 355ms for 101 chars
+]: ElevenLabs TTS completed in 228ms for 68 chars
+]: ElevenLabs TTS completed in 242ms for 61 chars
+]: ElevenLabs TTS completed in 331ms for 98 chars
+]: ElevenLabs TTS completed in 345ms for 84 chars
+]: ElevenLabs TTS completed in 387ms for 144 chars
+]: ElevenLabs TTS completed in 405ms for 143 chars
+]: ElevenLabs TTS completed in 197ms for 39 chars
+]: ElevenLabs TTS completed in 223ms for 47 chars
+]: ElevenLabs TTS completed in 225ms for 46 chars
+]: ElevenLabs TTS completed in 363ms for 117 chars
+]: ElevenLabs TTS completed in 463ms for 185 chars
+]: ElevenLabs TTS completed in 485ms for 212 chars
+]: ElevenLabs TTS completed in 237ms for 61 chars
+]: ElevenLabs TTS completed in 239ms for 72 chars
+]: ElevenLabs TTS completed in 244ms for 68 chars
+]: ElevenLabs TTS completed in 338ms for 96 chars
+]: ElevenLabs TTS completed in 339ms for 105 chars
+]: ElevenLabs TTS completed in 373ms for 123 chars
+]: ElevenLabs TTS completed in 230ms for 67 chars
+]: ElevenLabs TTS completed in 245ms for 81 chars
+]: ElevenLabs TTS completed in 321ms for 99 chars
+]: ElevenLabs TTS completed in 348ms for 101 chars
+]: ElevenLabs TTS completed in 396ms for 132 chars
+]: ElevenLabs TTS completed in 561ms for 125 chars
+]: ElevenLabs TTS completed in 356ms for 112 chars
+]: ElevenLabs TTS completed in 529ms for 135 chars
+]: Pre-warmed 63 TTS entries for call 9eef8483-a1eb-4255-9027-23f62f648682 (workflow: due_reminder)
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 1 calls
+]: 49.37.193.99 - - [17/Apr/2026:13:30:51 +0000] "GET /customers HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:51 +0000] "GET /static/css/main.8f60e6d6.css HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:51 +0000] "GET /static/js/main.b5761bbe.js HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:52 +0000] "GET /api/customers HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:52 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: 49.37.193.99 - - [17/Apr/2026:13:30:54 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/calls" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:54 +0000] "GET /api/calls?page=1&limit=25 HTTP/1.1" 200 29321 "https://www.artificialintellizence.com/calls" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: 49.37.193.99 - - [17/Apr/2026:13:30:56 +0000] "GET /api/logs/9eef8483-a1eb-4255-9027-23f62f648682 HTTP/1.1" 200 26 "https://www.artificialintellizence.com/calls/9eef8483-a1eb-4255-9027-23f62f648682" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:56 +0000] "GET /api/transcripts/9eef8483-a1eb-4255-9027-23f62f648682 HTTP/1.1" 200 181 "https://www.artificialintellizence.com/calls/9eef8483-a1eb-4255-9027-23f62f648682" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:13:30:56 +0000] "GET /favicon.ico HTTP/1.1" 304 - "https://www.artificialintellizence.com/calls/9eef8483-a1eb-4255-9027-23f62f648682" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retry scheduler: processed 1 calls
