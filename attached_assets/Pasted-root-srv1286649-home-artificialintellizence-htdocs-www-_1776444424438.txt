@@ -1,0 +1,81 @@
+root@srv1286649:/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai# cd /home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai
+pm2 logs kuralai --lines 80 --nostream | tail -80
+]: TTS completed in 1022ms for 81 chars
+]: TTS completed in 1047ms for 88 chars
+]: TTS completed in 1055ms for 101 chars
+]: TTS completed in 1101ms for 75 chars
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: TTS completed in 1004ms for 84 chars
+]: TTS completed in 1016ms for 143 chars
+]: TTS completed in 1040ms for 68 chars
+]: TTS completed in 1085ms for 98 chars
+]: TTS completed in 1090ms for 61 chars
+]: TTS completed in 1088ms for 144 chars
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: TTS completed in 947ms for 39 chars
+]: TTS completed in 959ms for 46 chars
+]: TTS completed in 1054ms for 47 chars
+]: TTS completed in 1121ms for 117 chars
+]: TTS completed in 1192ms for 185 chars
+]: TTS completed in 1606ms for 212 chars
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: TTS completed in 904ms for 61 chars
+]: TTS completed in 1004ms for 72 chars
+]: TTS completed in 1047ms for 105 chars
+]: TTS completed in 1080ms for 68 chars
+]: TTS completed in 1102ms for 123 chars
+]: TTS completed in 1100ms for 96 chars
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: TTS completed in 1001ms for 67 chars
+]: TTS completed in 1019ms for 125 chars
+]: TTS completed in 1004ms for 101 chars
+]: TTS completed in 1041ms for 81 chars
+]: TTS completed in 1132ms for 132 chars
+]: TTS completed in 1208ms for 99 chars
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: ElevenLabs TTS failed (Request failed with status code 401), falling back to Azure
+]: TTS completed in 1027ms for 112 chars
+]: TTS completed in 1050ms for 135 chars
+]: Pre-warmed 63 TTS entries for call 04e432b5-4153-4460-9d67-ee698f649a03 (workflow: due_reminder)
+]: 49.37.193.99 - - [17/Apr/2026:16:45:16 +0000] "GET /api/payments/balance HTTP/1.1" 200 308 "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:18 +0000] "GET /login HTTP/1.1" 304 - "https://www.artificialintellizence.com/customers" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:18 +0000] "GET /static/js/main.89dca04d.js HTTP/1.1" 304 - "https://www.artificialintellizence.com/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:18 +0000] "GET /static/css/main.8f60e6d6.css HTTP/1.1" 304 - "https://www.artificialintellizence.com/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:19 +0000] "GET /automystic-logo.png HTTP/1.1" 304 - "https://www.artificialintellizence.com/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: User logged in: superadmin@kuralai.com (role: superadmin, org: none)
+]: 49.37.193.99 - - [17/Apr/2026:16:45:22 +0000] "POST /api/auth/login HTTP/1.1" 200 526 "https://www.artificialintellizence.com/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:23 +0000] "GET /api/dashboard/stats?days=7 HTTP/1.1" 200 140 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:23 +0000] "GET /api/dashboard/calls/timeline?days=14 HTTP/1.1" 200 184 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:23 +0000] "GET /api/dashboard/recent-calls?limit=10 HTTP/1.1" 200 1796 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:23 +0000] "GET /api/dashboard/intents?days=7 HTTP/1.1" 200 66 "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:23 +0000] "GET /api/settings HTTP/1.1" 304 - "https://www.artificialintellizence.com/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 2
+]: 49.37.193.99 - - [17/Apr/2026:16:45:24 +0000] "GET /api/workflows HTTP/1.1" 304 - "https://www.artificialintellizence.com/settings" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: 49.37.193.99 - - [17/Apr/2026:16:45:24 +0000] "GET /api/settings HTTP/1.1" 304 - "https://www.artificialintellizence.com/settings" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+]: Dashboard WebSocket connected. Total clients: 1
+]: Retrying call 94af0691-a0ae-428d-abbe-9b1fa57ea862 (attempt 1)
+]: Retry failed for call 94af0691-a0ae-428d-abbe-9b1fa57ea862:
+]: Retrying call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502 (attempt 1)
+]: Retry failed for call 2daa1e8f-1cd8-40dc-a55d-47f2eb162502:
+]: Retry scheduler: processed 2 calls
