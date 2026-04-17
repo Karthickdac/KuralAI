@@ -19,7 +19,7 @@ router.get('/:callId',
 
     const call = await Call.findOne({
       where: { id: callId, ...orgFilter },
-      attributes: ['id', 'toPhone', 'status', 'duration', 'createdAt'],
+      attributes: ['id', 'toPhone', 'status', 'duration', 'createdAt', 'recordingUrl', 'metadata'],
     });
     if (!call) return res.status(404).json({ error: 'Call not found' });
 
@@ -28,7 +28,12 @@ router.get('/:callId',
       order: [['turnNumber', 'ASC']],
     });
 
-    res.json({ success: true, call, transcript: transcripts });
+    const el = (call.metadata && call.metadata.elevenlabs) || {};
+    const summary = el.summary || '';
+    const callSuccessful = el.callSuccessful || null;
+    const dataCollection = el.dataCollection || {};
+
+    res.json({ success: true, call, transcript: transcripts, summary, callSuccessful, dataCollection });
   }
 );
 

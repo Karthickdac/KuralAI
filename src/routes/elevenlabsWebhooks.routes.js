@@ -17,6 +17,7 @@ const router  = express.Router();
 const crypto  = require('crypto');
 const Call    = require('../models/Call');
 const Campaign = require('../models/Campaign');
+const Transcript = require('../models/Transcript');
 const logger  = require('../utils/logger');
 const { getSettingsSync } = require('../services/settingsService');
 
@@ -59,13 +60,32 @@ router.post('/post-call', express.json({ limit: '10mb' }), async (req, res) => {
 
     const evt = req.body || {};
     const data = evt.data || evt;
+    const eventType = String(evt.type || '').toLowerCase();
     const conversationId = data.conversation_id || data.conversationId;
     if (!conversationId) {
       logger.warn('[ElevenLabs webhook] no conversation_id in payload');
       return res.status(400).json({ ok: false, error: 'no conversation_id' });
     }
 
-    logger.info(`[ElevenLabs webhook] post-call received conversation=${conversationId}`);
+    logger.info(`[ElevenLabs webhook] received type=${eventType || 'unknown'} conversation=${conversationId}`);
+
+    // Audio-only event: don't overwrite transcript/duration/status. Just ensure recordingUrl is set.
+    if (eventType.includes('audio')) {
+      const { Op: Op2, literal: lit2 } = require('sequelize');
+      const safeId = String(conversationId).replace(/'/g, "''");
+      const c = await Call.findOne({
+        where: { [Op2.or]: [
+          { callSid: conversationId },
+          lit2(`"metadata"->'elevenlabs'->>'conversationId' = '${safeId}'`),
+        ]},
+        order: [['createdAt', 'DESC']],
+      });
+      if (c && !c.recordingUrl) {
+        await c.update({ recordingUrl: `elevenlabs://${conversationId}` });
+      }
+      logger.info(`[ElevenLabs webhook] audio event noted for conversation=${conversationId} (transcript preserved)`);
+      return res.json({ ok: true, audioOnly: true });
+    }
 
     // Find the call by conversation_id stored in metadata (JSONB path query)
     const { Op, literal } = require('sequelize');
@@ -121,6 +141,28 @@ router.post('/post-call', express.json({ limit: '10mb' }), async (req, res) => {
 
     await call.update(update);
     logger.info(`[ElevenLabs webhook] call ${call.id} updated: duration=${durationSecs}s transcript=${transcript.length} turns`);
+
+    // Mirror transcript turns into the Transcript table so the dashboard can show them
+    if (transcript.length > 0) {
+      try {
+        await Transcript.destroy({ where: { callId: call.id } });
+        const rows = transcript.map((t, i) => {
+          const role = String(t.role || '').toLowerCase();
+          const speaker = (role === 'user') ? 'user' : 'ai';
+          const text = String(t.message || t.text || '').trim();
+          return {
+            callId: call.id,
+            turnNumber: i + 1,
+            speaker,
+            text: text || '(empty)',
+          };
+        }).filter(r => r.text);
+        if (rows.length) await Transcript.bulkCreate(rows);
+        logger.info(`[ElevenLabs webhook] inserted ${rows.length} transcript rows for call ${call.id}`);
+      } catch (e) {
+        logger.warn(`[ElevenLabs webhook] transcript table insert failed: ${e.message}`);
+      }
+    }
 
     // Update campaign counters if this call belongs to one
     if (call.metadata?.campaignId) {

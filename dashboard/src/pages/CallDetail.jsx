@@ -24,6 +24,9 @@ export default function CallDetail() {
   const navigate = useNavigate();
   const [call, setCall] = useState(null);
   const [transcript, setTranscript] = useState([]);
+  const [summary, setSummary] = useState('');
+  const [callSuccessful, setCallSuccessful] = useState(null);
+  const [dataCollection, setDataCollection] = useState({});
   const [logs, setLogs] = useState([]);
   const [activeTab, setActiveTab] = useState('transcript');
   const [loading, setLoading] = useState(true);
@@ -34,6 +37,9 @@ export default function CallDetail() {
         const [t, l] = await Promise.all([transcriptsApi.get(callId), logsApi.get(callId)]);
         setCall(t.data.call);
         setTranscript(t.data.transcript);
+        setSummary(t.data.summary || '');
+        setCallSuccessful(t.data.callSuccessful || null);
+        setDataCollection(t.data.dataCollection || {});
         setLogs(l.data.logs);
       } catch (err) {
         console.error(err);
@@ -135,6 +141,28 @@ export default function CallDetail() {
               Call Recording
             </div>
             <audio controls src={`/api/calls/${call.id}/recording/stream`} className={styles.audio} />
+          </div>
+        )}
+
+        {/* Summary */}
+        {summary && (
+          <div className={styles.recordingCard} style={{ flexDirection:'column', alignItems:'flex-start', gap:8 }}>
+            <div className={styles.recordingLabel}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight:6 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Call Summary {callSuccessful && <span style={{ marginLeft:8, padding:'2px 8px', borderRadius:4, fontSize:11, background: callSuccessful === 'success' ? '#d1fae5' : '#fee2e2', color: callSuccessful === 'success' ? '#065f46' : '#991b1b' }}>{callSuccessful}</span>}
+            </div>
+            <div style={{ fontSize:14, lineHeight:1.6, color:'#374151', whiteSpace:'pre-wrap' }}>{summary}</div>
+            {Object.keys(dataCollection).length > 0 && (
+              <div style={{ marginTop:12, paddingTop:12, borderTop:'1px solid #e5e7eb', width:'100%' }}>
+                <div style={{ fontSize:12, fontWeight:600, color:'#6b7280', marginBottom:6 }}>Extracted Data</div>
+                {Object.entries(dataCollection).map(([k, v]) => (
+                  <div key={k} style={{ fontSize:13, marginBottom:4 }}>
+                    <span style={{ fontWeight:500, color:'#4b5563' }}>{k}:</span>{' '}
+                    <span style={{ color:'#111827' }}>{typeof v === 'object' ? (v?.value ?? JSON.stringify(v)) : String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
