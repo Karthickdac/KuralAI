@@ -112,6 +112,17 @@ router.post('/post-call', express.json({ limit: '10mb' }), async (req, res) => {
     const startUnix = meta.start_time_unix_secs;
     const callStatus = (data.status || '').toLowerCase();
 
+    // Extract ElevenLabs charges/cost (super-admin visible)
+    const charging = meta.charging || {};
+    const cost = {
+      credits: meta.cost ?? charging.dev_discount_price ?? charging.call_charge ?? null,
+      llmCharge: charging.llm_charge ?? null,
+      llmPriceUsd: charging.llm_price ?? null,
+      llmUsage: charging.llm_usage ?? null,
+      totalUsd: charging.total_cost ?? null,
+      raw: { ...meta.cost ? { cost: meta.cost } : {}, ...charging },
+    };
+
     const transcriptText = transcript
       .map(t => `[${t.role}] ${t.message || t.text || ''}`)
       .join('\n');
@@ -130,6 +141,7 @@ router.post('/post-call', express.json({ limit: '10mb' }), async (req, res) => {
           summary: analysis.transcript_summary || '',
           callSuccessful: analysis.call_successful,
           dataCollection: analysis.data_collection_results || {},
+          cost,
           startUnix,
           endedAt: Date.now(),
         },

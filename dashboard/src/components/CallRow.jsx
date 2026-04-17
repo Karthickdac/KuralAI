@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 const STATUS_STYLES = {
   completed:    { bg: 'var(--success-bg)', color: 'var(--success-text)' },
@@ -170,8 +171,21 @@ function RecordingPlayer({ callId }) {
   );
 }
 
+function fmtCost(cost) {
+  if (!cost) return null;
+  const parts = [];
+  if (cost.credits != null) parts.push(`${Math.round(cost.credits).toLocaleString()} cr`);
+  if (cost.totalUsd != null) parts.push(`$${Number(cost.totalUsd).toFixed(4)}`);
+  else if (cost.llmPriceUsd != null) parts.push(`$${Number(cost.llmPriceUsd).toFixed(4)} LLM`);
+  return parts.length ? parts.join(' \u00b7 ') : null;
+}
+
 export default function CallRow({ call, onView }) {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
   const hasRecording = !!call.recordingUrl;
+  const cost = call.metadata?.elevenlabs?.cost;
+  const costLabel = isSuperAdmin ? fmtCost(cost) : null;
 
   return (
     <tr style={{ transition: 'background 0.15s' }}
@@ -206,17 +220,32 @@ export default function CallRow({ call, onView }) {
       </td>
       <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{timeAgo(call.createdAt)}</td>
       <td style={{ paddingRight: 16 }}>
-        <button
-          onClick={onView}
-          style={{
-            fontSize: 12, fontWeight: 500, color: 'var(--primary)',
-            background: 'var(--primary-light)', border: 'none',
-            padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
-            transition: 'background 0.12s',
-          }}
-        >
-          View \u2192
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
+          {costLabel && (
+            <span
+              title="ElevenLabs charges (super admin only)"
+              style={{
+                fontSize: 11, fontWeight: 600, color: '#92400E',
+                background: '#FEF3C7', border: '1px solid #FDE68A',
+                padding: '3px 8px', borderRadius: 6, fontFamily: 'var(--font-mono)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {costLabel}
+            </span>
+          )}
+          <button
+            onClick={onView}
+            style={{
+              fontSize: 12, fontWeight: 500, color: 'var(--primary)',
+              background: 'var(--primary-light)', border: 'none',
+              padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
+              transition: 'background 0.12s',
+            }}
+          >
+            View \u2192
+          </button>
+        </div>
       </td>
     </tr>
   );
