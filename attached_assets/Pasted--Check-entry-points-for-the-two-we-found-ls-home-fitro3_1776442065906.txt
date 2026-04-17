@@ -1,0 +1,135 @@
+# Check entry points for the two we found
+ls /home/fitro360/htdocs/www.fitro360.com/fitro360/{ecosystem.config.js,package.json,server.js,index.js,app.js} 2>/dev/null
+ls /home/kyro360/htdocs/www.kyro360.com/kyro360/{ecosystem.config.js,package.json,server.js,index.js,app.js} 2>/dev/null
+grep -E '"main"|"start"' /home/fitro360/htdocs/www.fitro360.com/fitro360/package.json
+grep -E '"main"|"start"' /home/kyro360/htdocs/www.kyro360.com/kyro360/package.json
+/var/log/fish-market-pro
+/home/fitro360/htdocs/www.fitro360.com/fitro360/package.json
+/home/kyro360/htdocs/www.kyro360.com/kyro360/package.json
+    "start": "NODE_ENV=production node dist/index.cjs",
+    "start": "NODE_ENV=production node dist/index.cjs",
+root@srv1286649:/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai# ls /home/fitro360/htdocs/www.fitro360.com/fitro360/
+ls /home/kyro360/htdocs/www.kyro360.com/kyro360/
+cat /home/fitro360/htdocs/www.fitro360.com/fitro360/package.json | head -30
+cat /home/kyro360/htdocs/www.kyro360.com/kyro360/package.json | head -30
+pm2 logs kuralai --lines 50 --nostream --err
+ attached_assets   components.json     ecosystem.config.cjs   package.json        replit.md            server               tsconfig.json
+ client            dist               'NODE_ENV=production'   package-lock.json   rest-express@1.0.0   shared               vite.config.ts
+ client.zip        drizzle.config.ts   node_modules           postcss.config.js   script               tailwind.config.ts
+ android               components.json     e2e                           Migrations     package-lock.json      replit.md         tailwind.config.ts   VPS_DEPLOYMENT.md
+ attached_assets       db_backup.sql       ecosystem.config.cjs          mobile         package.vps.json       script            test-results         vps-deploy.zip
+ capacitor.config.ts   deploy.sh           google3c186d3e2a13a7c7.html   mobile.zip     playwright.config.ts   server            tsconfig.json        vps_setup.sh
+ client                dist                ios                           node_modules   playwright-report     'server (1).zip'   uploads
+'client (2).zip'       drizzle.config.ts   logs                          package.json   postcss.config.js      shared            vite.config.ts
+{
+  "name": "rest-express",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "tsx script/build.ts",
+    "start": "NODE_ENV=production node dist/index.cjs",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@jridgewell/trace-mapping": "^0.3.25",
+    "@radix-ui/react-accordion": "^1.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.7",
+    "@radix-ui/react-aspect-ratio": "^1.1.3",
+    "@radix-ui/react-avatar": "^1.1.4",
+    "@radix-ui/react-checkbox": "^1.1.5",
+    "@radix-ui/react-collapsible": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.7",
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+    "@radix-ui/react-hover-card": "^1.1.7",
+    "@radix-ui/react-label": "^2.1.3",
+    "@radix-ui/react-menubar": "^1.1.7",
+    "@radix-ui/react-navigation-menu": "^1.2.6",
+    "@radix-ui/react-popover": "^1.1.7",
+    "@radix-ui/react-progress": "^1.1.3",
+{
+  "name": "rest-express",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "NODE_ENV=development tsx server/index.ts",
+    "build": "tsx script/build.ts",
+    "start": "NODE_ENV=production node dist/index.cjs",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@google-cloud/storage": "^7.18.0",
+    "@hookform/resolvers": "^3.10.0",
+    "@jridgewell/trace-mapping": "^0.3.25",
+    "@playwright/test": "^1.57.0",
+    "@radix-ui/react-accordion": "^1.2.4",
+    "@radix-ui/react-alert-dialog": "^1.1.7",
+    "@radix-ui/react-aspect-ratio": "^1.1.3",
+    "@radix-ui/react-avatar": "^1.1.4",
+    "@radix-ui/react-checkbox": "^1.1.5",
+    "@radix-ui/react-collapsible": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.7",
+    "@radix-ui/react-dialog": "^1.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.7",
+[TAILING] Tailing last 50 lines for [kuralai] process (change the value with --lines option)
+/root/.pm2/logs/kuralai-error.log last 50 lines:
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+0|kuralai  |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+0|kuralai  |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+0|kuralai  |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+0|kuralai  |   code: 'MODULE_NOT_FOUND',
+0|kuralai  |   requireStack: []
+0|kuralai  | }
+0|kuralai  | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+0|kuralai  |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+0|kuralai  |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+0|kuralai  |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+0|kuralai  |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+0|kuralai  |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+0|kuralai  |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+0|kuralai  |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+0|kuralai  |   code: 'MODULE_NOT_FOUND',
+0|kuralai  |   requireStack: []
+0|kuralai  | }
+0|kuralai  | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+0|kuralai  |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+0|kuralai  |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+0|kuralai  |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+0|kuralai  |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+0|kuralai  |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+0|kuralai  |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+0|kuralai  |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+0|kuralai  |   code: 'MODULE_NOT_FOUND',
+0|kuralai  |   requireStack: []
+0|kuralai  | }
+0|kuralai  | Error: Cannot find module '/home/artificialintellizence/htdocs/www.artificialintellizence.com/kuralai/src/server.js'
+0|kuralai  |     at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+0|kuralai  |     at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+0|kuralai  |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1192:37)
+0|kuralai  |     at Object.<anonymous> (/usr/local/lib/node_modules/pm2/lib/ProcessContainerFork.js:33:23)
+0|kuralai  |     at Module._compile (node:internal/modules/cjs/loader:1706:14)
+0|kuralai  |     at Object..js (node:internal/modules/cjs/loader:1839:10)
+0|kuralai  |     at Module.load (node:internal/modules/cjs/loader:1441:32)
+0|kuralai  |     at Function._load (node:internal/modules/cjs/loader:1263:12)
+0|kuralai  |     at TracingChannel.traceSync (node:diagnostics_channel:328:14) {
+0|kuralai  |   code: 'MODULE_NOT_FOUND',
+0|kuralai  |   requireStack: []
+0|kuralai  | }
