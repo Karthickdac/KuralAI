@@ -64,10 +64,14 @@ async function initiateCallController(req, res) {
 
     const exotelCall = await dispatchCall(toPhone, call.id, enrichedMeta);
 
-    await call.update({
-      callSid: exotelCall.sid,
-      status: 'queued',
-    });
+    const updates = { callSid: exotelCall.sid, status: 'queued' };
+    if (exotelCall.conversationId) {
+      updates.metadata = {
+        ...enrichedMeta,
+        elevenlabs: { conversationId: exotelCall.conversationId },
+      };
+    }
+    await call.update(updates);
 
     if (orgId) {
       try {
@@ -229,7 +233,14 @@ async function bulkCallController(req, res) {
         });
 
         const exotelCall = await dispatchCall(toPhone, call.id, enrichedMeta);
-        await call.update({ callSid: exotelCall.sid, status: 'queued' });
+        const bulkUpdates = { callSid: exotelCall.sid, status: 'queued' };
+        if (exotelCall.conversationId) {
+          bulkUpdates.metadata = {
+            ...enrichedMeta,
+            elevenlabs: { conversationId: exotelCall.conversationId },
+          };
+        }
+        await call.update(bulkUpdates);
         logger.info(`Bulk call ${i + 1}/${targets.length}: ${call.id} -> ${toPhone}`);
 
         const _meta = { ...enrichedMeta };

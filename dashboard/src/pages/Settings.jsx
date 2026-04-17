@@ -296,6 +296,12 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
             <Field label="Tool Webhook Key" hint="X-API-Key value used in the 7 ElevenLabs tools — must match what tools send to /api/elevenlabs/tools/*">
               <SecretInput name="elevenlabsToolKey" value={s.elevenlabsToolKey || ''} onChange={e => onChange('elevenlabsToolKey', e.target.value)} placeholder="kuralai_automystics" alreadySaved={savedCreds.has('elevenlabsToolKey')} />
             </Field>
+            <Field label="Post-Call Webhook URL (read-only)" hint="Configure this in ElevenLabs → Workspace Settings → Webhooks → Add → paste this URL → enable post_call_transcription event">
+              <input className={styles.input} readOnly value={`${window.location.origin}/api/elevenlabs/webhooks/post-call`} onClick={e => e.target.select()} />
+            </Field>
+            <Field label="Webhook Secret (optional)" hint="If you set a secret in ElevenLabs webhook config, paste it here. Leave blank to skip signature verification.">
+              <SecretInput name="elevenlabsWebhookSecret" value={s.elevenlabsWebhookSecret || ''} onChange={e => onChange('elevenlabsWebhookSecret', e.target.value)} placeholder="whsec_..." alreadySaved={savedCreds.has('elevenlabsWebhookSecret')} />
+            </Field>
             <Field label="Voice Preset" hint="Pick a built-in voice or enter a custom Voice ID">
               <select className={styles.input} value={elVoicePreset} onChange={e => {
                 const v = e.target.value;

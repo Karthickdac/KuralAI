@@ -74,6 +74,7 @@ const DEFAULTS = {
   elevenlabsToolKey:               process.env.ELEVENLABS_TOOL_KEY || '',
   elevenlabsAgentId:               process.env.ELEVENLABS_AGENT_ID || '',
   elevenlabsAgentPhoneNumberId:    process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID || '',
+  elevenlabsWebhookSecret:         process.env.ELEVENLABS_WEBHOOK_SECRET || '',
   // Global default voice engine — applies to ALL outbound calls unless campaign overrides
   defaultEngine:                   process.env.DEFAULT_ENGINE || 'kuralai',
   // Samuthra dynamic-variable defaults (company info)
@@ -169,6 +170,7 @@ const ENV_MAP = {
   elevenlabsToolKey:               'ELEVENLABS_TOOL_KEY',
   elevenlabsAgentId:               'ELEVENLABS_AGENT_ID',
   elevenlabsAgentPhoneNumberId:    'ELEVENLABS_AGENT_PHONE_NUMBER_ID',
+  elevenlabsWebhookSecret:         'ELEVENLABS_WEBHOOK_SECRET',
   defaultEngine:                   'DEFAULT_ENGINE',
   companyName:    'COMPANY_NAME',
   servicesList:   'SERVICES_LIST',
