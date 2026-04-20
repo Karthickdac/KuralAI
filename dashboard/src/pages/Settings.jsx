@@ -244,6 +244,18 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
         </div>
       </Card>
 
+      <Card label="Default Voice Engine" badge="Routes all outbound calls">
+        <div className={styles.grid}>
+          <Field label="Default Voice Engine" hint="Applies to ALL outbound calls (Campaigns + customer Call buttons + bulk + retries). Per-campaign overrides still work.">
+            <select className={styles.input} value={s.defaultEngine || 'kuralai'} onChange={e => onChange('defaultEngine', e.target.value)}>
+              <option value="kuralai">KuralAI Scripted Engine</option>
+              <option value="elevenlabs">ElevenLabs Conversational AI (Samuthra)</option>
+              <option value="sarvam">Sarvam.ai Conversational (Indian voices)</option>
+            </select>
+          </Field>
+        </div>
+      </Card>
+
       <Card label="Text-to-Speech" badge="Required">
         <div className={styles.providerRow}>
           <ProviderCard
@@ -278,12 +290,6 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
 
         {s.ttsProvider === 'elevenlabs' && (
           <div className={styles.grid}>
-            <Field label="Default Voice Engine" hint="Applies to ALL outbound calls (Campaigns + customer Call buttons + bulk + retries). Switch to ElevenLabs to use Samuthra agent everywhere.">
-              <select className={styles.input} value={s.defaultEngine || 'kuralai'} onChange={e => onChange('defaultEngine', e.target.value)}>
-                <option value="kuralai">KuralAI Scripted Engine</option>
-                <option value="elevenlabs">ElevenLabs Conversational AI (Samuthra)</option>
-              </select>
-            </Field>
             <Field label="ElevenLabs API Key" hint="elevenlabs.io → Profile → API Key">
               <SecretInput name="elevenLabsApiKey" value={s.elevenLabsApiKey || ''} onChange={e => onChange('elevenLabsApiKey', e.target.value)} placeholder="sk_..." alreadySaved={savedCreds.has('elevenLabsApiKey')} />
             </Field>
@@ -328,6 +334,65 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
             </Field>
           </div>
         )}
+      </Card>
+
+      <Card label="Sarvam.ai Conversational" badge="Indian voices · STT + LLM + TTS">
+        <p className={styles.cardSub}>
+          End-to-end Indian-language conversational engine. Twilio dials the customer, audio bridges over a Media Stream,
+          and Sarvam handles speech-to-text, the chat brain, and text-to-speech. Set <b>Default Voice Engine</b> above
+          to <b>Sarvam.ai</b> to route all outbound calls through it (or pick it on a per-campaign basis).
+        </p>
+        <div className={styles.grid}>
+          <Field label="Sarvam API Key" hint="dashboard.sarvam.ai → API Keys">
+            <SecretInput name="sarvamApiKey" value={s.sarvamApiKey || ''} onChange={e => onChange('sarvamApiKey', e.target.value)} placeholder="sk_..." alreadySaved={savedCreds.has('sarvamApiKey')} />
+          </Field>
+          <Field label="Language" hint="BCP-47 code; ta-IN, hi-IN, en-IN, te-IN, kn-IN, ml-IN, mr-IN, gu-IN, bn-IN, pa-IN, or-IN">
+            <select className={styles.input} value={s.sarvamLanguageCode || 'ta-IN'} onChange={e => onChange('sarvamLanguageCode', e.target.value)}>
+              <option value="ta-IN">தமிழ் (ta-IN)</option>
+              <option value="hi-IN">हिन्दी (hi-IN)</option>
+              <option value="en-IN">English – India (en-IN)</option>
+              <option value="te-IN">తెలుగు (te-IN)</option>
+              <option value="kn-IN">ಕನ್ನಡ (kn-IN)</option>
+              <option value="ml-IN">മലയാളം (ml-IN)</option>
+              <option value="mr-IN">मराठी (mr-IN)</option>
+              <option value="gu-IN">ગુજરાતી (gu-IN)</option>
+              <option value="bn-IN">বাংলা (bn-IN)</option>
+              <option value="pa-IN">ਪੰਜਾਬੀ (pa-IN)</option>
+              <option value="or-IN">ଓଡ଼ିଆ (or-IN)</option>
+            </select>
+          </Field>
+          <Field label="Voice (Speaker)" hint="Bulbul speakers: meera, pavithra, maitreyi, arvind, amol, amartya, diya, neel, misha, vian, arjun, maya">
+            <select className={styles.input} value={s.sarvamVoice || 'meera'} onChange={e => onChange('sarvamVoice', e.target.value)}>
+              <option value="meera">Meera (female, warm)</option>
+              <option value="pavithra">Pavithra (female)</option>
+              <option value="maitreyi">Maitreyi (female)</option>
+              <option value="diya">Diya (female)</option>
+              <option value="misha">Misha (female)</option>
+              <option value="maya">Maya (female)</option>
+              <option value="arvind">Arvind (male)</option>
+              <option value="amol">Amol (male)</option>
+              <option value="amartya">Amartya (male)</option>
+              <option value="neel">Neel (male)</option>
+              <option value="vian">Vian (male)</option>
+              <option value="arjun">Arjun (male)</option>
+            </select>
+          </Field>
+          <Field label="TTS Model" hint="bulbul:v2 (default) — Sarvam's neural TTS">
+            <input className={styles.input} value={s.sarvamTtsModel || 'bulbul:v2'} onChange={e => onChange('sarvamTtsModel', e.target.value)} placeholder="bulbul:v2" />
+          </Field>
+          <Field label="STT Model" hint="saarika:v2 (default) — Sarvam's Indian-language ASR">
+            <input className={styles.input} value={s.sarvamSttModel || 'saarika:v2'} onChange={e => onChange('sarvamSttModel', e.target.value)} placeholder="saarika:v2" />
+          </Field>
+          <Field label="Chat Model" hint="sarvam-m (default) — Sarvam's Indian LLM. Or any OpenAI-compatible model exposed via Sarvam.">
+            <input className={styles.input} value={s.sarvamChatModel || 'sarvam-m'} onChange={e => onChange('sarvamChatModel', e.target.value)} placeholder="sarvam-m" />
+          </Field>
+          <Field label="Greeting (optional)" hint="First sentence the agent speaks. Supports {{customer_name}}. Leave blank for default.">
+            <textarea className={styles.input} rows={2} value={s.sarvamGreeting || ''} onChange={e => onChange('sarvamGreeting', e.target.value)} placeholder="வணக்கம் {{customer_name}}, நான் சமுத்ரா..." />
+          </Field>
+          <Field label="System Prompt (optional)" hint="Agent's behaviour. Supports {{customer_name}}, {{company_name}}, {{services}}, {{office_hours}}, {{support_number}}, {{purpose}}, {{custom_fields}}. Leave blank for default Tamil prompt.">
+            <textarea className={styles.input} rows={6} value={s.sarvamSystemPrompt || ''} onChange={e => onChange('sarvamSystemPrompt', e.target.value)} placeholder="நீங்கள் சமுத்ரா — {{company_name}}-ன் தமிழ் AI உதவியாளர்..." />
+          </Field>
+        </div>
       </Card>
     </>
   );

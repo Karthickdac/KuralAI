@@ -22,6 +22,7 @@ const CREDENTIAL_FIELDS = [
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
   'elevenLabsApiKey', 'apiKey',
   'razorpayKeyId', 'razorpayKeySecret',
+  'sarvamApiKey',
 ];
 
 const DEFAULTS = {
@@ -77,6 +78,15 @@ const DEFAULTS = {
   elevenlabsWebhookSecret:         process.env.ELEVENLABS_WEBHOOK_SECRET || '',
   // Global default voice engine — applies to ALL outbound calls unless campaign overrides
   defaultEngine:                   process.env.DEFAULT_ENGINE || 'kuralai',
+  // Sarvam.ai conversational engine
+  sarvamApiKey:        process.env.SARVAM_API_KEY || '',
+  sarvamLanguageCode:  process.env.SARVAM_LANGUAGE_CODE || 'ta-IN',
+  sarvamVoice:         process.env.SARVAM_VOICE || 'meera',
+  sarvamTtsModel:      process.env.SARVAM_TTS_MODEL || 'bulbul:v2',
+  sarvamSttModel:      process.env.SARVAM_STT_MODEL || 'saarika:v2',
+  sarvamChatModel:     process.env.SARVAM_CHAT_MODEL || 'sarvam-m',
+  sarvamSystemPrompt:  process.env.SARVAM_SYSTEM_PROMPT || '',
+  sarvamGreeting:      process.env.SARVAM_GREETING || '',
   // Samuthra dynamic-variable defaults (company info)
   companyName:     process.env.COMPANY_NAME || '',
   servicesList:    process.env.SERVICES_LIST || '',
@@ -178,6 +188,14 @@ const ENV_MAP = {
   elevenlabsAgentPhoneNumberId:    'ELEVENLABS_AGENT_PHONE_NUMBER_ID',
   elevenlabsWebhookSecret:         'ELEVENLABS_WEBHOOK_SECRET',
   defaultEngine:                   'DEFAULT_ENGINE',
+  sarvamApiKey:        'SARVAM_API_KEY',
+  sarvamLanguageCode:  'SARVAM_LANGUAGE_CODE',
+  sarvamVoice:         'SARVAM_VOICE',
+  sarvamTtsModel:      'SARVAM_TTS_MODEL',
+  sarvamSttModel:      'SARVAM_STT_MODEL',
+  sarvamChatModel:     'SARVAM_CHAT_MODEL',
+  sarvamSystemPrompt:  'SARVAM_SYSTEM_PROMPT',
+  sarvamGreeting:      'SARVAM_GREETING',
   companyName:    'COMPANY_NAME',
   servicesList:   'SERVICES_LIST',
   officeHours:    'OFFICE_HOURS',

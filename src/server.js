@@ -106,6 +106,9 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/elevenlabs/tools', require('./routes/elevenlabsTools.routes'));
 app.use('/api/elevenlabs/webhooks', require('./routes/elevenlabsWebhooks.routes'));
 
+// Sarvam engine answer webhook — MUST be mounted before legacy webhookRoutes
+// so its router-level validateExotelWebhook middleware does not capture us.
+app.use('/webhook', require('./routes/sarvamWebhooks.routes'));
 // Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);
 
@@ -174,6 +177,9 @@ async function bootstrap() {
     // Initialize WebSocket server (for real-time dashboard updates)
     initWebSocket(server);
     logger.info('✅ WebSocket server initialized');
+
+    // Initialize Sarvam Media Stream WS (Twilio audio bridge for Sarvam engine)
+    require('./services/sarvamStream').init(server);
 
     // Start call retry scheduler (cron job)
     startRetryScheduler();

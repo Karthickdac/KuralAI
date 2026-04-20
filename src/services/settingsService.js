@@ -31,6 +31,15 @@ const DEFAULTS = {
   elevenlabsAgentPhoneNumberId: '',
   elevenlabsWebhookSecret: '',
   defaultEngine: 'kuralai',
+  // Sarvam.ai conversational engine
+  sarvamApiKey: '',
+  sarvamLanguageCode: 'ta-IN',
+  sarvamVoice: 'meera',
+  sarvamTtsModel: 'bulbul:v2',
+  sarvamSttModel: 'saarika:v2',
+  sarvamChatModel: 'sarvam-m',
+  sarvamSystemPrompt: '',
+  sarvamGreeting: '',
   companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 

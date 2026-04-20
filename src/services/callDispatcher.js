@@ -45,6 +45,12 @@ async function dispatchCall(toPhone, callId, callMeta = {}, explicitEngine = nul
     return initiateCall(toPhone, callId, callMeta);
   }
 
+  if (engine === 'sarvam') {
+    logger.info(`[dispatcher] engine=sarvam call=${callId}`);
+    const { initiateCall } = require('./sarvamCallService');
+    return initiateCall(toPhone, callId, callMeta);
+  }
+
   // Default: existing engine via telephony abstraction
   logger.info(`[dispatcher] engine=kuralai call=${callId}`);
   const { initiateCall } = require('./telephonyService');
