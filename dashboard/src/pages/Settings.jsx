@@ -377,8 +377,11 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
               <option value="arjun">Arjun (male)</option>
             </select>
           </Field>
-          <Field label="TTS Model" hint="bulbul:v2 (default) — Sarvam's neural TTS">
-            <input className={styles.input} value={s.sarvamTtsModel || 'bulbul:v2'} onChange={e => onChange('sarvamTtsModel', e.target.value)} placeholder="bulbul:v2" />
+          <Field label="TTS Model" hint="bulbul:v3 recommended (highest quality). bulbul:v2 is cheaper.">
+            <select className={styles.input} value={s.sarvamTtsModel || 'bulbul:v3'} onChange={e => onChange('sarvamTtsModel', e.target.value)}>
+              <option value="bulbul:v3">bulbul:v3 (premium · ₹30/10K chars)</option>
+              <option value="bulbul:v2">bulbul:v2 (standard · ₹15/10K chars)</option>
+            </select>
           </Field>
           <Field label="STT Model" hint="saarika:v2 (default) — Sarvam's Indian-language ASR">
             <input className={styles.input} value={s.sarvamSttModel || 'saarika:v2'} onChange={e => onChange('sarvamSttModel', e.target.value)} placeholder="saarika:v2" />
@@ -391,6 +394,12 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
           </Field>
           <Field label="System Prompt (optional)" hint="Agent's behaviour. Supports {{customer_name}}, {{company_name}}, {{services}}, {{office_hours}}, {{support_number}}, {{purpose}}, {{custom_fields}}. Leave blank for default Tamil prompt.">
             <textarea className={styles.input} rows={6} value={s.sarvamSystemPrompt || ''} onChange={e => onChange('sarvamSystemPrompt', e.target.value)} placeholder="நீங்கள் சமுத்ரா — {{company_name}}-ன் தமிழ் AI உதவியாளர்..." />
+          </Field>
+          <Field
+            label="Exotel Voicebot App ID"
+            hint={'ONLY needed if Telephony Provider = Exotel. In Exotel dashboard → App Bazaar → create a new App with a Voicebot Applet pointing to wss://<your-app-url>/sarvam-stream, then paste that App ID here.'}
+          >
+            <input className={styles.input} value={s.exotelSarvamAppId || ''} onChange={e => onChange('exotelSarvamAppId', e.target.value)} placeholder="e.g. 1234567 or full http://my.exotel.com/.../start_voice/1234567" />
           </Field>
         </div>
       </Card>

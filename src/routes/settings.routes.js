@@ -87,6 +87,7 @@ const DEFAULTS = {
   sarvamChatModel:     process.env.SARVAM_CHAT_MODEL || 'sarvam-m',
   sarvamSystemPrompt:  process.env.SARVAM_SYSTEM_PROMPT || '',
   sarvamGreeting:      process.env.SARVAM_GREETING || '',
+  exotelSarvamAppId:   process.env.EXOTEL_SARVAM_APP_ID || '',
   // Samuthra dynamic-variable defaults (company info)
   companyName:     process.env.COMPANY_NAME || '',
   servicesList:    process.env.SERVICES_LIST || '',
@@ -196,6 +197,7 @@ const ENV_MAP = {
   sarvamChatModel:     'SARVAM_CHAT_MODEL',
   sarvamSystemPrompt:  'SARVAM_SYSTEM_PROMPT',
   sarvamGreeting:      'SARVAM_GREETING',
+  exotelSarvamAppId:   'EXOTEL_SARVAM_APP_ID',
   companyName:    'COMPANY_NAME',
   servicesList:   'SERVICES_LIST',
   officeHours:    'OFFICE_HOURS',

@@ -1,11 +1,15 @@
 /**
- * Sarvam Conversation Stream
+ * Sarvam Conversation Stream — telephony-agnostic.
  *
- * Twilio Media Stream WebSocket handler. One connection per call.
+ * Handles Media Stream WebSockets from BOTH Twilio (μ-law 8kHz) and Exotel
+ * Voicebot Applet (PCM16 / slin16 8kHz). Protocol is auto-detected from the
+ * "start" event metadata.
+ *
  * Lifecycle:
- *   - Twilio sends "start" → we play a greeting
- *   - Twilio sends "media" frames (μ-law 8kHz, 20ms) → we buffer + run silence VAD
- *   - When user pauses → STT → Chat → TTS → stream audio back as "media" frames
+ *   - Provider sends "connected" / "start"
+ *   - We greet the customer
+ *   - "media" frames arrive (base64) → buffered + energy-VAD
+ *   - On end-of-utterance → STT → Chat → TTS → stream audio back
  *   - "stop" → cleanup
  */
 
@@ -14,7 +18,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const logger = require('../utils/logger');
 const { getSettingsSync } = require('./settingsService');
-const { getCallMeta, forgetCallMeta } = require('./sarvamSessionStore');
+const { getCallMeta, forgetCallMeta, hasCall, getCallIdBySid } = require('./sarvamSessionStore');
 const { stt, chat, tts } = require('./sarvamApi');
 const {
   muLawToPcm16,
@@ -26,50 +30,67 @@ const {
 } = require('../utils/audioCodec');
 const Transcript = (() => { try { return require('../models/Transcript'); } catch { return null; } })();
 
-// VAD / turn config
-const FRAME_BYTES        = 160;   // 20ms of μ-law @ 8kHz
-const SILENCE_ENERGY     = 350;   // mean-abs PCM16 below this = silence
-const SILENCE_FRAMES_END = 35;    // ~700ms of silence ends an utterance
-const MIN_SPEECH_FRAMES  = 10;    // ignore <200ms blips
-const MAX_TURN_FRAMES    = 750;   // hard cap ~15s
-const OUT_FRAME_MS       = 20;
+// VAD / turn config (operate on PCM16 normalized energy regardless of provider)
+const SILENCE_ENERGY     = 350;     // mean-abs PCM16 below this = silence
+const SILENCE_MS_END     = 700;     // ms of silence ends an utterance
+const MIN_SPEECH_MS      = 200;     // ignore <200ms blips
+const MAX_TURN_MS        = 15000;   // hard cap per turn
+const FRAME_MS           = 20;      // outbound pacing chunk
 
 function init(server) {
   const wss = new WebSocket.Server({ server, path: '/sarvam-stream' });
 
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, 'http://x');
-    const callId = url.searchParams.get('callId') || `unknown-${Date.now()}`;
-    const wt     = url.searchParams.get('wt');
-    const s      = getSettingsSync();
-    const expected = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+    const queryCallId = url.searchParams.get('callId') || '';
+    const wt          = url.searchParams.get('wt') || '';
+    const s           = getSettingsSync();
+    const expected    = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+
+    // Authorization: require a valid wt token. The Voicebot/Stream URL the user
+    // configures for the telephony provider MUST include `?wt=<token>` —
+    // documented in the Settings UI hint.
     if (wt !== expected) {
-      logger.warn(`[sarvam-stream] bad token for call ${callId}, closing`);
-      try { ws.close(4003, 'bad token'); } catch {}
+      logger.warn(`[sarvam-stream] missing/bad wt token, closing (callId=${queryCallId || 'n/a'})`);
+      try { ws.close(4003, 'unauthorized'); } catch {}
       return;
     }
-    const session = new Session(ws, callId);
+
+    const session = new Session(ws, queryCallId);
     session.start().catch(err => {
-      logger.error(`[sarvam-stream] session error call=${callId}: ${err.message}`);
+      logger.error(`[sarvam-stream] session error call=${session.callId}: ${err.message}`);
       try { ws.close(); } catch {}
     });
   });
 
-  logger.info('🎙️  Sarvam Media Stream WS ready at /sarvam-stream');
+  logger.info('🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)');
 }
 
 class Session {
   constructor(ws, callId) {
     this.ws        = ws;
-    this.callId    = callId;
+    this.callId    = callId || `unknown-${Date.now()}`;
     this.streamSid = null;
     this.meta      = getCallMeta(callId) || {};
     this.history   = [];
-    this.frameBuf  = [];
-    this.silentRun = 0;
-    this.speechRun = 0;
+
+    // Inbound buffering — we always work in PCM16 8kHz internally
+    this.pcmChunks = [];
+    this.pcmBytes  = 0;
+    this.silentMs  = 0;
+    this.speechMs  = 0;
+    this.turnMs    = 0;
+
     this.processing = false;
     this.closed     = false;
+
+    // Telephony protocol — autodetected on 'start'
+    this.provider     = 'twilio';   // 'twilio' | 'exotel'
+    this.inEncoding   = 'mulaw';    // 'mulaw' | 'pcm16'
+    this.inSampleRate = 8000;
+    this.outEncoding  = 'mulaw';
+    this.outSampleRate = 8000;
+
     this.systemPrompt = this.buildSystemPrompt();
   }
 
@@ -118,7 +139,7 @@ class Session {
     this.ws.on('message', (buf) => {
       let msg;
       try { msg = JSON.parse(buf.toString()); } catch { return; }
-      this.handleTwilioMsg(msg).catch(err =>
+      this.handleProviderMsg(msg).catch(err =>
         logger.error(`[sarvam-stream] handler error call=${this.callId}: ${err.message}`)
       );
     });
@@ -126,18 +147,21 @@ class Session {
     this.ws.on('error', (err) => logger.warn(`[sarvam-stream] ws error call=${this.callId}: ${err.message}`));
   }
 
-  async handleTwilioMsg(msg) {
+  async handleProviderMsg(msg) {
     switch (msg.event) {
       case 'connected':
         return;
       case 'start':
-        this.streamSid = msg.start?.streamSid;
-        logger.info(`[sarvam-stream] START call=${this.callId} stream=${this.streamSid}`);
+        this.detectProtocol(msg);
+        this.bindCallIdFromStart(msg);
+        logger.info(`[sarvam-stream] START call=${this.callId} provider=${this.provider} stream=${this.streamSid} in=${this.inEncoding}@${this.inSampleRate}Hz`);
         await this.speakGreeting();
         return;
       case 'media':
-        if (this.processing) return; // ignore inbound while bot is talking
+        if (this.processing) return;
         this.handleAudioFrame(Buffer.from(msg.media.payload, 'base64'));
+        return;
+      case 'dtmf':
         return;
       case 'stop':
         logger.info(`[sarvam-stream] STOP call=${this.callId}`);
@@ -145,41 +169,107 @@ class Session {
         return;
       case 'mark':
         return;
+      case 'clear':
+        // Twilio/Exotel barge-in signal — drop any pending outbound TTS frames.
+        this.processing = false;
+        return;
     }
   }
 
-  handleAudioFrame(mulawFrame) {
-    const pcm = muLawToPcm16(mulawFrame);
+  /**
+   * On 'start', try to recover our internal callId. Twilio passes it via the
+   * <Stream> query string (already in this.callId). Exotel Voicebot Applet
+   * does NOT forward query params reliably — we fall back to mapping the
+   * provider's call_sid (stored at dial-time) to our internal callId, then
+   * also check custom_parameters payload for a direct callId.
+   */
+  bindCallIdFromStart(msg) {
+    const start = msg.start || {};
+    const provCallSid = start.callSid || start.call_sid;
+    const customParams =
+      start.customParameters || start.custom_parameters || start.custom_param || {};
+
+    if (!this.callId || /^unknown-/.test(this.callId)) {
+      // 1) Try custom parameter passed via <Parameter name="callId" .../>
+      const fromParam = customParams.callId || customParams.call_id;
+      if (fromParam) this.callId = String(fromParam);
+      // 2) Try sid-mapping populated at dial time
+      else if (provCallSid) {
+        const mapped = getCallIdBySid(provCallSid);
+        if (mapped) this.callId = mapped;
+        else this.callId = `provider-${provCallSid}`;
+      } else {
+        this.callId = `unknown-${Date.now()}`;
+      }
+    }
+    // Refresh meta now that we know who we are
+    const m = getCallMeta(this.callId);
+    if (m) this.meta = m;
+    this.systemPrompt = this.buildSystemPrompt();
+  }
+
+  detectProtocol(msg) {
+    // Twilio: msg.start.streamSid + mediaFormat.encoding="audio/x-mulaw"
+    // Exotel: msg.start.stream_sid + media_format.encoding="audio/x-raw" or "base64" with bit-depth=16 (slin)
+    const start = msg.start || {};
+    this.streamSid = start.streamSid || start.stream_sid || msg.streamSid || msg.stream_sid || null;
+
+    const fmt = start.mediaFormat || start.media_format || {};
+    const encRaw = String(fmt.encoding || '').toLowerCase();
+    const sampleRate = parseInt(fmt.sample_rate || fmt.sampleRate || 8000, 10) || 8000;
+
+    if (encRaw.includes('mulaw') || encRaw.includes('ulaw')) {
+      this.provider = 'twilio';
+      this.inEncoding = 'mulaw';
+      this.outEncoding = 'mulaw';
+    } else {
+      // Exotel Voicebot defaults to 16-bit signed PCM (slin) at 8kHz, base64-wrapped.
+      this.provider = 'exotel';
+      this.inEncoding = 'pcm16';
+      this.outEncoding = 'pcm16';
+    }
+    this.inSampleRate  = sampleRate;
+    this.outSampleRate = sampleRate;
+  }
+
+  // Convert any inbound media frame to PCM16 8kHz before VAD/STT
+  toPcm16_8k(frame) {
+    let pcm = this.inEncoding === 'mulaw' ? muLawToPcm16(frame) : frame;
+    if (this.inSampleRate !== 8000) pcm = resamplePcm16(pcm, this.inSampleRate, 8000);
+    return pcm;
+  }
+
+  handleAudioFrame(rawFrame) {
+    const pcm = this.toPcm16_8k(rawFrame);
     const energy = pcm16Energy(pcm);
     const isSilent = energy < SILENCE_ENERGY;
+    const frameMs = (pcm.length / 2 / 8000) * 1000;
 
-    if (this.frameBuf.length === 0 && isSilent) return; // wait for speech to start
+    // Wait for first non-silent frame before opening a turn
+    if (this.pcmChunks.length === 0 && isSilent) return;
 
-    this.frameBuf.push(mulawFrame);
-    if (isSilent) {
-      this.silentRun++;
-    } else {
-      this.silentRun = 0;
-      this.speechRun++;
-    }
+    this.pcmChunks.push(pcm);
+    this.pcmBytes += pcm.length;
+    this.turnMs   += frameMs;
+
+    if (isSilent) this.silentMs += frameMs;
+    else { this.silentMs = 0; this.speechMs += frameMs; }
 
     if (
-      (this.silentRun >= SILENCE_FRAMES_END && this.speechRun >= MIN_SPEECH_FRAMES) ||
-      this.frameBuf.length >= MAX_TURN_FRAMES
+      (this.silentMs >= SILENCE_MS_END && this.speechMs >= MIN_SPEECH_MS) ||
+      this.turnMs >= MAX_TURN_MS
     ) {
-      const utterance = Buffer.concat(this.frameBuf);
-      this.frameBuf = [];
-      this.silentRun = 0;
-      this.speechRun = 0;
+      const utterance = Buffer.concat(this.pcmChunks);
+      this.pcmChunks = []; this.pcmBytes = 0;
+      this.silentMs = 0; this.speechMs = 0; this.turnMs = 0;
       this.processTurn(utterance);
     }
   }
 
-  async processTurn(mulawAudio) {
+  async processTurn(pcm8k) {
     this.processing = true;
     try {
-      const pcm = muLawToPcm16(mulawAudio);
-      const wav = pcm16ToWav(pcm, 8000);
+      const wav = pcm16ToWav(pcm8k, 8000);
 
       let userText = '';
       try {
@@ -192,10 +282,7 @@ class Session {
         logger.warn(`[sarvam-stream] STT failed call=${this.callId}: ${e.message}`);
       }
 
-      if (!userText) {
-        this.processing = false;
-        return; // nothing to respond to
-      }
+      if (!userText) { this.processing = false; return; }
 
       logger.info(`[sarvam-stream] ${this.callId} USER: ${userText}`);
       this.history.push({ role: 'user', content: userText });
@@ -211,8 +298,7 @@ class Session {
         logger.warn(`[sarvam-stream] chat failed call=${this.callId}: ${e.message}`);
         reply = 'மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?';
       }
-      reply = (reply || '').trim();
-      if (!reply) reply = 'மன்னிக்கவும், கேட்கவில்லை. திரும்ப சொல்ல முடியுமா?';
+      reply = (reply || '').trim() || 'மன்னிக்கவும், கேட்கவில்லை. திரும்ப சொல்ல முடியுமா?';
 
       logger.info(`[sarvam-stream] ${this.callId} BOT : ${reply}`);
       this.history.push({ role: 'assistant', content: reply });
@@ -240,47 +326,63 @@ class Session {
     const speaker = s.sarvamVoice || 'meera';
     const ttsModel = s.sarvamTtsModel || 'bulbul:v2';
     const lang = this.langCode();
+    const targetSr = this.outSampleRate || 8000;
 
     let wav;
     try {
-      wav = await tts(text, { speaker, model: ttsModel, languageCode: lang, sampleRate: 8000 });
+      wav = await tts(text, { speaker, model: ttsModel, languageCode: lang, sampleRate: targetSr });
     } catch (e) {
       logger.warn(`[sarvam-stream] TTS failed call=${this.callId}: ${e.message}`);
       return;
     }
 
     const { pcm, sampleRate } = wavToPcm16(wav);
-    const pcm8k = sampleRate === 8000 ? pcm : resamplePcm16(pcm, sampleRate, 8000);
-    const mulaw = pcm16ToMuLaw(pcm8k);
+    const pcmTarget = sampleRate === targetSr ? pcm : resamplePcm16(pcm, sampleRate, targetSr);
 
-    // Stream out in 160-byte (20ms) frames pacing roughly real-time
-    for (let i = 0; i < mulaw.length && !this.closed; i += FRAME_BYTES) {
-      const slice = mulaw.slice(i, i + FRAME_BYTES);
-      const padded = slice.length === FRAME_BYTES
-        ? slice
-        : Buffer.concat([slice, Buffer.alloc(FRAME_BYTES - slice.length, 0xff)]);
-      this.sendMedia(padded);
-      await sleep(OUT_FRAME_MS);
+    // Frame size: FRAME_MS of audio at targetSr
+    const samplesPerFrame = (targetSr * FRAME_MS) / 1000;          // e.g. 160 @ 8kHz, 20ms
+    const bytesPerFrameOut = this.outEncoding === 'mulaw' ? samplesPerFrame : samplesPerFrame * 2;
+    const pcmBytesPerFrame = samplesPerFrame * 2;
+
+    for (let i = 0; i < pcmTarget.length && !this.closed; i += pcmBytesPerFrame) {
+      const slicePcm = pcmTarget.slice(i, i + pcmBytesPerFrame);
+      const padded   = slicePcm.length === pcmBytesPerFrame
+        ? slicePcm
+        : Buffer.concat([slicePcm, Buffer.alloc(pcmBytesPerFrame - slicePcm.length, 0)]);
+      const frame = this.outEncoding === 'mulaw' ? pcm16ToMuLaw(padded) : padded;
+      // Final safety pad to bytesPerFrameOut
+      const out = frame.length === bytesPerFrameOut
+        ? frame
+        : Buffer.concat([frame, Buffer.alloc(Math.max(0, bytesPerFrameOut - frame.length), this.outEncoding === 'mulaw' ? 0xff : 0)]);
+      this.sendMedia(out);
+      await sleep(FRAME_MS);
     }
     this.sendMark('end-of-utterance');
   }
 
-  sendMedia(mulawFrame) {
-    if (this.ws.readyState !== WebSocket.OPEN || !this.streamSid) return;
-    this.ws.send(JSON.stringify({
-      event: 'media',
-      streamSid: this.streamSid,
-      media: { payload: mulawFrame.toString('base64') },
-    }));
+  sendMedia(audioFrame) {
+    if (this.ws.readyState !== WebSocket.OPEN) return;
+    const payload = audioFrame.toString('base64');
+    const msg = this.provider === 'exotel'
+      ? {
+          event: 'media',
+          stream_sid: this.streamSid || undefined,
+          media: { payload },
+        }
+      : {
+          event: 'media',
+          streamSid: this.streamSid || undefined,
+          media: { payload },
+        };
+    this.ws.send(JSON.stringify(msg));
   }
 
   sendMark(name) {
-    if (this.ws.readyState !== WebSocket.OPEN || !this.streamSid) return;
-    this.ws.send(JSON.stringify({
-      event: 'mark',
-      streamSid: this.streamSid,
-      mark: { name },
-    }));
+    if (this.ws.readyState !== WebSocket.OPEN) return;
+    const msg = this.provider === 'exotel'
+      ? { event: 'mark', stream_sid: this.streamSid || undefined, mark: { name } }
+      : { event: 'mark', streamSid: this.streamSid || undefined, mark: { name } };
+    try { this.ws.send(JSON.stringify(msg)); } catch {}
   }
 
   langCode() {
@@ -307,8 +409,6 @@ class Session {
   }
 }
 
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 module.exports = { init };

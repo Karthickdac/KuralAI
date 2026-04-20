@@ -40,6 +40,7 @@ const DEFAULTS = {
   sarvamChatModel: 'sarvam-m',
   sarvamSystemPrompt: '',
   sarvamGreeting: '',
+  exotelSarvamAppId: '',
   companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 
