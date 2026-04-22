@@ -1,0 +1,148 @@
+root@srv1609330:~# echo "===== STATUS ====="
+pm2 status
+
+echo "===== ERROR LOG (last 60) ====="
+tail -n 60 /root/.pm2/logs/kuralai-error.log
+
+echo "===== OUT LOG (last 60) ====="
+tail -n 60 /root/.pm2/logs/kuralai-out.log
+
+echo "===== ENV the app sees ====="
+cd /root && node -e "require('dotenv').config(); ['DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD','PORT','WEBHOOK_TOKEN'].forEach(k=>console.log(k,'=',JSON.stringify(process.env[k])))"
+===== STATUS =====
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ N/A     │ fork    │ 41167    │ 0s     │ 131  │ online    │ 0%       │ 69.3mb   │ root     │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+===== ERROR LOG (last 60) =====
+(node:40321) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40349) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40377) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40406) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40434) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40463) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40492) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40520) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40550) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40578) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40607) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40636) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40664) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40692) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40721) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40749) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40778) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40807) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40836) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40865) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40894) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40922) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40950) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40979) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41009) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41037) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41066) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41094) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41123) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41151) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+===== OUT LOG (last 60) =====
+]: 📦 Serving dashboard from build directory
+]: TypeError: Organization.findOne is not a function
+    at seedCustomers (/root/src/config/database.js:322:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async initDatabase (/root/src/config/database.js:82:3)
+    at async bootstrap (/root/src/server.js:174:5)
+
+> kuralai-backend@1.0.0 start
+> node src/server.js
+
+]: 📦 Serving dashboard from build directory
+]: TypeError: Organization.findOne is not a function
+    at seedCustomers (/root/src/config/database.js:322:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async initDatabase (/root/src/config/database.js:82:3)
+    at async bootstrap (/root/src/server.js:174:5)
+
+> kuralai-backend@1.0.0 start
+> node src/server.js
+
+]: 📦 Serving dashboard from build directory
+]: TypeError: Organization.findOne is not a function
+    at seedCustomers (/root/src/config/database.js:322:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async initDatabase (/root/src/config/database.js:82:3)
+    at async bootstrap (/root/src/server.js:174:5)
+
+> kuralai-backend@1.0.0 start
+> node src/server.js
+
+]: 📦 Serving dashboard from build directory
+]: TypeError: Organization.findOne is not a function
+    at seedCustomers (/root/src/config/database.js:322:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async initDatabase (/root/src/config/database.js:82:3)
+    at async bootstrap (/root/src/server.js:174:5)
+
+> kuralai-backend@1.0.0 start
+> node src/server.js
+
+]: 📦 Serving dashboard from build directory
+]: TypeError: Organization.findOne is not a function
+    at seedCustomers (/root/src/config/database.js:322:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async initDatabase (/root/src/config/database.js:82:3)
+    at async bootstrap (/root/src/server.js:174:5)
+
+> kuralai-backend@1.0.0 start
+> node src/server.js
+
+]: 📦 Serving dashboard from build directory
+]: TypeError: Organization.findOne is not a function
+    at seedCustomers (/root/src/config/database.js:322:34)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async initDatabase (/root/src/config/database.js:82:3)
+    at async bootstrap (/root/src/server.js:174:5)
+
+> kuralai-backend@1.0.0 start
+> node src/server.js
+
+===== ENV the app sees =====
+DB_HOST = "127.0.0.1"
+DB_PORT = "5432"
+DB_NAME = "kuralai"
+DB_USER = "kuralai"
+DB_PASSWORD = "automystics"
+PORT = "3000"
+WEBHOOK_TOKEN = "kuralai-wh-CHANGEME"
+root@srv1609330:~# 

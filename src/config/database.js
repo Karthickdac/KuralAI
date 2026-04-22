@@ -315,7 +315,7 @@ async function seedDefaultOrg() {
 async function seedCustomers() {
   const Customer = require('../models/Customer');
   const ChitAccount = require('../models/ChitAccount');
-  const Organization = require('../models/Organization');
+  const Organization = sequelize.models.Organization;
   const count = await Customer.count();
   if (count > 0) return; // Already seeded
 
