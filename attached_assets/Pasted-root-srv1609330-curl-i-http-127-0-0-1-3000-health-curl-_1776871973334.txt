@@ -1,0 +1,144 @@
+root@srv1609330:~# curl -i http://127.0.0.1:3000/health
+curl: (7) Failed to connect to 127.0.0.1 port 3000 after 0 ms: Couldn't connect to server
+root@srv1609330:~# ^C
+root@srv1609330:~# ^C
+root@srv1609330:~# # 1. Where is PM2 running kuralai from?
+pm2 info kuralai | grep -E 'exec cwd|script'
+
+# 2. Does .env exist there, and what does DATABASE_URL look like?
+CWD=$(pm2 info kuralai | awk -F': ' '/exec cwd/ {print $2}')
+echo "CWD=$CWD"
+ls -la "$CWD/.env"
+grep -E '^DATABASE_URL' "$CWD/.env"
+
+# 3. Does Node actually read it?
+cd "$CWD"
+node -e "require('dotenv').config(); console.log('DATABASE_URL=', JSON.stringify(process.env.DATABASE_URL))"
+│ script path       │ /usr/bin/npm                      │
+│ script args       │ start                             │
+│ script id         │ 0                                 │
+│ exec cwd          │ /root                             │
+CWD=
+ls: cannot access '/.env': No such file or directory
+grep: /.env: No such file or directory
+DATABASE_URL= "postgres://kuralai:automystics@localhost:5432/kuralai"
+root@srv1609330:~# # go to the app folder
+cd /root/htdocs/kuralai.automystics.tech 2>/dev/null \
+  || cd /root/KuralAI 2>/dev/null \
+  || cd /root
+
+pwd
+
+# 1. Reset the Postgres password to a known simple value
+sudo -u postgres psql -c "ALTER USER kuralai WITH PASSWORD 'automystics';"
+
+# 2. Rewrite .env with the correct DATABASE_URL
+#    (preserves your other keys if .env already exists)
+if [ -f .env ]; then
+  sed -i '/^DATABASE_URL=/d' .env
+fi
+cat >> .env <<'EOF'
+DATABASE_URL=postgres://kuralai:automystics@127.0.0.1:5432/kuralai
+EOF
+
+# 3. Verify it's there and parseable
+grep DATABASE_URL .env
+node -e "require('dotenv').config(); console.log('OK URL=', process.env.DATABASE_URL)"
+
+# 4. Test the DB connection directly with the SAME credentials
+PGPASSWORD=automystics psql -h 127.0.0.1 -U kuralai -d kuralai -c '\conninfo'
+
+# 5. Restart PM2 from THIS folder so cwd is correct
+pm2 delete kuralai
+pm2 start npm --name kuralai -- start
+pm2 save
+sleep 3
+pm2 logs kuralai --lines 30 --nostream
+curl -i http://127.0.0.1:3000/health
+/root
+ALTER ROLE
+DATABASE_URL=postgres://kuralai:automystics@127.0.0.1:5432/kuralai
+OK URL= postgres://kuralai:automystics@127.0.0.1:5432/kuralai
+You are connected to database "kuralai" as user "kuralai" on host "127.0.0.1" at port "5432".
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+[PM2] Applying action deleteProcessId on app [kuralai](ids: [ 0 ])
+[PM2] [kuralai](0) ✓
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Starting /usr/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ N/A     │ fork    │ 37328    │ 0s     │ 0    │ online    │ 0%       │ 13.4mb   │ root     │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Saving current process list...
+[PM2] Successfully saved in /root/.pm2/dump.pm2
+[TAILING] Tailing last 30 lines for [kuralai] process (change the value with --lines option)
+/root/.pm2/logs/kuralai-error.log last 30 lines:
+0|kuralai  | (node:36973) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:36998) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37023) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37048) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37073) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37098) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37123) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37148) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37173) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37198) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37223) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37248) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37349) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37374) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+0|kuralai  | (node:37399) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+
+/root/.pm2/logs/kuralai-out.log last 30 lines:
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | 
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+0|kuralai  | 
+]: 📦 Serving dashboard from build directory
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | 
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+0|kuralai  | 
+]: 📦 Serving dashboard from build directory
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | 
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+0|kuralai  | 
+
+curl: (7) Failed to connect to 127.0.0.1 port 3000 after 0 ms: Couldn't connect to server
+root@srv1609330:~# 
