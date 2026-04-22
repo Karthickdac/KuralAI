@@ -1,0 +1,178 @@
+0|kuralai  | (node:36897) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:36922) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:36948) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:36973) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:36998) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37023) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37048) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37073) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37098) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37123) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37148) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37173) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37198) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37223) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+0|kuralai  | > kuralai-backend@1.0.0 start
+0|kuralai  | > node src/server.js
+]: 📦 Serving dashboard from build directory
+0|kuralai  | (node:37248) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+0|kuralai  | (Use `node --trace-deprecation ...` to show where the warning was created)
+]: SequelizeConnectionError: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
+0|kuralai  |     at Client._connectionCallback (/root/node_modules/sequelize/lib/dialects/postgres/connection-manager.js:149:20)
+0|kuralai  |     at Client._handleErrorWhileConnecting (/root/node_modules/pg/lib/client.js:379:19)
+0|kuralai  |     at Client._handleErrorEvent (/root/node_modules/pg/lib/client.js:389:19)
+0|kuralai  |     at Connection.emit (node:events:519:28)
+0|kuralai  |     at Client._handleAuthSASLContinue (/root/node_modules/pg/lib/client.js:327:23)
+0|kuralai  |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {"name":"SequelizeConnectionError","parent":{},"original":"[Circular]"}
+^C
