@@ -6,3 +6,9 @@ id = "fV00-CSAOTrjcq7NLamVD"
 uri = "file://docs/KuralAI-User-Guide.pdf"
 type = "pdf"
 title = "KuralAI — Complete User Guide (Edition 2026.04)"
+
+[[outputs]]
+id = "EAJXEX-xlcpO5TsLvq1yK"
+uri = "file://docs/KuralAI-Sales-Deck.pdf"
+type = "pdf"
+title = "KuralAI — Sales Deck (18 slides, 16:9)"

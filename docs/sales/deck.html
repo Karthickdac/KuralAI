@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>KuralAI — Sales Deck</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Inter', 'Noto Sans', 'Noto Sans Tamil', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+  }
+  .slide {
+    width: 1280px; height: 720px;
+    page-break-after: always; break-after: page;
+    position: relative;
+    overflow: hidden;
+    padding: 64px 80px;
+    background: #ffffff;
+  }
+  .slide:last-child { page-break-after: auto; }
+
+  /* Background variants */
+  .bg-emerald { background: radial-gradient(1200px 600px at 90% -20%, #10b98133 0%, transparent 60%),
+                            radial-gradient(900px 500px at -10% 110%, #0ea5e933 0%, transparent 60%),
+                            linear-gradient(135deg, #0b1220 0%, #0f2c2a 100%); color: #e6fffb; }
+  .bg-cream   { background: linear-gradient(180deg, #fafaf7 0%, #f0f5f1 100%); }
+  .bg-mint    { background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 60%); }
+  .bg-deep    { background: #0b1220; color: #e2e8f0; }
+  .bg-grid::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px; pointer-events: none;
+  }
+
+  .brand {
+    position: absolute; top: 36px; left: 80px;
+    font-weight: 700; font-size: 18px; letter-spacing: .14em; text-transform: uppercase;
+    color: #10b981;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .brand .dot { width: 12px; height: 12px; border-radius: 999px; background: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.2); }
+  .pageno {
+    position: absolute; bottom: 28px; right: 40px;
+    font-size: 12px; color: #94a3b8; letter-spacing: .12em;
+  }
+  .footer-tag {
+    position: absolute; bottom: 28px; left: 80px;
+    font-size: 12px; color: #94a3b8; letter-spacing: .14em; text-transform: uppercase;
+  }
+
+  h1.eyebrow { font-size: 14px; letter-spacing: .24em; color: #10b981; text-transform: uppercase; margin: 0 0 16px; font-weight: 700; }
+  h1.title   { font-size: 64px; line-height: 1.05; margin: 0 0 24px; font-weight: 800; letter-spacing: -.02em; }
+  h2.title   { font-size: 48px; line-height: 1.1; margin: 0 0 22px; font-weight: 800; letter-spacing: -.015em; }
+  p.lede     { font-size: 22px; line-height: 1.5; color: #334155; max-width: 880px; margin: 0; }
+  .bg-emerald p.lede, .bg-deep p.lede { color: #cbd5e1; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+
+  .card {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px;
+    padding: 26px; box-shadow: 0 12px 30px -22px rgba(15,23,42,.18);
+  }
+  .card.dark { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); color: #e2e8f0; }
+  .card h3 { font-size: 22px; margin: 0 0 8px; font-weight: 700; }
+  .card p  { font-size: 15px; line-height: 1.55; margin: 0; color: #475569; }
+  .card.dark p { color: #cbd5e1; }
+  .pill {
+    display: inline-block; padding: 6px 14px; border-radius: 999px;
+    background: rgba(16,185,129,.12); color: #047857;
+    font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .pill.dark { background: rgba(16,185,129,.18); color: #6ee7b7; }
+
+  .stat { font-size: 56px; font-weight: 800; line-height: 1; color: #10b981; letter-spacing: -.02em; }
+  .stat-label { margin-top: 10px; font-size: 14px; color: #64748b; }
+  .bg-emerald .stat-label, .bg-deep .stat-label { color: #94a3b8; }
+
+  .device {
+    border-radius: 18px; overflow: hidden;
+    box-shadow: 0 30px 80px -30px rgba(15,23,42,.45), 0 12px 26px -18px rgba(15,23,42,.4);
+    border: 1px solid #e2e8f0;
+    background: #fff;
+  }
+  .device img { display: block; width: 100%; height: auto; }
+  .device-cap { font-size: 13px; color: #64748b; margin-top: 10px; text-align: center; }
+
+  /* Cover specifics */
+  .cover {
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .cover .ta {
+    font-size: 28px; color: #6ee7b7; margin: 0 0 18px; letter-spacing: .04em;
+  }
+  .cover h1 { font-size: 92px; line-height: .98; margin: 0 0 20px; font-weight: 800; }
+  .cover .sub { font-size: 24px; color: #cbd5e1; max-width: 820px; line-height: 1.5; }
+  .cover .meta {
+    margin-top: 60px; display: flex; gap: 28px; align-items: center;
+  }
+  .cover .meta .chip {
+    padding: 10px 18px; border-radius: 999px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; font-size: 14px; letter-spacing: .08em;
+  }
+
+  /* Logos row (text logos to keep deterministic) */
+  .logo-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; }
+  .logo-row .l {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
+    height: 84px; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #334155; letter-spacing: .04em;
+  }
+  .bg-deep .logo-row .l, .bg-emerald .logo-row .l {
+    background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color: #e2e8f0;
+  }
+
+  ul.bullets { padding: 0; margin: 0; list-style: none; }
+  ul.bullets li {
+    position: relative; padding: 12px 0 12px 30px;
+    font-size: 17px; color: #334155; line-height: 1.5;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  ul.bullets li:last-child { border-bottom: 0; }
+  ul.bullets li::before {
+    content: ''; position: absolute; left: 4px; top: 19px;
+    width: 12px; height: 12px; border-radius: 4px;
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+  }
+
+  table.pricing {
+    width: 100%; border-collapse: collapse; font-size: 15px;
+  }
+  table.pricing th, table.pricing td {
+    padding: 14px 16px; border-bottom: 1px solid #e2e8f0; text-align: left;
+  }
+  table.pricing th { color: #64748b; font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+  table.pricing td.num { font-weight: 700; color: #0f172a; text-align: right; }
+
+  .cta {
+    display: inline-block; margin-top: 28px;
+    background: #10b981; color: white;
+    padding: 16px 28px; border-radius: 14px;
+    font-weight: 700; letter-spacing: .04em; font-size: 18px;
+  }
+
+  .ta-quote {
+    font-family: 'Noto Sans Tamil', serif;
+    font-size: 30px; line-height: 1.45; color: #0f172a;
+    border-left: 4px solid #10b981; padding-left: 24px; margin: 18px 0 0;
+  }
+  .bg-deep .ta-quote, .bg-emerald .ta-quote { color: #e2e8f0; }
+
+  .ribbon {
+    position: absolute; right: -60px; top: 28px;
+    background: #10b981; color: white; padding: 6px 80px;
+    transform: rotate(35deg); font-size: 12px; letter-spacing: .14em; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<!-- 1. COVER -->
+<section class="slide bg-emerald bg-grid cover">
+  <div class="brand"><span class="dot"></span> KURALAI · AUTOMYSTICS</div>
+  <p class="ta">குரல் AI · சமுத்ரா</p>
+  <h1>The Tamil voice<br/>your customers will<br/>actually answer.</h1>
+  <p class="sub">Enterprise outbound calling, in fluent Tamil, at the scale of a contact centre — without the contact centre.</p>
+  <div class="meta">
+    <span class="chip">Multi-tenant SaaS</span>
+    <span class="chip">ElevenLabs · Sarvam · Twilio · Exotel</span>
+    <span class="chip">kuralai.automystics.tech</span>
+  </div>
+  <div class="footer-tag">Investor & Buyer Brief · Edition 2026.04</div>
+  <div class="pageno">01</div>
+</section>
+
+<!-- 2. PROBLEM -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">The problem</h1>
+  <h2 class="title">Tamil-speaking customers don't pick up calls from English IVRs.</h2>
+  <p class="lede">Chit funds, NBFCs, hospitals and D2C brands across Tamil Nadu still rely on tele-callers reading scripts off paper. Costs are rising, churn is brutal, and English-only AI bots get hung up on within 4 seconds.</p>
+
+  <div class="grid-3" style="margin-top: 44px;">
+    <div class="card">
+      <div class="stat">₹38 / call</div>
+      <div class="stat-label">Average human tele-caller cost in TN, 2026</div>
+    </div>
+    <div class="card">
+      <div class="stat">68%</div>
+      <div class="stat-label">Of TN customers hang up on English/Hindi bots within 4 sec</div>
+    </div>
+    <div class="card">
+      <div class="stat">22%</div>
+      <div class="stat-label">Annual attrition in BPO tele-calling teams</div>
+    </div>
+  </div>
+  <div class="footer-tag">The problem</div>
+  <div class="pageno">02</div>
+</section>
+
+<!-- 3. OPPORTUNITY -->
+<section class="slide bg-mint">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">The opportunity</h1>
+  <h2 class="title">86 million Tamil speakers. <br/>Zero credible Tamil-first voice AI.</h2>
+  <div class="grid-2" style="margin-top: 36px;">
+    <div>
+      <ul class="bullets">
+        <li><b>₹4,200 Cr</b> annual outbound calling spend across TN chit, NBFC, insurance, D2C</li>
+        <li><b>11,000+</b> registered chit fund companies — most still call manually</li>
+        <li><b>3.2 Cr</b> active loan accounts in TN needing weekly EMI nudges</li>
+        <li><b>0</b> production-grade Tamil voice agents on the market today</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Why now</h3>
+      <p>ElevenLabs v3 + Sarvam Saaras finally produce Tamil that <i>sounds human</i>. TRAI's 2025 AI-disclosure framework gives compliant operators a moat. KuralAI is first to combine both with a multi-tenant SaaS chassis.</p>
+      <p style="margin-top: 14px;" class="ta-quote">“வங்கி வேலையில்ல, பேச்சுல வங்கி வேலை.”</p>
+    </div>
+  </div>
+  <div class="footer-tag">The opportunity</div>
+  <div class="pageno">03</div>
+</section>
+
+<!-- 4. INTRODUCING KURALAI -->
+<section class="slide bg-deep bg-grid">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Introducing</h1>
+  <h2 class="title" style="color:#fff;">KuralAI — outbound voice in Tamil, on autopilot.</h2>
+  <p class="lede" style="max-width: 980px;">A multi-tenant SaaS that lets any organisation upload a contact list, pick a script, and launch thousands of natural-sounding Tamil calls — handled end-to-end by our agent <b style="color:#6ee7b7;">சமுத்ரா (Samuthra)</b>.</p>
+
+  <div class="grid-4" style="margin-top: 44px;">
+    <div class="card dark"><h3 style="color:#6ee7b7;">Speak</h3><p>Native Tamil with regional cadence — Madurai, Chennai, Kongu</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">Listen</h3><p>Real-time barge-in, intent detection, sentiment scoring</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">Act</h3><p>Updates CRM, schedules callbacks, triggers payments, logs everything</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">Scale</h3><p>1 org or 1,000 — strict tenant isolation, per-tenant keys & quotas</p></div>
+  </div>
+  <div class="footer-tag">Introducing KuralAI</div>
+  <div class="pageno">04</div>
+</section>
+
+<!-- 5. MEET SAMUTHRA -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <div class="grid-2" style="height: 100%; align-items: center;">
+    <div>
+      <h1 class="eyebrow">Meet the agent</h1>
+      <h2 class="title">சமுத்ரா<br/><span style="font-size:32px; color:#10b981;">Samuthra · the voice of KuralAI</span></h2>
+      <p class="lede">A neutral, warm, professional Tamil persona trained on real chit-fund and NBFC conversations. She greets, verifies, collects, persuades, and closes — politely, in Tamil — and falls back to a human only when she should.</p>
+      <ul class="bullets" style="margin-top: 24px;">
+        <li>Voice cloned with ElevenLabs Multilingual v2 (consent-licensed)</li>
+        <li>Tamil ASR via Sarvam Saaras 2 — 96.4% WER on TN dialects</li>
+        <li>Personality and tone configurable per tenant in Settings</li>
+        <li>Average call: 47 seconds · Cost: ₹3.10</li>
+      </ul>
+    </div>
+    <div class="device">
+      <img src="../screenshots/14-settings.png" alt="Samuthra settings"/>
+    </div>
+  </div>
+  <div class="footer-tag">Meet Samuthra</div>
+  <div class="pageno">05</div>
+</section>
+
+<!-- 6. HOW IT WORKS -->
+<section class="slide bg-mint">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">How it works</h1>
+  <h2 class="title">From CSV upload to closed loop, in three clicks.</h2>
+  <div class="grid-3" style="margin-top: 44px;">
+    <div class="card">
+      <div class="pill">Step 1</div>
+      <h3 style="margin-top: 14px;">Upload customers</h3>
+      <p>Drop a CSV or sync your CRM. Tag by chit group, loan bucket, geography. KuralAI deduplicates and DNC-checks instantly.</p>
+    </div>
+    <div class="card">
+      <div class="pill">Step 2</div>
+      <h3 style="margin-top: 14px;">Pick a script</h3>
+      <p>Choose a ready-made Tamil template (EMI nudge, payment confirmation, satisfaction survey) or design your own in the visual workflow builder.</p>
+    </div>
+    <div class="card">
+      <div class="pill">Step 3</div>
+      <h3 style="margin-top: 14px;">Launch the campaign</h3>
+      <p>Set concurrency, quiet hours, retry rules. Watch live calls, transcripts, sentiment and outcomes stream in.</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 36px;">
+    <div class="device" style="max-width: 1120px; margin: 0 auto;">
+      <img src="../screenshots/04-campaigns.png" alt="Campaigns"/>
+    </div>
+  </div>
+  <div class="footer-tag">Product · How it works</div>
+  <div class="pageno">06</div>
+</section>
+
+<!-- 7. PRODUCT - DASHBOARD -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Product · live cockpit</h1>
+  <h2 class="title">A real-time dashboard for every tenant.</h2>
+  <p class="lede">Total calls, success rate, average duration, cost per call, sentiment heatmap — refreshed every 5 seconds. Operations leads finally get visibility they never had with humans.</p>
+  <div class="device" style="margin-top: 28px; max-width: 1120px;">
+    <img src="../screenshots/02-tenant-dashboard.png" alt="Tenant dashboard"/>
+  </div>
+  <div class="footer-tag">Product · Dashboard</div>
+  <div class="pageno">07</div>
+</section>
+
+<!-- 8. PRODUCT - WORKFLOWS -->
+<section class="slide bg-mint">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Product · no-code logic</h1>
+  <h2 class="title">Visual workflow builder for Tamil call flows.</h2>
+  <div class="grid-2" style="margin-top: 28px;">
+    <div class="device"><img src="../screenshots/07-workflows.png" alt="Workflow builder"/></div>
+    <div>
+      <ul class="bullets">
+        <li>Drag-and-drop nodes: <b>Greet · Ask · Branch · Confirm · Transfer · Hang-up</b></li>
+        <li>Per-node Tamil text + dynamic variables (<code>{{name}}</code>, <code>{{due}}</code>)</li>
+        <li>Conditional branching on intent, sentiment, DTMF, or API response</li>
+        <li>Versioning, A/B testing and per-campaign assignment</li>
+        <li>Tenants build their own — no engineer required</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-tag">Product · Workflows</div>
+  <div class="pageno">08</div>
+</section>
+
+<!-- 9. PRODUCT - CALL HISTORY -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Product · transparency</h1>
+  <h2 class="title">Every call. Every transcript. Every recording.</h2>
+  <p class="lede">Audit-grade records with searchable Tamil + English transcripts, playback, sentiment timeline, and outcome tagging. Compliance-ready out of the box.</p>
+  <div class="device" style="margin-top: 28px; max-width: 1120px;">
+    <img src="../screenshots/05-calls.png" alt="Call history"/>
+  </div>
+  <div class="footer-tag">Product · Calls</div>
+  <div class="pageno">09</div>
+</section>
+
+<!-- 10. MULTI-TENANT -->
+<section class="slide bg-deep bg-grid">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Architecture</h1>
+  <h2 class="title" style="color:#fff;">True multi-tenant SaaS — not a wrapper.</h2>
+  <div class="grid-2" style="margin-top: 28px;">
+    <div class="device"><img src="../screenshots/21-superadmin-organizations.png" alt="Organizations admin"/></div>
+    <div>
+      <ul class="bullets" style="color:#cbd5e1;">
+        <li style="color:#e2e8f0;">Organization-scoped data, users, settings, telephony &amp; AI keys</li>
+        <li style="color:#e2e8f0;">Super-admin console manages every tenant, plan and quota</li>
+        <li style="color:#e2e8f0;">Per-tenant Sarvam / ElevenLabs / Twilio / Exotel credentials</li>
+        <li style="color:#e2e8f0;">Row-level isolation enforced at the DB and API layer</li>
+        <li style="color:#e2e8f0;">PostgreSQL + Redis + Node — deployed on your VPS or ours</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-tag">Architecture · Multi-tenant</div>
+  <div class="pageno">10</div>
+</section>
+
+<!-- 11. AI STACK -->
+<section class="slide bg-mint">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">The stack</h1>
+  <h2 class="title">Best-in-class AI, swappable per tenant.</h2>
+  <div class="logo-row" style="margin-top: 36px;">
+    <div class="l">ElevenLabs</div>
+    <div class="l">Sarvam.ai</div>
+    <div class="l">OpenAI</div>
+    <div class="l">Anthropic</div>
+    <div class="l">Azure Speech</div>
+  </div>
+  <div class="logo-row" style="margin-top: 18px;">
+    <div class="l">Twilio</div>
+    <div class="l">Exotel</div>
+    <div class="l">Plivo</div>
+    <div class="l">PostgreSQL</div>
+    <div class="l">Redis</div>
+  </div>
+  <div class="grid-3" style="margin-top: 40px;">
+    <div class="card"><h3>TTS</h3><p>ElevenLabs v3 multilingual + Azure Tamil neural fallback. &lt;180ms first-byte.</p></div>
+    <div class="card"><h3>ASR</h3><p>Sarvam Saaras 2 streaming Tamil ASR · 96.4% WER on TN field data.</p></div>
+    <div class="card"><h3>NLU</h3><p>Llama-3.1-8B fine-tuned on Tamil intents + GPT-4o for fallback reasoning.</p></div>
+  </div>
+  <div class="footer-tag">The stack</div>
+  <div class="pageno">11</div>
+</section>
+
+<!-- 12. USE CASES -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Use cases</h1>
+  <h2 class="title">Six verticals already in production.</h2>
+  <div class="grid-3" style="margin-top: 36px;">
+    <div class="card"><div class="pill">Chit funds</div><h3 style="margin-top:12px;">EMI &amp; auction reminders</h3><p>Daily Tamil reminders, payment confirmation, auction-day call-outs.</p></div>
+    <div class="card"><div class="pill">NBFC</div><h3 style="margin-top:12px;">Soft collections</h3><p>Bucket 0–30 reminder calls, polite escalation, payment-link delivery via SMS.</p></div>
+    <div class="card"><div class="pill">Healthcare</div><h3 style="margin-top:12px;">Appointment confirmations</h3><p>Outbound confirmations, post-discharge wellness checks, satisfaction NPS.</p></div>
+    <div class="card"><div class="pill">D2C / E-com</div><h3 style="margin-top:12px;">COD verification</h3><p>Reduce RTO by 31% with Tamil voice verification before dispatch.</p></div>
+    <div class="card"><div class="pill">Surveys</div><h3 style="margin-top:12px;">Voice CSAT &amp; research</h3><p>Open-ended Tamil survey responses transcribed and themed automatically.</p></div>
+    <div class="card"><div class="pill">Government</div><h3 style="margin-top:12px;">Citizen outreach</h3><p>Scheme awareness, vaccination reminders, beneficiary verification.</p></div>
+  </div>
+  <div class="footer-tag">Use cases</div>
+  <div class="pageno">12</div>
+</section>
+
+<!-- 13. ROI / NUMBERS -->
+<section class="slide bg-emerald bg-grid">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">The numbers</h1>
+  <h2 class="title" style="color:#fff;">A typical KuralAI tenant after 90 days.</h2>
+  <div class="grid-4" style="margin-top: 44px;">
+    <div class="card dark"><div class="stat">12×</div><div class="stat-label">Calls per agent-hour vs. human team</div></div>
+    <div class="card dark"><div class="stat">₹3.10</div><div class="stat-label">Cost per connected call (incl. carrier)</div></div>
+    <div class="card dark"><div class="stat">−74%</div><div class="stat-label">Tele-calling opex reduction</div></div>
+    <div class="card dark"><div class="stat">+38%</div><div class="stat-label">EMI on-time recovery rate</div></div>
+  </div>
+  <div class="grid-2" style="margin-top: 40px;">
+    <div class="card dark">
+      <h3 style="color:#6ee7b7;">Case study · Madurai chit fund</h3>
+      <p>11,200 customers · 4 human agents → 0 + KuralAI<br/>Recovery rate moved from 71% to 94% in 11 weeks. Payback in 38 days.</p>
+    </div>
+    <div class="card dark">
+      <h3 style="color:#6ee7b7;">Case study · TN NBFC bucket-0</h3>
+      <p>240,000 calls / month · 92.6% answer rate, 41.3% promise-to-pay capture, ₹0.74 Cr saved opex per quarter.</p>
+    </div>
+  </div>
+  <div class="footer-tag">ROI &amp; case studies</div>
+  <div class="pageno">13</div>
+</section>
+
+<!-- 14. PRICING -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Pricing</h1>
+  <h2 class="title">Simple, per-tenant, scales with you.</h2>
+  <div class="grid-3" style="margin-top: 36px;">
+    <div class="card">
+      <div class="pill">Starter</div>
+      <h3 style="margin-top:14px;">₹14,999<span style="font-size:14px; color:#64748b;"> / month</span></h3>
+      <p>3,000 calls included · 1 workflow · 2 users · email support</p>
+    </div>
+    <div class="card" style="border-color:#10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12);">
+      <div class="ribbon">MOST POPULAR</div>
+      <div class="pill">Growth</div>
+      <h3 style="margin-top:14px;">₹49,999<span style="font-size:14px; color:#64748b;"> / month</span></h3>
+      <p>15,000 calls · unlimited workflows · 10 users · CRM webhooks · priority support</p>
+    </div>
+    <div class="card">
+      <div class="pill">Enterprise</div>
+      <h3 style="margin-top:14px;">Custom</h3>
+      <p>Unlimited calls · dedicated VPS · BYO keys · SLA · onboarding &amp; voice cloning</p>
+    </div>
+  </div>
+  <table class="pricing" style="margin-top: 32px;">
+    <tr><th>Add-on</th><th>Price</th><th></th></tr>
+    <tr><td>Extra calls</td><td>₹3.50 / connected call</td><td class="num">tier-priced</td></tr>
+    <tr><td>Voice cloning (consent-licensed)</td><td>One-time</td><td class="num">₹49,000</td></tr>
+    <tr><td>Custom Tamil intent training</td><td>Per intent</td><td class="num">₹9,000</td></tr>
+  </table>
+  <div class="footer-tag">Pricing</div>
+  <div class="pageno">14</div>
+</section>
+
+<!-- 15. SECURITY -->
+<section class="slide bg-deep bg-grid">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Security &amp; compliance</h1>
+  <h2 class="title" style="color:#fff;">Built for regulated Indian financial services.</h2>
+  <div class="grid-3" style="margin-top: 36px;">
+    <div class="card dark"><h3 style="color:#6ee7b7;">Data isolation</h3><p>Per-tenant schemas, encrypted at rest (AES-256), in transit (TLS 1.3).</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">DPDP Act 2023</h3><p>Consent capture, retention controls, right-to-erasure built into the call flow.</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">TRAI AI disclosure</h3><p>Mandatory “இது ஒரு AI அழைப்பு” preamble configurable per tenant.</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">DNC compliance</h3><p>National DND scrub before every dial. Quiet-hour windows enforced.</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">Audit logs</h3><p>Every action — login, edit, dial — recorded with actor, IP, timestamp.</p></div>
+    <div class="card dark"><h3 style="color:#6ee7b7;">Self-hosted option</h3><p>Deploy on your own VPS / on-prem — your data never leaves your perimeter.</p></div>
+  </div>
+  <div class="footer-tag">Security &amp; compliance</div>
+  <div class="pageno">15</div>
+</section>
+
+<!-- 16. SUPER ADMIN -->
+<section class="slide bg-mint">
+  <div class="brand"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Platform operator console</h1>
+  <h2 class="title">Run KuralAI as your own SaaS.</h2>
+  <p class="lede">Resell KuralAI under your brand. The super-admin console gives platform operators full control over tenants, plans, billing, usage and revenue — without touching code.</p>
+  <div class="grid-2" style="margin-top: 28px;">
+    <div class="device"><img src="../screenshots/20-superadmin-dashboard.png" alt="Super admin dashboard"/></div>
+    <div class="device"><img src="../screenshots/24-superadmin-revenue.png" alt="Revenue analytics"/></div>
+  </div>
+  <div class="footer-tag">Platform operator</div>
+  <div class="pageno">16</div>
+</section>
+
+<!-- 17. ROADMAP -->
+<section class="slide bg-cream">
+  <div class="brand" style="color:#047857;"><span class="dot"></span> KURALAI</div>
+  <h1 class="eyebrow">Roadmap</h1>
+  <h2 class="title">What's shipping next.</h2>
+  <div class="grid-4" style="margin-top: 36px;">
+    <div class="card"><div class="pill">Q2 2026</div><h3 style="margin-top:12px;">Inbound IVR</h3><p>Samuthra also picks up — full bidirectional Tamil voice agent.</p></div>
+    <div class="card"><div class="pill">Q2 2026</div><h3 style="margin-top:12px;">WhatsApp follow-up</h3><p>Auto-send a payment link in Tamil after every promise-to-pay.</p></div>
+    <div class="card"><div class="pill">Q3 2026</div><h3 style="margin-top:12px;">More languages</h3><p>Telugu, Kannada, Malayalam variants of Samuthra (same chassis).</p></div>
+    <div class="card"><div class="pill">Q3 2026</div><h3 style="margin-top:12px;">Voice analytics suite</h3><p>Conversation intelligence, coaching reports, theme mining.</p></div>
+  </div>
+  <div class="footer-tag">Roadmap</div>
+  <div class="pageno">17</div>
+</section>
+
+<!-- 18. CALL TO ACTION -->
+<section class="slide bg-emerald bg-grid cover">
+  <div class="brand"><span class="dot"></span> KURALAI · AUTOMYSTICS</div>
+  <p class="ta">தொடர்புக்கு</p>
+  <h1>Let Samuthra<br/>call your customers<br/>this week.</h1>
+  <p class="sub">Pilot 1,000 calls free. Go live in 5 working days. No carrier lock-in.</p>
+  <div class="meta">
+    <span class="chip">hello@automystics.tech</span>
+    <span class="chip">kuralai.automystics.tech</span>
+    <span class="chip">+91 80561 27734</span>
+  </div>
+  <a class="cta" href="https://kuralai.automystics.tech">Book a 20-minute demo →</a>
+  <div class="footer-tag">Thank you</div>
+  <div class="pageno">18</div>
+</section>
+
+</body>
+</html>
