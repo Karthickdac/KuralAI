@@ -1,0 +1,34 @@
+{pkgs}: {
+  deps = [
+    pkgs.dejavu_fonts
+    pkgs.liberation_ttf
+    pkgs.noto-fonts-cjk-sans
+    pkgs.noto-fonts
+    pkgs.chromium
+    pkgs.freetype
+    pkgs.fontconfig
+    pkgs.libGL
+    pkgs.cairo
+    pkgs.pango
+    pkgs.at-spi2-core
+    pkgs.alsa-lib
+    pkgs.expat
+    pkgs.mesa
+    pkgs.xorg.libxcb
+    pkgs.xorg.libXrandr
+    pkgs.xorg.libXfixes
+    pkgs.xorg.libXext
+    pkgs.xorg.libXdamage
+    pkgs.xorg.libXcomposite
+    pkgs.xorg.libX11
+    pkgs.libxkbcommon
+    pkgs.dbus
+    pkgs.libdrm
+    pkgs.cups
+    pkgs.at-spi2-atk
+    pkgs.atk
+    pkgs.nspr
+    pkgs.nss
+    pkgs.glib
+  ];
+}

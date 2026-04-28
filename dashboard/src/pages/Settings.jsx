@@ -679,7 +679,7 @@ export default function Settings() {
       settingsApi.get(),
       workflowsApi.list().catch(() => ({ data: { workflows: [] } })),
     ]).then(([sRes, wfRes]) => {
-      const s = { ...sRes.data.settings };
+      const s = { ...(sRes?.data?.settings || {}) };
       const alreadySaved = new Set();
       for (const key of CREDENTIAL_KEYS) {
         if (s[key] && /^•+$/.test(s[key])) {
@@ -689,11 +689,11 @@ export default function Settings() {
       }
       setSavedCreds(alreadySaved);
       setSettings(s);
-      setWorkflows(wfRes.data.workflows || []);
+      setWorkflows(wfRes?.data?.workflows || []);
       const knownPreset = ELEVENLABS_VOICE_PRESETS.find(p => p.value === (s.elevenLabsVoiceId || '') && p.value !== 'custom');
       setElVoicePreset(knownPreset ? knownPreset.value : 'custom');
     })
-    .catch(() => setError('Failed to load settings'))
+    .catch(() => { setError('Failed to load settings'); setSettings({}); })
     .finally(() => setLoading(false));
   }, []);
 
@@ -717,7 +717,7 @@ export default function Settings() {
     }
   }
 
-  if (loading) {
+  if (loading || !settings) {
     return (
       <div className={styles.layout}>
         <Sidebar />

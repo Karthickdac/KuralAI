@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "fV00-CSAOTrjcq7NLamVD"
+uri = "file://docs/KuralAI-User-Guide.pdf"
+type = "pdf"
+title = "KuralAI — Complete User Guide (Edition 2026.04)"
