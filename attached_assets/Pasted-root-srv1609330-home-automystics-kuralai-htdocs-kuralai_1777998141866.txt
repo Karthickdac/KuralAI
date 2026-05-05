@@ -1,0 +1,36 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# APP=/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# 1. Confirm CRA build went to build/ (recent timestamp)
+ls -la $APP/dashboard/build/ 2>/dev/null | head
+ls -la $APP/dashboard/build/static/js/ 2>/dev/null | head -5
+ls -la $APP/dashboard/dist/ 2>/dev/null | head    # probably stale or missing
+
+# 2. What does the backend serve as static? (express.static)
+grep -rn "express.static\|sendFile\|dashboard" $APP/src/index.js $APP/src/server.js $APP/src/app.js 2>/dev/null | head -10
+
+# 3. What bundle is the LIVE html actually pointing to right now?
+curl -s https://kuralai.automystics.tech/ | grep -oE 'static/(js|css)/[^"]+|assets/[^"]+'
+total 352
+drwxrwx--- 3 automystics-kuralai automystics-kuralai   4096 May  5 16:18 .
+drwxrwx--- 6 automystics-kuralai automystics-kuralai   4096 May  5 15:14 ..
+-rw-rw---- 1 automystics-kuralai automystics-kuralai    369 May  5 16:18 asset-manifest.json
+-rw-rw---- 1 automystics-kuralai automystics-kuralai 338957 May  5 16:18 automystic-logo.png
+-rw-rw---- 1 automystics-kuralai automystics-kuralai   1043 May  5 16:18 index.html
+drwxrwx--- 4 automystics-kuralai automystics-kuralai   4096 May  5 16:18 static
+total 4492
+drwxrwx--- 2 automystics-kuralai automystics-kuralai    4096 May  5 16:18 .
+drwxrwx--- 4 automystics-kuralai automystics-kuralai    4096 May  5 16:18 ..
+-rw-rw---- 1 automystics-kuralai automystics-kuralai  971933 May  5 16:18 main.302e0611.js
+-rw-rw---- 1 automystics-kuralai automystics-kuralai    1749 May  5 16:18 main.302e0611.js.LICENSE.txt
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:26:const dashboardRoutes = require('./routes/dashboard.routes');
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:91:app.use('/api/dashboard', dashboardRoutes);
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:135:  res.sendFile(filePath);
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:139:const dashboardBuildDir = path.join(__dirname, '..', 'dashboard', 'build');
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:140:if (require('fs').existsSync(path.join(dashboardBuildDir, 'index.html'))) {
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:141:  app.use(express.static(dashboardBuildDir));
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:146:    res.sendFile(path.join(dashboardBuildDir, 'index.html'));
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:148:  logger.info('📦 Serving dashboard from build directory');
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:164:  if (require('fs').existsSync(path.join(dashboardBuildDir, 'index.html'))) {
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js:165:    return res.sendFile(path.join(dashboardBuildDir, 'index.html'));
+static/js/main.302e0611.js
+static/css/main.8f60e6d6.css
