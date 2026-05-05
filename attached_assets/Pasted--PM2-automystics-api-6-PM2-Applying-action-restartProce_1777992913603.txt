@@ -1,0 +1,115 @@
+[PM2] [automystics-api](6) ✓
+[PM2] Applying action restartProcessId on app [mystics-api](ids: [ 7 ])
+[PM2] [mystics-api](7) ✓
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 6  │ automystics-api    │ default     │ 0.0.0   │ fork    │ 554222   │ 0s     │ 21   │ online    │ 89.5%    │ 66.3mb   │ root     │ disabled │
+│ 2  │ fitro360           │ default     │ 1.0.0   │ fork    │ 554197   │ 0s     │ 9    │ online    │ 78.9%    │ 90.3mb   │ root     │ disabled │
+│ 3  │ kalvicore-api      │ default     │ 0.0.0   │ fork    │ 554213   │ 0s     │ 3    │ online    │ 84.2%    │ 77.7mb   │ root     │ disabled │
+│ 7  │ mystics-api        │ default     │ 0.0.0   │ fork    │ 554245   │ 0s     │ 9    │ online    │ 0%       │ 28.4mb   │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+LISTEN 0      511                *:8080             *:*    users:(("node",pid=378270,fd=22))                                                                                                           
+  ↑ port 8080 in use
+===== fitro360 =====
+[TAILING] Tailing last 30 lines for [fitro360] process (change the value with --lines option)
+/root/.pm2/logs/fitro360-error.log last 30 lines:
+2|fitro360 | }
+2|fitro360 | Internal Server Error: error: column "status_updated_at" does not exist
+2|fitro360 |     at /home/fitro360/htdocs/www.fitro360.com/dist/index.cjs:74:13356
+2|fitro360 |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2|fitro360 |     at async /home/fitro360/htdocs/www.fitro360.com/dist/index.cjs:80:37980
+2|fitro360 |     at async /home/fitro360/htdocs/www.fitro360.com/dist/index.cjs:120:28902 {
+2|fitro360 |   length: 118,
+2|fitro360 |   severity: 'ERROR',
+2|fitro360 |   code: '42703',
+2|fitro360 |   detail: undefined,
+2|fitro360 |   hint: undefined,
+2|fitro360 |   position: '185',
+2|fitro360 |   internalPosition: undefined,
+2|fitro360 |   internalQuery: undefined,
+2|fitro360 |   where: undefined,
+2|fitro360 |   schema: undefined,
+2|fitro360 |   table: undefined,
+2|fitro360 |   column: undefined,
+2|fitro360 |   dataType: undefined,
+2|fitro360 |   constraint: undefined,
+2|fitro360 |   file: 'parse_relation.c',
+2|fitro360 |   line: '3722',
+2|fitro360 |   routine: 'errorMissingColumn'
+2|fitro360 | }
+2|fitro360 | Warning: connect.session() MemoryStore is not
+2|fitro360 | designed for a production environment, as it will leak
+2|fitro360 | memory, and will not scale past a single process.
+2|fitro360 | Warning: connect.session() MemoryStore is not
+2|fitro360 | designed for a production environment, as it will leak
+2|fitro360 | memory, and will not scale past a single process.
+
+===== kalvicore-api =====
+[TAILING] Tailing last 30 lines for [kalvicore-api] process (change the value with --lines option)
+/root/.pm2/logs/kalvicore-api-error.log last 30 lines:
+===== automystics-api =====
+[TAILING] Tailing last 30 lines for [automystics-api] process (change the value with --lines option)
+/var/log/automystics/api.err.log last 30 lines:
+6|automyst | 2026-04-29T13:02:09: Failed to prune sessions: error: relation "user_sessions" does not exist
+6|automyst | 2026-04-29T13:02:09:     at file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11
+6|automyst | 2026-04-29T13:02:09:     at processTicksAndRejections (node:internal/process/task_queues:103:5)
+6|automyst | 2026-04-29T13:02:09:     at PGStore._asyncQuery (file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/connect-pg-simple@10.0.0/node_modules/connect-pg-simple/index.js:322:21) {
+6|automyst | 2026-04-29T13:02:09:   length: 112,
+6|automyst | 2026-04-29T13:02:09:   severity: 'ERROR',
+6|automyst | 2026-04-29T13:02:09:   code: '42P01',
+6|automyst | 2026-04-29T13:02:09:   detail: undefined,
+6|automyst | 2026-04-29T13:02:09:   hint: undefined,
+6|automyst | 2026-04-29T13:02:09:   position: '13',
+6|automyst | 2026-04-29T13:02:09:   internalPosition: undefined,
+6|automyst | 2026-04-29T13:02:09:   internalQuery: undefined,
+6|automyst | 2026-04-29T13:02:09:   where: undefined,
+6|automyst | 2026-04-29T13:02:09:   schema: undefined,
+6|automyst | 2026-04-29T13:02:09:   table: undefined,
+6|automyst | 2026-04-29T13:02:09:   column: undefined,
+6|automyst | 2026-04-29T13:02:09:   dataType: undefined,
+6|automyst | 2026-04-29T13:02:09:   constraint: undefined,
+6|automyst | 2026-04-29T13:02:09:   file: 'parse_relation.c',
+6|automyst | 2026-04-29T13:02:09:   line: '1449',
+6|automyst | 2026-04-29T13:02:09:   routine: 'parserOpenTable'
+6|automyst | 2026-04-29T13:02:09: }
+6|automyst | 2026-04-29T13:06:51: error: relation "user_sessions" does not exist
+6|automyst | 2026-04-29T13:06:51:     at file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11
+6|automyst | 2026-04-29T13:06:51:     at processTicksAndRejections (node:internal/process/task_queues:103:5)
+6|automyst | 2026-04-29T13:06:51:     at PGStore._asyncQuery (file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/connect-pg-simple@10.0.0/node_modules/connect-pg-simple/index.js:322:21)
+
+===== mystics-api =====
+[TAILING] Tailing last 30 lines for [mystics-api] process (change the value with --lines option)
+/root/.pm2/logs/mystics-api-error.log last 30 lines:
+7|mystics- | (node:284394) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284406) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284418) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284430) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284459) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284475) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284487) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284499) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284512) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284524) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284536) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284548) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284560) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284572) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284584) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server# 
