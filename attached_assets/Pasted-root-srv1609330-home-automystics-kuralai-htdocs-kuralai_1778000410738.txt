@@ -1,0 +1,64 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Test directly: bypass nginx, hit Node — should respond "unauthorized" (not 4003-close on missing wt) when wt IS provided
+sudo apt-get install -y wscat 2>/dev/null || sudo npm i -g wscat 2>/dev/null
+echo "=== Test 1: hit Node directly (should NOT say missing wt) ==="
+timeout 4 wscat -n -c "ws://127.0.0.1:3000/sarvam-stream?callId=test&wt=kuralai-wh" 2>&1 | head -5
+echo
+echo "=== Test 2: through nginx (this is what Twilio does) ==="
+timeout 4 wscat -n -c "wss://kuralai.automystics.tech/sarvam-stream?callId=test&wt=kuralai-wh" 2>&1 | head -5
+echo
+echo "=== Show current nginx /sarvam-stream block ==="
+sudo grep -A 12 "sarvam-stream\|location /ws\|location /" /etc/nginx/sites-enabled/kuralai* 2>/dev/null | head -60
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+
+changed 9 packages in 802ms
+=== Test 1: hit Node directly (should NOT say missing wt) ===
+Terminated
+
+=== Test 2: through nginx (this is what Twilio does) ===
+Terminated
+
+=== Show current nginx /sarvam-stream block ===
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf:  location /ws {
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_pass http://127.0.0.1:3000;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_http_version 1.1;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header Upgrade $http_upgrade;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header Connection "upgrade";
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header Host $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Real-IP $remote_addr;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Forwarded-Proto $scheme;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_buffering off;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_request_buffering off;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_cache off;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    gzip off;
+--
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf:  location / {
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_pass http://127.0.0.1:3000/;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_http_version 1.1;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Forwarded-Host $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Forwarded-Server $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Real-IP $remote_addr;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header X-Forwarded-Proto $scheme;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header Host $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header Upgrade $http_upgrade;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_set_header Connection "Upgrade";
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_pass_request_headers on;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf-    proxy_max_temp_file_size 0;
+--
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518:  location / {
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_pass http://127.0.0.1:3000/;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_http_version 1.1;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header X-Forwarded-Host $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header X-Forwarded-Server $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header X-Real-IP $remote_addr;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header X-Forwarded-Proto $scheme;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header Host $host;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header Upgrade $http_upgrade;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_set_header Connection "Upgrade";
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_pass_request_headers on;
+/etc/nginx/sites-enabled/kuralai.automystics.tech.conf.bak.1777997518-    proxy_max_temp_file_size 0;
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
