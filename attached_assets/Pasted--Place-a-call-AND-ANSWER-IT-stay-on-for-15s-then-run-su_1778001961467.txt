@@ -1,0 +1,15 @@
+==> Place a call AND ANSWER IT, stay on for ~15s, then run:
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -iE 'sarvam-stream|TTS failed|STT failed|USER:|BOT :' | tail -20
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech#   sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -iE 'sarvam-stream|TTS failed|STT failed|USER:|BOT :' | tail -20
+]: ✅ WebSocket servers initialized (dashboard + sarvam-stream)
+]: [sarvam-voice] TwiML returned for call e5603c9f-f950-4b9a-b35a-18dbf187bf24 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=e5603c9f-f950-4b9a-b35a-18dbf187bf24
+]: [sarvam-stream] START call=e5603c9f-f950-4b9a-b35a-18dbf187bf24 provider=twilio stream=MZb69f6adf1a8758a9430bef75a4cc5d06 in=mulaw@8000Hz
+]: [sarvam-stream] TTS failed call=e5603c9f-f950-4b9a-b35a-18dbf187bf24 speaker=meera model=bulbul:v3 lang=ta-IN sr=8000: Request failed with status code 400 body={"error":{"message":"Speaker 'meera' is not recognized. Available speakers are: anushka, abhilash, manisha, vidya, arya, karun, hitesh, aditya, ritu, priya, neha, rahul, pooja, rohan, simran, kavya, amit, dev, ishita, shreya, ratan, varun, manan, sumit, roopa, kabir, aayan, shubh, ashutosh, advait, anand, tanya, tarun, sunny, mani, gokul, vijay, shruti, suhani, mohit, kavitha, rehan, soham, rupali","code":"invalid_request_error","request_id":"20260505_b0527405-9c95-462c-b6fa-634ba70710ce"}}
+]: [sarvam-stream] STT failed call=e5603c9f-f950-4b9a-b35a-18dbf187bf24: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STT failed call=e5603c9f-f950-4b9a-b35a-18dbf187bf24: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STT failed call=e5603c9f-f950-4b9a-b35a-18dbf187bf24: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STT failed call=e5603c9f-f950-4b9a-b35a-18dbf187bf24: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STOP call=e5603c9f-f950-4b9a-b35a-18dbf187bf24
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
