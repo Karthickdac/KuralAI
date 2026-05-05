@@ -1,0 +1,240 @@
+}
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# APP=/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# 1. Read settings the right way (JSONB)
+sudo -u postgres psql -At -d kuralai <<'SQL'
+SELECT
+  'agentId='        || COALESCE(data->>'elevenlabsAgentId','MISSING')        || E'\n' ||
+  'phoneNumberId='  || COALESCE(data->>'elevenlabsAgentPhoneNumberId','MISSING') || E'\n' ||
+  'apiKeyLen='      || length(COALESCE(data->>'elevenLabsApiKey','')) :: text  || E'\n' ||
+  'webhookBaseUrl=' || COALESCE(data->>'webhookBaseUrl','MISSING')           || E'\n' ||
+  'telProvider='    || COALESCE(data->>'telephonyProvider','MISSING')
+FROM app_settings WHERE key='main';
+SQL
+
+# 2. Pull the same values into shell vars and hit ElevenLabs API directly
+API_KEY=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenLabsApiKey' FROM app_settings WHERE key='main'")
+AGENT_ID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenlabsAgentId' FROM app_settings WHERE key='main'")
+PHONE_ID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenlabsAgentPhoneNumberId' FROM app_settings WHERE key='main'")
+
+echo "=== ElevenLabs phone numbers on this account ==="
+curl -s "https://api.elevenlabs.io/v1/convai/phone-numbers" -H "xi-api-key: $API_KEY" | python3 -m json.tool 2>/dev/null | head -60
+
+if [ -n "$PHONE_ID" ] && [ "$PHONE_ID" != "MISSING" ]; then
+  echo
+  echo "=== direct outbound-call test to +917358337470 ==="
+  curl -s -X POST "https://api.elevenlabs.io/v1/convai/twilio/outbound-call" \
+    -H "xi-api-key: $API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"agent_id\":\"$AGENT_ID\",\"agent_phone_number_id\":\"$PHONE_ID\",\"to_number\":\"+917358337470\"}" \
+    | python3 -m json.tool 2>/dev/null
+fi
+
+# 3. Now place a call via the dashboard and grab the new full-response log line
+echo
+echo "=== AFTER you click Call in dashboard, run: ==="
+echo "sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream 2>&1 | grep -E 'ElevenLabs|Call'"
+
+unset API_KEY AGENT_ID PHONE_ID
+agentId=agent_6101kpdbj58jf7cat9gfvr1am094
+phoneNumberId=phnum_8901kpdkbqcgez4rrr5d445q5t4m
+apiKeyLen=64
+webhookBaseUrl=MISSING
+telProvider=twilio
+=== ElevenLabs phone numbers on this account ===
+[
+    {
+        "phone_number": "+16416666746",
+        "label": "Automystics",
+        "supports_inbound": true,
+        "supports_outbound": true,
+        "phone_number_id": "phnum_8901kpdkbqcgez4rrr5d445q5t4m",
+        "assigned_agent": {
+            "agent_id": "agent_6101kpdbj58jf7cat9gfvr1am094",
+            "agent_name": "Samuthra"
+        },
+        "provider": "twilio"
+    }
+]
+
+=== direct outbound-call test to +917358337470 ===
+{
+    "success": false,
+    "message": "HTTP 401 error: Unable to create record: Authenticate",
+    "conversation_id": null,
+    "callSid": null
+}
+
+=== AFTER you click Call in dashboard, run: ===
+sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream 2>&1 | grep -E 'ElevenLabs|Call'
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u postgres psql -At -d kuralai <<'SQL'
+SELECT
+  'agentId='        || COALESCE(data->>'elevenlabsAgentId','MISSING')        || E'\n' ||
+  'phoneNumberId='  || COALESCE(data->>'elevenlabsAgentPhoneNumberId','MISSING') || E'\n' ||
+  'apiKeyLen='      || length(COALESCE(data->>'elevenLabsApiKey','')) :: text  || E'\n' ||
+  'webhookBaseUrl=' || COALESCE(data->>'webhookBaseUrl','MISSING')           || E'\n' ||
+  'telProvider='    || COALESCE(data->>'telephonyProvider','MISSING')
+FROM app_settings WHERE key='main';
+SQL
+
+API_KEY=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenLabsApiKey' FROM app_settings WHERE key='main'")
+AGENT_ID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenlabsAgentId' FROM app_settings WHERE key='main'")
+PHONE_ID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenlabsAgentPhoneNumberId' FROM app_settings WHERE key='main'")
+
+echo "Agent: $AGENT_ID  / PhoneID: $PHONE_ID  / Key length: ${#API_KEY}"
+
+echo "=== ElevenLabs phone numbers ==="
+curl -s "https://api.elevenlabs.io/v1/convai/phone-numbers" -H "xi-api-key: $API_KEY" | python3 -m json.tool
+
+echo "=== direct outbound-call test ==="
+curl -s -X POST "https://api.elevenlabs.io/v1/convai/twilio/outbound-call" \
+  -H "xi-api-key: $API_KEY" -H "Content-Type: application/json" \
+  -d '{"agent_id":"'"$AGENT_ID"'","agent_phone_number_id":"'"$PHONE_ID"'","to_number":"+917358337470"}' \
+  | python3 -m json.tool
+
+# Now place a call from dashboard, then:
+echo "=== AFTER clicking Call in dashboard, run: ==="
+echo "  sudo -u automystics-kuralai pm2 logs kuralai --lines 30 --nostream | grep -E 'ElevenLabs|Call'"
+
+unset API_KEY AGENT_ID PHONE_ID
+agentId=agent_6101kpdbj58jf7cat9gfvr1am094
+phoneNumberId=phnum_8901kpdkbqcgez4rrr5d445q5t4m
+apiKeyLen=64
+webhookBaseUrl=MISSING
+telProvider=twilio
+Agent: agent_6101kpdbj58jf7cat9gfvr1am094  / PhoneID: phnum_8901kpdkbqcgez4rrr5d445q5t4m  / Key length: 64
+=== ElevenLabs phone numbers ===
+[
+    {
+        "phone_number": "+16416666746",
+        "label": "Automystics",
+        "supports_inbound": true,
+        "supports_outbound": true,
+        "phone_number_id": "phnum_8901kpdkbqcgez4rrr5d445q5t4m",
+        "assigned_agent": {
+            "agent_id": "agent_6101kpdbj58jf7cat9gfvr1am094",
+            "agent_name": "Samuthra"
+        },
+        "provider": "twilio"
+    }
+]
+=== direct outbound-call test ===
+{
+    "success": false,
+    "message": "HTTP 401 error: Unable to create record: Authenticate",
+    "conversation_id": null,
+    "callSid": null
+}
+=== AFTER clicking Call in dashboard, run: ===
+  sudo -u automystics-kuralai pm2 logs kuralai --lines 30 --nostream | grep -E 'ElevenLabs|Call'
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# APP=/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# 1. Check what Sarvam needs and what's missing
+sudo -u postgres psql -At -d kuralai <<'SQL'
+SELECT
+  'defaultEngine='     || COALESCE(data->>'defaultEngine','(unset → kuralai)')   || E'\n' ||
+  'sarvamApiKeyLen='   || length(COALESCE(data->>'sarvamApiKey',''))::text       || E'\n' ||
+  'twilioAccountSid='  || COALESCE(left(data->>'twilioAccountSid',6)||'…','MISSING') || E'\n' ||
+  'twilioAuthTokenLen='|| length(COALESCE(data->>'twilioAuthToken',''))::text    || E'\n' ||
+  'twilioPhoneNumber=' || COALESCE(data->>'twilioPhoneNumber','MISSING')         || E'\n' ||
+  'appUrl='            || COALESCE(data->>'appUrl','MISSING')                    || E'\n' ||
+  'webhookToken='      || COALESCE(data->>'webhookToken','(default kuralai-wh)')
+FROM app_settings WHERE key='main';
+SQL
+
+# 2. Flip to Sarvam globally + ensure appUrl + webhookToken are set
+sudo -u postgres psql -d kuralai -c "
+UPDATE app_settings
+SET data = data
+  || jsonb_build_object('defaultEngine','sarvam')
+  || jsonb_build_object('appUrl','https://kuralai.automystics.tech')
+  || (CASE WHEN COALESCE(data->>'webhookToken','')='' THEN jsonb_build_object('webhookToken','kuralai-wh') ELSE '{}'::jsonb END)
+WHERE key='main';
+"
+
+# 3. Restart so the change takes effect everywhere
+sudo -u automystics-kuralai pm2 restart kuralai
+
+# 4. Twilio sanity check (this will fail if the SAME 401 issue affects KuralAI's stored creds)
+SID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'twilioAccountSid' FROM app_settings WHERE key='main'")
+TOK=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'twilioAuthToken' FROM app_settings WHERE key='main'")
+echo "=== Twilio auth check ==="
+curl -s -u "$SID:$TOK" "https://api.twilio.com/2010-04-01/Accounts/$SID.json" | python3 -c "import sys,json; d=json.load(sys.stdin); print('Friendly:', d.get('
+defaultEngine=elevenlabs
+sarvamApiKeyLen=0
+twilioAccountSid=ACb0d7…
+twilioAuthTokenLen=32
+twilioPhoneNumber=+16416666746
+appUrl=https://kuralai.automystics.tech
+webhookToken=(default kuralai-wh)
+UPDATE 1
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [kuralai](ids: [ 0 ])
+[PM2] [kuralai](0) ✓
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ 1.0.0   │ fork    │ 827847   │ 0s     │ 4    │ online    │ 0%       │ 26.4mb   │ aut… │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+=== Twilio auth check ===
+> 
+> ^C
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# APP=/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# 1. Confirm what engine is now active
+sudo -u postgres psql -At -d kuralai -c "SELECT 'engine='||COALESCE(data->>'defaultEngine','(unset)') FROM app_settings WHERE key='main';"
+
+# 2. Pull last 60 log lines — should show [dispatcher] engine=... and what failed
+sudo -u automystics-kuralai pm2 logs kuralai --lines 60 --nostream 2>&1 | grep -E "dispatcher|ElevenLabs|Sarvam|Twilio|Exotel|Call|error|Error|❌|failed" | tail -40
+
+# 3. Verify Twilio creds are still valid (most likely culprit)
+SID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'twilioAccountSid' FROM app_settings WHERE key='main'")
+TOK=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'twilioAuthToken' FROM app_settings WHERE key='main'")
+echo "=== Twilio account check ==="
+curl -s -u "$SID:$TOK" "https://api.twilio.com/2010-04-01/Accounts/$SID.json" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print('status='+str(d.get('status'))+' name='+str(d.get('friendly_name'))+' err='+str(d.get('message','OK')))"
+unset SID TOK
+engine=sarvam
+]: ElevenLabs TTS completed in 314ms for 98 chars
+]: ElevenLabs TTS completed in 435ms for 177 chars
+]: ElevenLabs TTS completed in 129ms for 27 chars
+]: ElevenLabs TTS completed in 208ms for 60 chars
+]: ElevenLabs TTS completed in 211ms for 70 chars
+]: ElevenLabs TTS completed in 230ms for 77 chars
+]: ElevenLabs TTS completed in 232ms for 85 chars
+]: ElevenLabs TTS completed in 291ms for 77 chars
+]: ElevenLabs TTS completed in 231ms for 68 chars
+]: ElevenLabs TTS completed in 238ms for 88 chars
+]: ElevenLabs TTS completed in 239ms for 75 chars
+]: ElevenLabs TTS completed in 247ms for 81 chars
+]: ElevenLabs TTS completed in 264ms for 81 chars
+]: ElevenLabs TTS completed in 342ms for 101 chars
+]: ElevenLabs TTS completed in 228ms for 68 chars
+]: ElevenLabs TTS completed in 229ms for 61 chars
+]: ElevenLabs TTS completed in 253ms for 84 chars
+]: ElevenLabs TTS completed in 332ms for 98 chars
+]: ElevenLabs TTS completed in 353ms for 130 chars
+]: ElevenLabs TTS completed in 372ms for 129 chars
+]: ElevenLabs TTS completed in 190ms for 47 chars
+]: ElevenLabs TTS completed in 196ms for 39 chars
+]: ElevenLabs TTS completed in 208ms for 46 chars
+]: ElevenLabs TTS completed in 316ms for 98 chars
+]: ElevenLabs TTS completed in 411ms for 178 chars
+]: ElevenLabs TTS completed in 447ms for 205 chars
+]: ElevenLabs TTS completed in 204ms for 72 chars
+]: ElevenLabs TTS completed in 223ms for 61 chars
+]: ElevenLabs TTS completed in 234ms for 68 chars
+]: ElevenLabs TTS completed in 317ms for 101 chars
+]: ElevenLabs TTS completed in 332ms for 101 chars
+]: ElevenLabs TTS completed in 334ms for 110 chars
+]: ElevenLabs TTS completed in 232ms for 67 chars
+]: ElevenLabs TTS completed in 236ms for 82 chars
+]: ElevenLabs TTS completed in 247ms for 87 chars
+]: ElevenLabs TTS completed in 321ms for 106 chars
+]: ElevenLabs TTS completed in 333ms for 104 chars
+]: ElevenLabs TTS completed in 344ms for 120 chars
+]: ElevenLabs TTS completed in 363ms for 112 chars
+]: ElevenLabs TTS completed in 369ms for 135 chars
+=== Twilio account check ===
+status=401 name=None err=Authenticate
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
