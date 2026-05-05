@@ -238,7 +238,7 @@ async function previewVoice({ text, voice, languageCode = 'ta-IN', model, sample
   const { baseUrl } = cfg();
   if (!baseUrl) throw new Error('Local inference URL not configured');
   const s = getSettingsSync();
-  const ttsModel = model || s.localTtsModel || 'xtts-v2';
+  const ttsModel = model || s.localTtsModel || 'indic-parler-tts';
   const resp = await axios.post(
     `${baseUrl}/tts/preview`,
     {

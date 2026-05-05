@@ -46,8 +46,7 @@ const DEFAULTS = {
   localInferenceToken: '',
   localSttModel: 'whisper-large-v3',
   localLlmModel: 'qwen2.5:7b-instruct',
-  // Premium default: Indic-Parler-TTS (prompt-driven, studio-quality).
-  // Switch to 'xtts-v2' only if you need reference-WAV voice cloning.
+  // Premium TTS: Indic-Parler-TTS (Apache 2.0). Prompt-driven, fully OSS.
   localTtsModel: 'indic-parler-tts',
   localTtsVoice: 'samuthra-female-tamil',
   // Natural-language voice steering (Parler-TTS). Edit freely — pace, pitch,
@@ -70,9 +69,10 @@ const DEFAULTS = {
   // 'freeform' = no pre-defined flow, the LLM converses organically.
   localConversationMode: 'freeform',
   exotelLocalAppId: '',
-  // Comma-separated engine fallback chain used by the local engine when its
-  // inference server is degraded (per-call AND per-turn).
-  engineFallbackChain: 'local,sarvam',
+  // Comma-separated engine fallback chain. Default is 'local' only — the
+  // self-hosted stack is 100% open-source. Add 'sarvam' or 'elevenlabs' here
+  // ONLY if you've explicitly chosen to bring in a proprietary fallback.
+  engineFallbackChain: 'local',
   companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 

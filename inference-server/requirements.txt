@@ -7,11 +7,17 @@ pydantic==2.9.2
 # STT
 faster-whisper==1.0.3
 
-# TTS — two engines, loaded in parallel
-TTS==0.22.0                    # Coqui XTTS-v2 (voice cloning from a WAV)
-git+https://github.com/huggingface/parler-tts.git   # Parler-TTS (prompt-driven voices, Indic-Parler-TTS)
+# TTS — Indic-Parler-TTS (Apache 2.0). Premium, prompt-driven Tamil/Indic voices.
+git+https://github.com/huggingface/parler-tts.git
 transformers>=4.43
 accelerate>=0.30
 soundfile>=0.12
 numpy>=1.24
 torch>=2.1                     # CUDA build strongly recommended
+
+# License notes (all components are 100% open-source):
+#   faster-whisper  — MIT
+#   Ollama          — MIT
+#   Qwen2.5-7B      — Apache 2.0
+#   parler-tts      — Apache 2.0
+#   Indic-Parler-TTS (ai4bharat) — Apache 2.0

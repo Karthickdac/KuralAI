@@ -451,7 +451,6 @@ function VoicePicker({ value, onChange }) {
 
 function VoiceLab({ token }) {
   const [voices, reload] = useVoiceCatalogue();
-  const [mode, setMode] = useState('prompt');   // 'prompt' or 'clone'
   const [voiceId, setVoiceId] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [language, setLanguage] = useState('ta');
@@ -459,7 +458,6 @@ function VoiceLab({ token }) {
   const [description, setDescription] = useState(
     'A warm, professional female speaker delivers her words clearly and naturally in Tamil with a friendly, conversational tone, moderate pace, and very high studio audio quality with no background noise.'
   );
-  const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -468,24 +466,21 @@ function VoiceLab({ token }) {
   async function clone(e) {
     e.preventDefault();
     if (!token)   { setMsg('Set Webhook Token in Telephony first — required to save voices.'); return; }
-    if (mode === 'clone' && !file) { setMsg('Pick a 6–10 sec mono WAV reference clip.'); return; }
-    if (mode === 'prompt' && !description.trim()) { setMsg('Write a voice style description (Parler-TTS will use it as a prompt).'); return; }
+    if (!description.trim()) { setMsg('Write a voice style description.'); return; }
     if (!voiceId) { setMsg('Enter a voice ID (e.g. priya-tamil-warm).'); return; }
     setBusy(true); setMsg('');
     try {
       const fd = new FormData();
-      if (file && mode === 'clone') fd.append('file', file);
       fd.append('voiceId', voiceId);
       fd.append('displayName', displayName || voiceId);
       fd.append('language', language);
       fd.append('gender', gender);
       fd.append('description', description);
-      fd.append('engine', mode === 'clone' ? 'xtts' : 'parler');
       const r = await fetch(`/webhook/local-voices?wt=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
-      setMsg(`✓ Cloned "${j.voice?.displayName || voiceId}"`);
-      setVoiceId(''); setDisplayName(''); setFile(null);
+      setMsg(`✓ Saved "${j.voice?.displayName || voiceId}"`);
+      setVoiceId(''); setDisplayName('');
       await reload();
     } catch (err) {
       setMsg(`✗ ${err.message}`);
@@ -527,14 +522,12 @@ function VoiceLab({ token }) {
   }
 
   return (
-    <Card label="Voice Lab" badge="Design or clone premium Tamil voices">
+    <Card label="Voice Lab" badge="100% open-source · prompt-driven voices">
       <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-        Two ways to add a voice — both produce studio-grade Tamil audio:<br />
-        <b>1. Prompt-only (premium, default)</b> — describe the voice in plain English (e.g. "warm female Tamil
-        speaker, slow expressive delivery, professional studio quality") and Indic-Parler-TTS synthesises it.
-        Modify any voice anytime by editing the prompt — no re-recording.<br />
-        <b>2. Clone from a WAV</b> — upload a 6–10 second clean reference and XTTS-v2 clones the speaker instantly.<br />
-        Per-campaign override: set <code>localTtsVoice</code> and/or <code>localVoiceDescription</code> in campaign metadata.
+        Describe the voice in plain English ("warm female Tamil speaker, slow expressive delivery, professional
+        studio quality") and Indic-Parler-TTS (Apache 2.0) synthesises it. Modify any voice anytime by editing
+        the prompt — no re-recording, no proprietary services. Per-campaign override: set <code>localTtsVoice</code>
+        and/or <code>localVoiceDescription</code> in campaign metadata.
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -552,8 +545,8 @@ function VoiceLab({ token }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>
                     {v.displayName}
-                    <span style={{ marginLeft: 8, padding: '1px 6px', fontSize: 10, fontWeight: 500, borderRadius: 4, background: v.engine === 'parler' ? '#DBEAFE' : '#FEF3C7', color: v.engine === 'parler' ? '#1E40AF' : '#92400E' }}>
-                      {v.engine === 'parler' ? 'PROMPT' : 'CLONED'}
+                    <span style={{ marginLeft: 8, padding: '1px 6px', fontSize: 10, fontWeight: 500, borderRadius: 4, background: '#DBEAFE', color: '#1E40AF' }}>
+                      PARLER
                     </span>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>
@@ -586,29 +579,8 @@ function VoiceLab({ token }) {
       </div>
 
       <form onSubmit={clone} style={{ background: '#F8FAFC', border: '1.5px dashed var(--border)', borderRadius: 8, padding: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Add a New Voice
-          </div>
-          <div style={{ display: 'flex', gap: 4, padding: 3, background: '#fff', border: '1px solid var(--border)', borderRadius: 6 }}>
-            {[
-              { id: 'prompt', label: 'Prompt-only (Parler)' },
-              { id: 'clone',  label: 'Clone from WAV (XTTS)' },
-            ].map(opt => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => setMode(opt.id)}
-                style={{
-                  padding: '5px 12px', fontSize: 11, fontWeight: 600, borderRadius: 4, border: 'none', cursor: 'pointer',
-                  background: mode === opt.id ? 'var(--primary)' : 'transparent',
-                  color: mode === opt.id ? '#fff' : 'var(--text-secondary)',
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
+          Add a New Voice (prompt-driven)
         </div>
         <div className={styles.grid}>
           <Field label="Voice ID" hint="Lowercase, no spaces. Used as the API identifier.">
@@ -635,22 +607,16 @@ function VoiceLab({ token }) {
             </select>
           </Field>
           <Field
-            label={mode === 'prompt' ? 'Voice Style Prompt (required)' : 'Voice Style Prompt (optional but recommended)'}
+            label="Voice Style Prompt (required)"
             hint='Describe pace, tone, gender, pitch, recording quality. Example: "A warm female Tamil speaker, slow expressive delivery, slightly breathy, professional studio recording with no background noise."'
             wide
           >
             <textarea className={styles.input} rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="A warm, professional female Tamil speaker, moderate pace, friendly tone, very high studio audio quality." />
           </Field>
-          {mode === 'clone' && (
-            <Field label="Reference Audio" hint="6–10 sec clean mono WAV at ≥16 kHz. No music, no background noise. Max 10 MB." wide>
-              <input type="file" accept="audio/wav,audio/x-wav" onChange={e => setFile(e.target.files?.[0] || null)} className={styles.input} />
-              {file && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{file.name} · {(file.size / 1024).toFixed(1)} KB</div>}
-            </Field>
-          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
           <button type="submit" className={styles.saveBtn} disabled={busy} style={{ padding: '8px 18px', fontSize: 13 }}>
-            {busy ? 'Saving…' : (mode === 'prompt' ? 'Create Voice' : 'Clone Voice')}
+            {busy ? 'Saving…' : 'Create Voice'}
           </button>
           {msg && <span style={{ fontSize: 12, color: msg.startsWith('✓') ? '#16A34A' : '#DC2626' }}>{msg}</span>}
         </div>
@@ -748,10 +714,11 @@ function LocalEngineSection({ s, savedCreds, onChange }) {
               <option value="gemma2:9b-instruct">Gemma2-9B-Instruct</option>
             </select>
           </Field>
-          <Field label="TTS Model" hint="XTTS-v2 = highest quality Tamil with voice cloning. Indic-Parler-TTS is an alternative tuned for Indian languages.">
+          <Field label="TTS Model" hint="Indic-Parler-TTS (Apache 2.0) — premium, prompt-driven, fully open-source.">
             <select className={styles.input} value={s.localTtsModel || 'indic-parler-tts'} onChange={e => onChange('localTtsModel', e.target.value)}>
-              <option value="indic-parler-tts">AI4Bharat Indic-Parler-TTS — premium, prompt-driven (default)</option>
-              <option value="xtts-v2">Coqui XTTS-v2 — for reference-WAV voice cloning</option>
+              <option value="indic-parler-tts">AI4Bharat Indic-Parler-TTS (Apache 2.0)</option>
+              <option value="parler-tts-mini-v1">Parler-TTS Mini v1 (Apache 2.0)</option>
+              <option value="parler-tts-large-v1">Parler-TTS Large v1 (Apache 2.0)</option>
             </select>
           </Field>
           <Field label="TTS Voice" hint="Pick from your inference server's voice catalogue. Add new voices below in the Voice Lab.">

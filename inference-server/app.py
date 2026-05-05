@@ -27,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
-from engines import llm_ollama, stt_whisper, tts_parler, tts_xtts
+from engines import llm_ollama, stt_whisper, tts_parler, voice_store
 from engines.registry import REGISTRY
 
 logging.basicConfig(
@@ -62,42 +62,19 @@ def _require_token(authorization: str | None) -> None:
 @app.on_event("startup")
 async def _warmup() -> None:
     log.info("warming engines (this may take a few minutes on first boot)...")
-    REGISTRY["stt"]        = stt_whisper.WhisperSTT()
-    REGISTRY["llm"]        = llm_ollama.OllamaLLM()
-    # Two TTS backends loaded in parallel:
-    #   - parler  → premium prompt-driven voices (default for new requests)
-    #   - xtts    → reference-WAV voice cloning (used when a voice is cloned)
-    REGISTRY["tts"]        = tts_parler.ParlerTTSEngine()
-    REGISTRY["tts_xtts"]   = tts_xtts.XTTSEngine()
+    # 100% open-source stack:
+    #   STT → faster-whisper (MIT)
+    #   LLM → Qwen2.5-7B via Ollama (Apache 2.0)
+    #   TTS → Indic-Parler-TTS / Parler-TTS (Apache 2.0) — prompt-driven voices
+    REGISTRY["stt"] = stt_whisper.WhisperSTT()
+    REGISTRY["llm"] = llm_ollama.OllamaLLM()
+    REGISTRY["tts"] = tts_parler.ParlerTTSEngine()
     await asyncio.gather(
         REGISTRY["stt"].load(),
         REGISTRY["llm"].load(),
         REGISTRY["tts"].load(),
-        REGISTRY["tts_xtts"].load(),
     )
     log.info("all engines ready")
-
-
-def _pick_tts_engine(model: str, voice: str):
-    """Route a TTS request to the right backend.
-
-    Voice metadata wins (engine='xtts' for cloned voices, engine='parler' for
-    prompt-driven voices). Otherwise model name picks the backend; finally we
-    fall back to Parler (premium default) and degrade to XTTS if Parler is
-    down.
-    """
-    meta_engine = (tts_xtts._voice_meta(voice) or {}).get("engine")  # type: ignore[attr-defined]
-    if meta_engine == "xtts" and REGISTRY.get("tts_xtts") and REGISTRY["tts_xtts"].is_ready():
-        return REGISTRY["tts_xtts"]
-    if meta_engine == "parler" and REGISTRY.get("tts") and REGISTRY["tts"].is_ready():
-        return REGISTRY["tts"]
-    if "xtts" in (model or "").lower() and REGISTRY.get("tts_xtts") and REGISTRY["tts_xtts"].is_ready():
-        return REGISTRY["tts_xtts"]
-    if REGISTRY.get("tts") and REGISTRY["tts"].is_ready():
-        return REGISTRY["tts"]
-    if REGISTRY.get("tts_xtts") and REGISTRY["tts_xtts"].is_ready():
-        return REGISTRY["tts_xtts"]
-    return None
 
 
 # ─── Health ───────────────────────────────────────────────────────────────────
@@ -184,20 +161,20 @@ class TtsRequest(BaseModel):
 
 @app.post("/tts")
 async def tts_endpoint(req: TtsRequest) -> Response:
-    engine = _pick_tts_engine(req.model, req.voice)
-    if not engine:
-        raise HTTPException(503, "no TTS engine ready")
-    kwargs: dict = dict(
+    engine = REGISTRY.get("tts")
+    if not engine or not engine.is_ready():
+        raise HTTPException(503, "TTS not ready")
+    # If the caller didn't pass an explicit description, fall back to the one
+    # stored in the voice catalogue for this voice ID.
+    description = req.description or (voice_store.voice_meta(req.voice) or {}).get("description") or None
+    pcm16 = await engine.synth(
         text=req.text,
         voice=req.voice,
         language=req.language,
         model=req.model,
         sample_rate=req.sample_rate,
+        description=description,
     )
-    # Parler accepts a free-text style description; XTTS ignores it.
-    if "description" in engine.synth.__code__.co_varnames:
-        kwargs["description"] = req.description
-    pcm16 = await engine.synth(**kwargs)
     return Response(
         content=pcm16,
         media_type="audio/L16",
@@ -211,8 +188,7 @@ async def tts_endpoint(req: TtsRequest) -> Response:
 
 @app.get("/voices")
 def list_voices() -> JSONResponse:
-    engine = REGISTRY.get("tts")
-    return JSONResponse({"voices": engine.list_voices() if engine else []})
+    return JSONResponse({"voices": voice_store.list_voices()})
 
 
 @app.post("/voices")
@@ -221,38 +197,22 @@ async def upsert_voice(
     display_name: str = Form(""),
     language: str = Form("ta"),
     gender: str = Form("unknown"),
-    description: str = Form(""),
-    engine: str = Form(""),                     # "xtts" | "parler" (auto if blank)
-    file: UploadFile | None = File(None),       # optional reference WAV
+    description: str = Form(...),
     authorization: str | None = None,
 ) -> JSONResponse:
-    """Create a voice. Two modes:
-
-    1. Upload a 6–10 sec clean reference WAV → XTTS-v2 instant cloning.
-    2. Skip the WAV and provide a `description` (e.g. "warm female Tamil
-       speaker, slow expressive delivery, professional studio quality") →
-       Indic-Parler-TTS prompt-driven voice. Same UX as ElevenLabs Voice
-       Design.
-
-    The `description` field is *also* honored on cloned voices and is sent to
-    the TTS engine as additional style steering."""
+    """Create or update a prompt-driven voice. Indic-Parler-TTS will use the
+    plain-language description as the style-steering prompt for every TTS
+    request that selects this voice ID. Modify any voice anytime by simply
+    updating the description — no audio re-recording required."""
     _require_token(authorization)
-    wav_bytes: bytes = b""
-    if file is not None:
-        wav_bytes = await file.read()
-        if len(wav_bytes) > 10 * 1024 * 1024:
-            raise HTTPException(413, "reference clip too large (>10 MB)")
-    if not wav_bytes and not description.strip():
-        raise HTTPException(400, "either a WAV file or a description is required")
-
-    info = tts_xtts.XTTSEngine.save_voice(
+    if not description.strip():
+        raise HTTPException(400, "description is required")
+    info = voice_store.save_voice(
         voice_id=voice_id,
-        wav_bytes=wav_bytes,
         display_name=display_name,
         language=language,
         gender=gender,
         description=description,
-        engine=engine,
     )
     return JSONResponse({"voice": info})
 
@@ -260,8 +220,7 @@ async def upsert_voice(
 @app.delete("/voices/{voice_id}")
 def delete_voice(voice_id: str, authorization: str | None = None) -> JSONResponse:
     _require_token(authorization)
-    ok = tts_xtts.XTTSEngine.delete_voice(voice_id)
-    if not ok:
+    if not voice_store.delete_voice(voice_id):
         raise HTTPException(404, "voice not found")
     return JSONResponse({"deleted": voice_id})
 
@@ -271,19 +230,18 @@ async def tts_preview(req: TtsRequest) -> Response:
     """Same as /tts but returns a self-contained WAV (with header) at studio
     quality (≥22.05 kHz) so the dashboard can audition voices through an
     <audio> tag."""
-    engine = _pick_tts_engine(req.model, req.voice)
-    if not engine:
-        raise HTTPException(503, "no TTS engine ready")
-    kwargs: dict = dict(
+    engine = REGISTRY.get("tts")
+    if not engine or not engine.is_ready():
+        raise HTTPException(503, "TTS not ready")
+    description = req.description or (voice_store.voice_meta(req.voice) or {}).get("description") or None
+    pcm16 = await engine.synth(
         text=req.text,
         voice=req.voice,
         language=req.language,
         model=req.model,
         sample_rate=max(req.sample_rate, 22050),
+        description=description,
     )
-    if "description" in engine.synth.__code__.co_varnames:
-        kwargs["description"] = req.description
-    pcm16 = await engine.synth(**kwargs)
     # Wrap as WAV so the browser can play it.
     import io as _io
     import wave as _wave
