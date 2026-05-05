@@ -1,0 +1,85 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# APP=/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# Show last 80 log lines including any errors and call API requests
+sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream 2>&1 | tail -80
+]:    Environment: production
+]:    App URL: https://kuralai.automystics.tech
+]: ElevenLabs TTS completed in 236ms for 69 chars
+]: ElevenLabs TTS completed in 238ms for 61 chars
+]: ElevenLabs TTS completed in 242ms for 51 chars
+]: ElevenLabs TTS completed in 244ms for 82 chars
+]: ElevenLabs TTS completed in 270ms for 85 chars
+]: ✅ Pre-warmed 5 static TTS phrases
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Call initiated: 0b2276ca-586a-484e-9e66-d3cd2d782569 -> +917358337470 | customer=கார்த்திக் வேலன் | chit=Group A
+]: [dispatcher] engine=elevenlabs call=0b2276ca-586a-484e-9e66-d3cd2d782569
+]: [ElevenLabs] Initiating call to +917358337470 via agent agent_6101kpdbj58jf7cat9gfvr1am094
+]: [ElevenLabs] Call queued: sid=el-0b2276ca-586a-484e-9e66-d3cd2d782569 conversation=null
+]: ElevenLabs TTS completed in 366ms for 106 chars
+]: Greeting TwiML pre-cached for call 0b2276ca-586a-484e-9e66-d3cd2d782569 in ring phase
+]: ElevenLabs TTS completed in 156ms for 6 chars
+]: ElevenLabs TTS completed in 225ms for 65 chars
+]: ElevenLabs TTS completed in 260ms for 87 chars
+]: ElevenLabs TTS completed in 263ms for 70 chars
+]: ElevenLabs TTS completed in 394ms for 119 chars
+]: ElevenLabs TTS completed in 410ms for 156 chars
+]: ElevenLabs TTS completed in 196ms for 55 chars
+]: ElevenLabs TTS completed in 204ms for 47 chars
+]: ElevenLabs TTS completed in 221ms for 84 chars
+]: ElevenLabs TTS completed in 340ms for 112 chars
+]: ElevenLabs TTS completed in 346ms for 122 chars
+]: ElevenLabs TTS completed in 366ms for 150 chars
+]: ElevenLabs TTS completed in 142ms for 11 chars
+]: ElevenLabs TTS completed in 216ms for 70 chars
+]: ElevenLabs TTS completed in 233ms for 85 chars
+]: ElevenLabs TTS completed in 258ms for 83 chars
+]: ElevenLabs TTS completed in 349ms for 101 chars
+]: ElevenLabs TTS completed in 352ms for 109 chars
+]: ElevenLabs TTS completed in 147ms for 16 chars
+]: ElevenLabs TTS completed in 183ms for 39 chars
+]: ElevenLabs TTS completed in 219ms for 67 chars
+]: ElevenLabs TTS completed in 322ms for 98 chars
+]: ElevenLabs TTS completed in 367ms for 40 chars
+]: ElevenLabs TTS completed in 427ms for 177 chars
+]: ElevenLabs TTS completed in 154ms for 27 chars
+]: ElevenLabs TTS completed in 207ms for 60 chars
+]: ElevenLabs TTS completed in 213ms for 77 chars
+]: ElevenLabs TTS completed in 234ms for 85 chars
+]: ElevenLabs TTS completed in 240ms for 70 chars
+]: ElevenLabs TTS completed in 242ms for 77 chars
+]: ElevenLabs TTS completed in 221ms for 88 chars
+]: ElevenLabs TTS completed in 223ms for 68 chars
+]: ElevenLabs TTS completed in 233ms for 81 chars
+]: ElevenLabs TTS completed in 239ms for 75 chars
+]: ElevenLabs TTS completed in 260ms for 81 chars
+]: ElevenLabs TTS completed in 336ms for 101 chars
+]: ElevenLabs TTS completed in 213ms for 61 chars
+]: ElevenLabs TTS completed in 219ms for 68 chars
+]: ElevenLabs TTS completed in 348ms for 98 chars
+]: ElevenLabs TTS completed in 372ms for 129 chars
+]: ElevenLabs TTS completed in 374ms for 130 chars
+]: ElevenLabs TTS completed in 458ms for 84 chars
+]: ElevenLabs TTS completed in 208ms for 39 chars
+]: ElevenLabs TTS completed in 210ms for 46 chars
+]: ElevenLabs TTS completed in 211ms for 47 chars
+]: ElevenLabs TTS completed in 312ms for 98 chars
+]: ElevenLabs TTS completed in 411ms for 178 chars
+]: ElevenLabs TTS completed in 455ms for 205 chars
+]: ElevenLabs TTS completed in 230ms for 61 chars
+]: ElevenLabs TTS completed in 237ms for 68 chars
+]: ElevenLabs TTS completed in 238ms for 72 chars
+]: ElevenLabs TTS completed in 320ms for 101 chars
+]: ElevenLabs TTS completed in 330ms for 110 chars
+]: ElevenLabs TTS completed in 334ms for 101 chars
+]: ElevenLabs TTS completed in 218ms for 67 chars
+]: ElevenLabs TTS completed in 227ms for 87 chars
+]: ElevenLabs TTS completed in 239ms for 82 chars
+]: ElevenLabs TTS completed in 333ms for 106 chars
+]: ElevenLabs TTS completed in 337ms for 104 chars
+]: ElevenLabs TTS completed in 432ms for 120 chars
+]: ElevenLabs TTS completed in 367ms for 135 chars
+]: ElevenLabs TTS completed in 382ms for 112 chars
+]: Pre-warmed 63 TTS entries for call 0b2276ca-586a-484e-9e66-d3cd2d782569 (workflow: due_reminder)
+
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
