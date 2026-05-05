@@ -701,12 +701,11 @@ function LocalEngineSection({ s, savedCreds, onChange }) {
 
       <Card label="Models & Voice" badge="Tamil-first">
         <div className={styles.grid}>
-          <Field label="Speech-to-Text Model" hint="whisper-large-v3 = best Tamil quality (10 GB VRAM). Use whisper-medium / small or indic-conformer for lower-VRAM boxes.">
+          <Field label="Speech-to-Text Model" hint="whisper-large-v3 = best Tamil quality (10 GB VRAM). Use whisper-medium / small for lower-VRAM boxes.">
             <select className={styles.input} value={s.localSttModel || 'whisper-large-v3'} onChange={e => onChange('localSttModel', e.target.value)}>
               <option value="whisper-large-v3">whisper-large-v3 (recommended)</option>
               <option value="whisper-medium">whisper-medium</option>
               <option value="whisper-small">whisper-small (low VRAM)</option>
-              <option value="indic-conformer">AI4Bharat IndicConformer (Tamil-only)</option>
             </select>
           </Field>
           <Field label="Language Model" hint="Qwen2.5-7B is the recommended default — strong Tamil + tight instruction following at 14 GB VRAM.">

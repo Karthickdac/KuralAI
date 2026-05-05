@@ -14,7 +14,8 @@ const router = express.Router();
 router.post('/sarvam-voice', (req, res) => {
   const { callId, wt } = req.query;
   const s = getSettingsSync();
-  const expected = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const expected = require('../utils/webhookToken').getWebhookToken();
+  if (!expected) return res.status(503).type('text/xml').send('<Response><Reject/></Response>');
   if (wt !== expected) {
     logger.warn(`[sarvam-voice] invalid webhook token for call ${callId}`);
     return res.status(403).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>');

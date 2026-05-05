@@ -168,6 +168,34 @@ class TtsRequest(BaseModel):
     model: str = "indic-parler-tts"
     sample_rate: int = 8000          # caller resamples nothing; telephony-ready
     description: str | None = None   # natural-language style steering (Parler)
+    # 'pcm16' (default) returns audio/L16 little-endian PCM16. 'mulaw' returns
+    # G.711 μ-law @ 8 kHz — the on-the-wire format Twilio/Exotel media streams
+    # expect, so the Node bridge can pass bytes straight through with zero
+    # resampling/encoding in the latency-critical hot path.
+    format: str = "pcm16"
+
+
+def _pcm16_to_mulaw(pcm16: bytes) -> bytes:
+    """Reference μ-law encoder (G.711). Pure-Python; ~5µs per sample, fine
+    for 8 kHz telephony in chunks of 20 ms (160 samples)."""
+    import array
+    src = array.array("h"); src.frombytes(pcm16)
+    out = bytearray(len(src))
+    BIAS = 0x84
+    CLIP = 32635
+    for i, s in enumerate(src):
+        sign = 0x80 if s < 0 else 0
+        if s < 0: s = -s
+        if s > CLIP: s = CLIP
+        s += BIAS
+        # exponent
+        exp = 7
+        mask = 0x4000
+        while exp > 0 and not (s & mask):
+            exp -= 1; mask >>= 1
+        mantissa = (s >> (exp + 3)) & 0x0F
+        out[i] = (~(sign | (exp << 4) | mantissa)) & 0xFF
+    return bytes(out)
 
 
 @app.post("/tts")
@@ -178,19 +206,45 @@ async def tts_endpoint(req: TtsRequest, _: None = Depends(require_token)) -> Res
     # If the caller didn't pass an explicit description, fall back to the one
     # stored in the voice catalogue for this voice ID.
     description = req.description or (voice_store.voice_meta(req.voice) or {}).get("description") or None
+    fmt = (req.format or "pcm16").lower()
+    sr = 8000 if fmt == "mulaw" else req.sample_rate
+
     pcm16 = await engine.synth(
         text=req.text,
         voice=req.voice,
         language=req.language,
         model=req.model,
-        sample_rate=req.sample_rate,
+        sample_rate=sr,
         description=description,
     )
+
+    if fmt == "mulaw":
+        # Stream μ-law in 20 ms (160-byte) frames so Twilio/Exotel can play
+        # the first frame ~50 ms after generation completes — no client-side
+        # resample/encode required.
+        mulaw = _pcm16_to_mulaw(pcm16)
+        FRAME = 160  # 20 ms @ 8 kHz μ-law
+
+        async def stream():
+            for i in range(0, len(mulaw), FRAME):
+                yield mulaw[i:i + FRAME]
+
+        return StreamingResponse(
+            stream(),
+            media_type="audio/basic",
+            headers={
+                "X-Sample-Rate": "8000",
+                "X-Channels": "1",
+                "X-Encoding": "mulaw",
+                "X-Frame-Bytes": str(FRAME),
+            },
+        )
+
     return Response(
         content=pcm16,
         media_type="audio/L16",
         headers={
-            "X-Sample-Rate": str(req.sample_rate),
+            "X-Sample-Rate": str(sr),
             "X-Channels": "1",
             "X-Encoding": "pcm16le",
         },

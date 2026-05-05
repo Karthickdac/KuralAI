@@ -43,22 +43,52 @@ function fallbackChain() {
     .toString().split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
 }
 
+// Cascade through every non-local engine in the configured chain. Each
+// failover attempt + outcome is recorded into callMeta.failoverHistory so
+// post-call analytics can show "answered by Sarvam after Local was down".
 async function failover(toPhone, callId, callMeta, reason) {
   const chain = fallbackChain().filter(e => e !== 'local');
-  logger.warn(`[local-call] inference unavailable (${reason}). Failing over → ${chain[0] || 'none'}`);
-  if (chain[0] === 'sarvam') {
-    const { initiateCall } = require('./sarvamCallService');
-    return initiateCall(toPhone, callId, callMeta);
+  callMeta.failoverHistory = callMeta.failoverHistory || [];
+  callMeta.failoverHistory.push({
+    at: new Date().toISOString(),
+    from: 'local',
+    reason,
+  });
+
+  if (!chain.length) {
+    callMeta.failoverReason = reason;
+    callMeta.engineUsed     = 'none';
+    rememberCallMeta(callId, callMeta);
+    throw new Error(`Local inference unavailable and no fallback engine configured (reason: ${reason})`);
   }
-  if (chain[0] === 'elevenlabs') {
-    const { initiateCall } = require('./elevenlabsCallService');
-    return initiateCall(toPhone, callId, callMeta);
+
+  for (const eng of chain) {
+    let initiate = null;
+    if (eng === 'sarvam')         initiate = require('./sarvamCallService').initiateCall;
+    else if (eng === 'elevenlabs') initiate = require('./elevenlabsCallService').initiateCall;
+    else if (eng === 'kuralai')   initiate = require('./telephonyService').initiateCall;
+    if (!initiate) {
+      logger.warn(`[local-call] unknown engine '${eng}' in fallback chain — skipping`);
+      continue;
+    }
+    try {
+      logger.warn(`[local-call] failing over to '${eng}' (reason: ${reason})`);
+      const out = await initiate(toPhone, callId, callMeta);
+      callMeta.failoverReason = reason;
+      callMeta.engineUsed     = eng;
+      callMeta.failoverHistory.push({ at: new Date().toISOString(), to: eng, ok: true });
+      rememberCallMeta(callId, callMeta);
+      return out;
+    } catch (err) {
+      logger.warn(`[local-call] fallback '${eng}' failed: ${err.message}`);
+      callMeta.failoverHistory.push({ at: new Date().toISOString(), to: eng, ok: false, error: err.message });
+    }
   }
-  if (chain[0] === 'kuralai') {
-    const { initiateCall } = require('./telephonyService');
-    return initiateCall(toPhone, callId, callMeta);
-  }
-  throw new Error(`Local inference unavailable and no fallback engine configured (reason: ${reason})`);
+
+  callMeta.failoverReason = reason;
+  callMeta.engineUsed     = 'none';
+  rememberCallMeta(callId, callMeta);
+  throw new Error(`All fallback engines failed (initial reason: ${reason})`);
 }
 
 // ─── Twilio path ──────────────────────────────────────────────────────────────
@@ -67,7 +97,7 @@ async function initiateTwilio(toPhone, callId, callMeta, s) {
   const authToken  = s.twilioAuthToken  || process.env.TWILIO_AUTH_TOKEN;
   const callerId   = s.twilioPhoneNumber || process.env.TWILIO_PHONE_NUMBER || '';
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
-  const token       = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const token       = require('../utils/webhookToken').requireWebhookToken('Twilio call');
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 
   if (!accountSid || !authToken) throw new Error('Twilio credentials not configured');
@@ -112,7 +142,7 @@ async function initiateExotel(toPhone, callId, callMeta, s) {
   const apiToken  = s.exotelApiToken || process.env.EXOTEL_API_TOKEN;
   const callerId  = s.exotelPhoneNumber  || process.env.EXOTEL_PHONE_NUMBER || '';
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
-  const token       = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const token       = require('../utils/webhookToken').requireWebhookToken('Exotel call');
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 
   // The user creates an Exotel Voicebot App pointing at wss://<appUrl>/local-stream

@@ -37,7 +37,7 @@ async function initiateTwilio(toPhone, callId, callMeta, s) {
   const callerId   = s.twilioPhoneNumber || process.env.TWILIO_PHONE_NUMBER || '';
   const apiKey     = s.sarvamApiKey || process.env.SARVAM_API_KEY;
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
-  const token       = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const token       = require('../utils/webhookToken').requireWebhookToken('Sarvam call');
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 
   if (!accountSid || !authToken) throw new Error('Twilio credentials not configured');
@@ -83,7 +83,7 @@ async function initiateExotel(toPhone, callId, callMeta, s) {
   const apiToken  = s.exotelApiToken || process.env.EXOTEL_API_TOKEN;
   const callerId  = s.exotelPhoneNumber  || process.env.EXOTEL_PHONE_NUMBER || '';
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
-  const token       = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const token       = require('../utils/webhookToken').requireWebhookToken('Sarvam call');
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 
   // The Voicebot App ID/URL the user configured in Exotel dashboard with a

@@ -49,7 +49,7 @@ function init(server) {
     const queryCallId = url.searchParams.get('callId') || '';
     const wt          = url.searchParams.get('wt') || '';
     const s           = getSettingsSync();
-    const expected    = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+    const expected    = require('../utils/webhookToken').getWebhookToken();
 
     const session = new Session(ws, queryCallId);
     session.expectedWt = expected;
@@ -381,6 +381,19 @@ class Session {
     for (const eng of this.fallbackChain()) {
       try {
         if (eng === 'local') {
+          // For Twilio/Exotel μ-law streams at 8 kHz, ask the inference
+          // server for telephony-format audio and pass it through with
+          // zero client-side resampling/encoding (chunked 20 ms frames).
+          if (this.outEncoding === 'mulaw' && (targetSr === 8000)) {
+            const mulaw = await localApi.tts(text, {
+              languageCode: lang,
+              sampleRate: 8000,
+              format: 'mulaw',
+              voice: overrideVoice || undefined,
+              description: overrideDescription || undefined,
+            });
+            return { mulaw, sampleRate: 8000 };
+          }
           const pcm = await localApi.tts(text, {
             languageCode: lang,
             sampleRate: targetSr,
@@ -467,6 +480,32 @@ class Session {
     const targetSr = this.outSampleRate || 8000;
     const result = await this.ttsWithFallback(text, targetSr);
     if (!result) return;
+
+    // Fast path — server already returned μ-law @ 8 kHz pre-framed for
+    // telephony. Just chunk into 20 ms (160-byte) frames and send. No
+    // resample, no encode, no copy in the latency-critical hot path.
+    if (result.mulaw && this.outEncoding === 'mulaw') {
+      const mulaw = result.mulaw;
+      const FRAME = 160; // 20 ms @ 8 kHz μ-law
+      this.speaking = true;
+      for (let i = 0; i < mulaw.length && !this.closed && !this.barge; i += FRAME) {
+        const f = mulaw.slice(i, i + FRAME);
+        const out = f.length === FRAME ? f : Buffer.concat([f, Buffer.alloc(FRAME - f.length, 0xff)]);
+        this.sendMedia(out);
+        await sleep(FRAME_MS);
+      }
+      this.speaking = false;
+      if (this.barge) {
+        try {
+          const clear = this.provider === 'exotel'
+            ? { event: 'clear', stream_sid: this.streamSid || undefined }
+            : { event: 'clear', streamSid:  this.streamSid || undefined };
+          this.ws.send(JSON.stringify(clear));
+        } catch {}
+      }
+      return;
+    }
+
     const { pcm, sampleRate } = result;
     const pcmTarget = sampleRate === targetSr ? pcm : resamplePcm16(pcm, sampleRate, targetSr);
 

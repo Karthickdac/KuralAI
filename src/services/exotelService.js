@@ -43,7 +43,7 @@ function getExotelBase() {
 async function initiateCall(toPhone, callId) {
   const { baseUrl, auth, s } = getExotelBase();
   const webhookBase = s.appUrl || process.env.APP_URL || '';
-  const token       = s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const token       = require('../utils/webhookToken').requireWebhookToken('Exotel call');
   const callerId    = s.exotelPhoneNumber  || process.env.EXOTEL_PHONE_NUMBER  || '';
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 

@@ -45,7 +45,7 @@ function getTwilioBase() {
 async function initiateCall(toPhone, callId, callMeta = {}) {
   const { baseUrl, auth, s } = getTwilioBase();
   const webhookBase = (s.appUrl || process.env.APP_URL || '').replace(/\/$/, '');
-  const token       = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const token       = require('../utils/webhookToken').requireWebhookToken('Twilio call');
   const callerId    = s.twilioPhoneNumber || process.env.TWILIO_PHONE_NUMBER || '';
   const timeLimit   = s.maxCallDurationSeconds || parseInt(process.env.MAX_CALL_DURATION_SECONDS) || 300;
 

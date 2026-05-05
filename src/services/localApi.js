@@ -152,13 +152,12 @@ async function chat(messages, opts = {}) {
  * Text-to-speech. Returns a PCM16 mono Buffer at the requested sample rate
  * (default 8 kHz so it can stream straight into Twilio Media Streams).
  */
-async function tts(text, { voice, languageCode = 'ta-IN', model, sampleRate = 8000, description } = {}) {
+async function tts(text, { voice, languageCode = 'ta-IN', model, sampleRate = 8000, description, format = 'pcm16' } = {}) {
   const { baseUrl } = cfg();
   if (!baseUrl) throw new Error('Local inference URL not configured');
   const s = getSettingsSync();
   const ttsVoice = voice || s.localTtsVoice  || 'samuthra-female-tamil';
   const ttsModel = model || s.localTtsModel  || 'indic-parler-tts';
-  // Style description (Parler-TTS): explicit param > settings global default.
   const ttsDescription = description ?? s.localVoiceDescription ?? null;
 
   const resp = await axios.post(
@@ -170,6 +169,7 @@ async function tts(text, { voice, languageCode = 'ta-IN', model, sampleRate = 80
       model: ttsModel,
       sample_rate: sampleRate,
       description: ttsDescription,
+      format,                 // 'pcm16' or 'mulaw' (8 kHz telephony)
     },
     {
       headers: authHeaders({ 'Content-Type': 'application/json' }),

@@ -52,7 +52,7 @@ function init(server) {
     const queryCallId = url.searchParams.get('callId') || '';
     const wt          = url.searchParams.get('wt') || '';
     const s           = getSettingsSync();
-    const expected    = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+    const expected    = require('../utils/webhookToken').getWebhookToken();
 
     // Authorization: prefer wt from query string, but Twilio's media-streams
     // client sometimes drops the query string on the WS upgrade. In that case
