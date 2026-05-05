@@ -1,0 +1,38 @@
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics/artifacts# cd ..
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics# ls -l /proc/378270/cwd            # shows the directory KuralAI was started from
+cat /proc/378270/cmdline | tr '\0' ' '; echo   # shows the exact command
+ps -o user= -p 378270             # shows which user owns it
+lrwxrwxrwx 1 automystics-mysticshr automystics-mysticshr 0 May  2 11:19 /proc/378270/cwd -> /home/automystics-mysticshr/htdocs/mysticshr.automystics.tech
+node --enable-source-maps artifacts/api-server/dist/index.mjs 
+automystics-mysticshr
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics# # 1. ALL node processes with their cwd, user, and command
+for pid in $(pgrep -x node); do
+  echo "--- pid=$pid user=$(ps -o user= -p $pid) ---"
+  echo "  cwd: $(readlink /proc/$pid/cwd 2>/dev/null)"
+  echo "  cmd: $(tr '\0' ' ' < /proc/$pid/cmdline)"
+  echo "  ports: $(ss -lntp 2>/dev/null | grep "pid=$pid" | awk '{print $4}' | tr '\n' ' ')"
+done
+
+# 2. The nginx vhost for kuralai — tells us the upstream port directly
+grep -RhA2 "kuralai" /etc/nginx/ /home/*/conf/nginx/ 2>/dev/null | grep -E "proxy_pass|server_name|listen" | head -20
+
+# 3. Find the actual KuralAI source code on disk (look for our specific files)
+find / -xdev -maxdepth 8 -name "customer.routes.js" -path "*kuralai*" 2>/dev/null
+find / -xdev -maxdepth 8 -name "customer.routes.js" 2>/dev/null | head -10
+
+# 4. systemd services that mention kuralai
+systemctl list-units --type=service --state=running --no-pager | grep -i kura
+--- pid=378270 user=automystics-mysticshr ---
+  cwd: /home/automystics-mysticshr/htdocs/mysticshr.automystics.tech
+  cmd: node --enable-source-maps artifacts/api-server/dist/index.mjs 
+  ports: *:8080 
+--- pid=491250 user=automystics-solarnexus ---
+  cwd: /home/automystics-solarnexus/htdocs/solarnexus.automystics.tech/app
+  cmd: node /usr/bin/pnpm --filter @workspace/api-server run start 
+  ports: 
+--- pid=491263 user=automystics-solarnexus ---
+  cwd: /home/automystics-solarnexus/htdocs/solarnexus.automystics.tech/app/artifacts/api-server
+  cmd: node --enable-source-maps ./dist/index.mjs 
+  ports: *:9000 
+  server_name kuralai.automystics.tech;
+root@srv1609330:/home/automystics/htdocs/w
