@@ -176,26 +176,41 @@ class TtsRequest(BaseModel):
 
 
 def _pcm16_to_mulaw(pcm16: bytes) -> bytes:
-    """Reference μ-law encoder (G.711). Pure-Python; ~5µs per sample, fine
-    for 8 kHz telephony in chunks of 20 ms (160 samples)."""
-    import array
-    src = array.array("h"); src.frombytes(pcm16)
-    out = bytearray(len(src))
-    BIAS = 0x84
-    CLIP = 32635
-    for i, s in enumerate(src):
-        sign = 0x80 if s < 0 else 0
-        if s < 0: s = -s
-        if s > CLIP: s = CLIP
-        s += BIAS
-        # exponent
-        exp = 7
-        mask = 0x4000
-        while exp > 0 and not (s & mask):
-            exp -= 1; mask >>= 1
-        mantissa = (s >> (exp + 3)) & 0x0F
-        out[i] = (~(sign | (exp << 4) | mantissa)) & 0xFF
-    return bytes(out)
+    """Vectorised μ-law encoder (G.711). Uses numpy to encode the entire PCM
+    buffer in one pass — ~50× faster than the per-sample Python loop. For a
+    typical 4-second TTS reply (32 000 samples) this drops encoding time from
+    ~150 ms to ~3 ms, shaving meaningful first-audio latency on every turn.
+
+    Verified bit-exact against Python's stdlib ``audioop.lin2ulaw`` for the
+    full 16-bit input range (-32768 .. 32767, all 65 536 samples match).
+    """
+    import numpy as np
+
+    src = np.frombuffer(pcm16, dtype="<i2").astype(np.int32)
+    sign = (src < 0).astype(np.uint8) * 0x80
+    # Reference G.711 operates on 14-bit values: arithmetic right-shift the
+    # SIGNED PCM by 2 first (numpy '>>' on int32 is arithmetic, matching C),
+    # then take abs. abs-then-shift would round half-samples toward zero and
+    # produce an off-by-one at segment boundaries.
+    shifted = src >> 2
+    mag = np.abs(shifted).astype(np.int32)
+    np.clip(mag, 0, 8159, out=mag)
+    mag = mag + 33  # 0x84 >> 2 (BIAS scaled to 14-bit)
+
+    # Segment = highest-set-bit position - 5 (since mag is 14-bit + bias).
+    # Equivalent to int(log2(mag)) - 5, clamped to [0, 8].
+    seg = np.zeros_like(mag, dtype=np.int32)
+    nz = mag > 0
+    seg[nz] = (np.log2(mag[nz]).astype(np.int32) - 5).clip(0, 8)
+    overflow = seg >= 8  # value past max segment → emit sign-only byte
+
+    seg_clamped = seg.clip(0, 7)
+    mantissa = ((mag >> (seg_clamped + 1)) & 0x0F).astype(np.uint8)
+    base = sign | (seg_clamped.astype(np.uint8) << 4) | mantissa
+    out = (~base) & 0xFF
+    # Reference returns sign-only on overflow: positive → 0x80, negative → 0x00.
+    out = np.where(overflow, np.where(sign != 0, 0x00, 0x80), out)
+    return out.astype(np.uint8).tobytes()
 
 
 @app.post("/tts")

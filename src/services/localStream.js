@@ -26,11 +26,26 @@ const {
 } = require('../utils/audioCodec');
 const Transcript = (() => { try { return require('../models/Transcript'); } catch { return null; } })();
 
-const SILENCE_ENERGY     = 350;
+const SILENCE_ENERGY     = 350;        // hard floor for silent frame energy
 const SILENCE_MS_END     = 700;
 const MIN_SPEECH_MS      = 200;
 const MAX_TURN_MS        = 15000;
 const FRAME_MS           = 20;
+
+// Adaptive VAD — on noisy phone lines a fixed silence threshold either misses
+// end-of-turn (line hiss > 350) or false-triggers on quiet speech. We track a
+// running noise floor and require frames to exceed max(SILENCE_ENERGY, noise *
+// NOISE_FACTOR) to count as speech. Calibrated over the first NOISE_CALIBRATION_MS
+// of incoming audio (assumed to be silence/ambient before user speaks).
+const NOISE_CALIBRATION_MS = 600;
+const NOISE_FACTOR         = 2.5;       // speech must be 2.5× the noise floor
+const NOISE_EWMA_ALPHA     = 0.05;      // slow drift after calibration
+
+// Conversation history budget — keep the most recent turns that fit within
+// HISTORY_CHAR_BUDGET (≈3 chars/token for Tamil, so ~800 tokens of history).
+// Replaces a naive slice(-12) which could either waste context on tiny turns
+// or blow the LLM context window on long ones.
+const HISTORY_CHAR_BUDGET  = 2400;
 
 let _wss = null;
 function getWss() { return _wss; }
@@ -90,6 +105,10 @@ class Session {
     this.silentMs  = 0;
     this.speechMs  = 0;
     this.turnMs    = 0;
+
+    // Adaptive VAD state — start optimistic, calibrate from first frames.
+    this.noiseFloor      = SILENCE_ENERGY;
+    this.calibratedMs    = 0;
 
     this.processing = false;
     this.closed     = false;
@@ -261,8 +280,22 @@ class Session {
   handleAudioFrame(rawFrame) {
     const pcm = this.toPcm16_8k(rawFrame);
     const energy = pcm16Energy(pcm);
-    const isSilent = energy < SILENCE_ENERGY;
     const frameMs = (pcm.length / 2 / 8000) * 1000;
+
+    // Adaptive noise floor — during the calibration window, blend incoming
+    // energy aggressively. After calibration, drift slowly using EWMA on
+    // frames we believe are silence (below current threshold).
+    const threshold = Math.max(SILENCE_ENERGY, this.noiseFloor * NOISE_FACTOR);
+    const isSilent = energy < threshold;
+    if (this.calibratedMs < NOISE_CALIBRATION_MS) {
+      // Take min of running floor and this frame to track quietest ambient.
+      this.noiseFloor = this.calibratedMs === 0
+        ? energy
+        : Math.min(this.noiseFloor, (this.noiseFloor * 0.6) + (energy * 0.4));
+      this.calibratedMs += frameMs;
+    } else if (isSilent) {
+      this.noiseFloor = (this.noiseFloor * (1 - NOISE_EWMA_ALPHA)) + (energy * NOISE_EWMA_ALPHA);
+    }
     // Barge-in — if the agent is currently speaking and the caller starts
     // speaking, mark the session so the TTS streamer aborts mid-utterance.
     if (!isSilent && this.speaking) {
@@ -440,7 +473,7 @@ class Session {
       const sysPrompt = (this.systemPrompt || '').trim();
       const msgs = [];
       if (sysPrompt) msgs.push({ role: 'system', content: sysPrompt });
-      msgs.push(...this.history.slice(-12));
+      msgs.push(...this.trimHistoryByBudget(HISTORY_CHAR_BUDGET));
 
       // Streamed: synth + send TTS sentence-by-sentence as the LLM produces
       // them. First-audio latency drops from "wait for full reply" to "wait
@@ -464,6 +497,23 @@ class Session {
       this.processing = false;
       this.barge = false;
     }
+  }
+
+  // Walk history newest-first, keep messages whose cumulative content length
+  // stays within `budget` chars. Always returns an in-order (oldest-first)
+  // slice. Last user/assistant pair is kept even if it overflows so the LLM
+  // never gets just a system prompt with no recent turn context.
+  trimHistoryByBudget(budget) {
+    const out = [];
+    let used = 0;
+    for (let i = this.history.length - 1; i >= 0; i--) {
+      const m = this.history[i];
+      const cost = (m.content || '').length + 4;
+      if (out.length >= 2 && used + cost > budget) break;
+      out.unshift(m);
+      used += cost;
+    }
+    return out;
   }
 
   async speakGreeting() {
