@@ -320,10 +320,11 @@ class Session {
 
       let reply = '';
       try {
-        reply = await chat(
-          [{ role: 'system', content: this.systemPrompt }, ...this.history.slice(-12)],
-          { model: getSettingsSync().sarvamChatModel || 'sarvam-m' }
-        );
+        const sysPrompt = (this.systemPrompt || '').trim();
+        const msgs = [];
+        if (sysPrompt) msgs.push({ role: 'system', content: sysPrompt });
+        msgs.push(...this.history.slice(-12));
+        reply = await chat(msgs, { model: getSettingsSync().sarvamChatModel || 'sarvam-m' });
       } catch (e) {
         const body = e.response?.data ? JSON.stringify(e.response.data).slice(0, 500) : '';
         logger.warn(`[sarvam-stream] chat failed call=${this.callId}: ${e.message} body=${body}`);

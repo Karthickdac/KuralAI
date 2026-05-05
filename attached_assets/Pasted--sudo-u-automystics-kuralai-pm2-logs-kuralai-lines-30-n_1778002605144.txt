@@ -1,0 +1,15 @@
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 30 --nostream | grep -iE 'sarvam-stream|chat failed|USER:|BOT :' | tail -15
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# ^C
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u automystics-kuralai pm2 logs kuralai --lines 30 --nostream | grep -iE 'sarvam-stream|chat failed|USER:|BOT :' | tail -15
+]: [sarvam-voice] TwiML returned for call 9a74a81b-7144-41eb-bf11-9b716ac93673 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=9a74a81b-7144-41eb-bf11-9b716ac93673
+]: [sarvam-stream] START call=9a74a81b-7144-41eb-bf11-9b716ac93673 provider=twilio stream=MZ58d1d25e1cfdd6411a2e484334c14fb5 in=mulaw@8000Hz
+]: [sarvam-stream] 9a74a81b-7144-41eb-bf11-9b716ac93673 USER: ம் சரி சொல்லலாம்
+]: [sarvam-stream] chat failed call=9a74a81b-7144-41eb-bf11-9b716ac93673: Request failed with status code 400 body={"error":{"message":"First message must be from user (or after system message)","code":"invalid_request_error","request_id":"20260505_ba8ac110-90ee-481b-8ec4-fcc24c81df47"}}
+]: [sarvam-stream] 9a74a81b-7144-41eb-bf11-9b716ac93673 BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] 9a74a81b-7144-41eb-bf11-9b716ac93673 USER: எத்தனை தடவை சொன்னாலும் உனக்கு புரியாது நீங்கள் ஒரு விஷயம் விட்டா
+]: [sarvam-stream] chat failed call=9a74a81b-7144-41eb-bf11-9b716ac93673: Request failed with status code 400 body={"error":{"message":"First message must be from user (or after system message)","code":"invalid_request_error","request_id":"20260505_018c7e07-b329-42bb-bee4-ab9bace3a0d7"}}
+]: [sarvam-stream] 9a74a81b-7144-41eb-bf11-9b716ac93673 BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] STOP call=9a74a81b-7144-41eb-bf11-9b716ac93673
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
