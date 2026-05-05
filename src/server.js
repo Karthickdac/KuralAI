@@ -109,6 +109,8 @@ app.use('/api/elevenlabs/webhooks', require('./routes/elevenlabsWebhooks.routes'
 // Sarvam engine answer webhook — MUST be mounted before legacy webhookRoutes
 // so its router-level validateExotelWebhook middleware does not capture us.
 app.use('/webhook', require('./routes/sarvamWebhooks.routes'));
+// Local (self-hosted inference) engine answer webhook + health proxy
+app.use('/webhook', require('./routes/localWebhooks.routes'));
 // Exotel webhooks (no JWT - validated by shared webhook token)
 app.use('/webhook', webhookRoutes);
 
@@ -181,21 +183,24 @@ async function bootstrap() {
     // the WebSocket stream — the dashboard client then saw "RSV1 must be clear".
     initWebSocket(server);
     require('./services/sarvamStream').init(server);
+    require('./services/localStream').init(server);
     const { getWss: getDashboardWss } = require('./websocket/wsServer');
     const { getWss: getSarvamWss } = require('./services/sarvamStream');
+    const { getWss: getLocalWss }  = require('./services/localStream');
     server.on('upgrade', (req, socket, head) => {
       let pathname;
       try { pathname = new URL(req.url, 'http://x').pathname; }
       catch { socket.destroy(); return; }
 
       const target =
-        pathname === '/ws' ? getDashboardWss() :
-        pathname === '/sarvam-stream' ? getSarvamWss() :
+        pathname === '/ws'             ? getDashboardWss() :
+        pathname === '/sarvam-stream'  ? getSarvamWss()    :
+        pathname === '/local-stream'   ? getLocalWss()     :
         null;
       if (!target) { socket.destroy(); return; }
       target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
     });
-    logger.info('✅ WebSocket servers initialized (dashboard + sarvam-stream)');
+    logger.info('✅ WebSocket servers initialized (dashboard + sarvam-stream + local-stream)');
 
     // Start call retry scheduler (cron job)
     startRetryScheduler();

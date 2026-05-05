@@ -41,6 +41,38 @@ const DEFAULTS = {
   sarvamSystemPrompt: '',
   sarvamGreeting: '',
   exotelSarvamAppId: '',
+  // Self-hosted Local inference engine
+  localInferenceUrl: '',
+  localInferenceToken: '',
+  localSttModel: 'whisper-large-v3',
+  localLlmModel: 'qwen2.5:7b-instruct',
+  // Premium default: Indic-Parler-TTS (prompt-driven, studio-quality).
+  // Switch to 'xtts-v2' only if you need reference-WAV voice cloning.
+  localTtsModel: 'indic-parler-tts',
+  localTtsVoice: 'samuthra-female-tamil',
+  // Natural-language voice steering (Parler-TTS). Edit freely — pace, pitch,
+  // tone, recording quality are all controllable through this single field.
+  localVoiceDescription:
+    'A warm, professional female speaker delivers her words clearly and naturally ' +
+    'in Tamil with a friendly, conversational tone, moderate pace, and very high ' +
+    'studio audio quality with no background noise.',
+  localLanguageCode: 'ta-IN',
+  // Free-form conversational mode by default — the LLM drives the dialogue
+  // rather than following a rigid script. The system prompt below is intentionally
+  // minimal; add facts/personas/policies via the Brand fields below as needed.
+  localSystemPrompt:
+    'நீங்கள் ஒரு இயல்பான, உதவிகரமான, மனிதர் போன்ற தமிழ் AI உரையாடல் முகவர். ' +
+    'பயனருடன் வெளிப்படையாக, இயற்கையாக, ஓட்டமாக உரையாடுங்கள் — எந்த scripted flow-ஐயும் பின்பற்ற வேண்டாம். ' +
+    'பயனரின் கேள்விகளுக்கு நேரடியாக பதில் சொல்லுங்கள். தேவையானால் தெளிவுபடுத்த கேளுங்கள். ' +
+    'பதில்கள் சுருக்கமாக, உரையாடல் தொனியில் இருக்கட்டும்.',
+  localGreeting: '',
+  // Set to 'guided' if you want to layer flows/scripts on top later. Default
+  // 'freeform' = no pre-defined flow, the LLM converses organically.
+  localConversationMode: 'freeform',
+  exotelLocalAppId: '',
+  // Comma-separated engine fallback chain used by the local engine when its
+  // inference server is degraded (per-call AND per-turn).
+  engineFallbackChain: 'local,sarvam',
   companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 

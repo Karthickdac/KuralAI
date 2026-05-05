@@ -318,6 +318,29 @@ In the Workflows Q&A Script tab, the "Add from Q&A" button opens a picker that s
 - Branch agent response from first Q&A response
 - Correct action (continue / end_call)
 
+## Self-Hosted Local Voice Engine (Tamil-first)
+KuralAI ships its own ElevenLabs-grade conversational stack so calls don't have to leave your infra:
+
+- **Inference server** (`inference-server/`) — FastAPI app exposing `/health`, `/stt`, `/llm/chat` (SSE), `/tts`, `/voices`, `/models`. Default stack: faster-whisper large-v3 + Ollama Qwen2.5-7B-Instruct + Coqui XTTS-v2. Ships with `Dockerfile` + `docker-compose.yml` (includes Ollama sidecar). Designed for a single GPU box (RTX 4090 / A10 / L4, 24 GB+ VRAM).
+- **Node-side client** (`src/services/localApi.js`) — HTTP+SSE client. Reads URL + bearer token from settings. 10 s health cache.
+- **Twilio/Exotel bridge** (`src/services/localStream.js`, mounted at `/local-stream`) — mirrors `sarvamStream.js`. Auto-detects μ-law (Twilio) vs PCM16 (Exotel Voicebot). Per-turn fallback through `engineFallbackChain` (`local,sarvam` by default).
+- **Dispatcher** (`src/services/localCallService.js`) — pre-flight `localApi.health()` probe. If inference is degraded, automatically failover to the next engine in the chain (Sarvam → ElevenLabs → KuralAI scripted) before any phone rings.
+- **TwiML answer** (`src/routes/localWebhooks.routes.js`) — `/webhook/local-voice` returns TwiML with `<Connect><Stream wss://.../local-stream/>`. Same route exposes `/webhook/local-health` so the dashboard can show readiness without exposing the GPU box.
+- **Settings UI** — new "Local Engine" tab in Settings (`dashboard/src/pages/Settings.jsx`): inference URL, bearer token, STT/LLM/TTS model pickers, voice ID, language, greeting, system prompt, fallback chain, Exotel Voicebot App ID, and a live engine-readiness widget that calls `/webhook/local-health`.
+- **Engine selector** — Default Voice Engine dropdown gains `local`. Dispatcher (`src/services/callDispatcher.js`) routes `engine='local'` to `localCallService.initiateCall(...)`.
+- **Settings keys added**: `localInferenceUrl`, `localInferenceToken`, `localSttModel`, `localLlmModel`, `localTtsModel`, `localTtsVoice`, `localLanguageCode`, `localSystemPrompt`, `localGreeting`, `exotelLocalAppId`, `engineFallbackChain` (defaults in `src/services/settingsService.js`).
+- **WS upgrade routing** — `src/server.js` registers `/local-stream` alongside `/ws` and `/sarvam-stream` in the central `upgrade` handler (avoids the abortHandshake clobbering issue).
+- **Premium TTS — two engines in parallel**:
+  - **Indic-Parler-TTS** (default, `inference-server/engines/tts_parler.py`) — prompt-driven, studio-grade Tamil TTS. Voices are described in natural language ("warm female Tamil speaker, slow expressive delivery, professional studio quality") and modified anytime by editing the prompt. No reference clip needed.
+  - **Coqui XTTS-v2** (`tts_xtts.py`) — instant voice cloning from a single 6–10 sec reference WAV.
+  - Both loaded at `/health`; `_pick_tts_engine()` routes each request based on the voice's stored `engine` metadata (or the model name). Output is peak-normalized to ~ -3 dBFS so volume is consistent and premium-feeling.
+- **Voice Lab (ElevenLabs-grade)**: Settings UI card with two sub-modes via a toggle — *Prompt-only (Parler)* and *Clone from WAV (XTTS)*. Lists every voice with a colored PROMPT/CLONED badge, the underlying style description, ▶ preview, and delete. Inference server endpoints: `GET /voices`, `POST /voices` (multipart, optional file + required description-or-WAV), `DELETE /voices/<id>`, `POST /tts/preview` (≥22.05 kHz WAV). Node mirrors via `/webhook/local-voices` with multer + webhook-token auth on writes.
+- **Voice modification via prompts**: every voice carries a `description` field. Global default sits in `localVoiceDescription` setting; per-call overrides via `callMeta.localVoiceDescription` or `callMeta.voiceDescription`. The prompt is forwarded to Parler-TTS as the style-steering input; XTTS ignores it but still respects per-voice cloned identity.
+- **Free-form conversation mode (default)**: `localConversationMode='freeform'` — the LLM drives the dialogue organically, no scripted flow, no campaign workflow lookups. Default `localSystemPrompt` is now a minimal Tamil "be a natural conversational assistant" prompt rather than a heavy company-script. Set mode to `'guided'` to opt into workflow/script overlays later.
+- **Per-call voice override**: `callMeta.localTtsVoice` (or `callMeta.voiceId`) overrides the global default at speak-time.
+- **Docs**: `inference-server/README.md` covers GPU sizing, deploy, voice catalogue, operator runbook.
+- **Deployment model**: app server (existing VPS) keeps running PM2 `kuralai`. Inference server is a separate GPU host; only the public HTTPS URL + bearer token need to live in app settings. `LOCAL_INFERENCE_URL` / `LOCAL_INFERENCE_TOKEN` env vars also work for CLI use.
+
 ## Notable Technical Decisions
 - Twilio is the primary telephony provider (TwiML); Exotel available as legacy fallback via `telephonyService.js` facade
 - Services are lazy-initialized to allow startup without API credentials

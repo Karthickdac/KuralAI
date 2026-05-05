@@ -4,6 +4,8 @@
  * Picks the right voice engine for a call:
  *   - 'kuralai'    → existing scripted engine (Twilio/Exotel + your conversationEngine)
  *   - 'elevenlabs' → ElevenLabs Conversational AI agent
+ *   - 'sarvam'     → Sarvam.ai conversational engine (Indian voices)
+ *   - 'local'      → Self-hosted inference server (KuralAI's own STT+LLM+TTS)
  *
  * Resolution order for the engine choice:
  *   1. Explicit `engine` argument (e.g. from controller)
@@ -48,6 +50,12 @@ async function dispatchCall(toPhone, callId, callMeta = {}, explicitEngine = nul
   if (engine === 'sarvam') {
     logger.info(`[dispatcher] engine=sarvam call=${callId}`);
     const { initiateCall } = require('./sarvamCallService');
+    return initiateCall(toPhone, callId, callMeta);
+  }
+
+  if (engine === 'local') {
+    logger.info(`[dispatcher] engine=local call=${callId}`);
+    const { initiateCall } = require('./localCallService');
     return initiateCall(toPhone, callId, callMeta);
   }
 

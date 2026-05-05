@@ -32,11 +32,13 @@ const CREDENTIAL_KEYS = [
   'twilioAccountSid', 'twilioAuthToken',
   'openaiApiKey', 'azureSpeechKey', 'awsAccessKeyId', 'awsSecretAccessKey',
   'elevenLabsApiKey', 'razorpayKeyId', 'razorpayKeySecret', 'elevenlabsToolKey',
+  'localInferenceToken',
 ];
 
 const NAV_ITEMS = [
   { id: 'telephony', label: 'Telephony',   icon: '📞' },
   { id: 'ai',        label: 'AI & Voice',  icon: '🤖' },
+  { id: 'local',     label: 'Local Engine', icon: '🖥️' },
   { id: 'payment',   label: 'Payment Gateway', icon: '💳' },
   { id: 'storage',   label: 'Storage',     icon: '🗄️' },
   { id: 'behaviour', label: 'Behaviour',   icon: '⚙️' },
@@ -248,6 +250,7 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
         <div className={styles.grid}>
           <Field label="Default Voice Engine" hint="Applies to ALL outbound calls (Campaigns + customer Call buttons + bulk + retries). Per-campaign overrides still work.">
             <select className={styles.input} value={s.defaultEngine || 'kuralai'} onChange={e => onChange('defaultEngine', e.target.value)}>
+              <option value="local">Local — Self-hosted KuralAI inference (Tamil-first)</option>
               <option value="kuralai">KuralAI Scripted Engine</option>
               <option value="elevenlabs">ElevenLabs Conversational AI (Samuthra)</option>
               <option value="sarvam">Sarvam.ai Conversational (Indian voices)</option>
@@ -402,6 +405,414 @@ function AiVoiceSection({ s, savedCreds, onChange, elVoicePreset, setElVoicePres
             <input className={styles.input} value={s.exotelSarvamAppId || ''} onChange={e => onChange('exotelSarvamAppId', e.target.value)} placeholder="e.g. 1234567 or full http://my.exotel.com/.../start_voice/1234567" />
           </Field>
         </div>
+      </Card>
+    </>
+  );
+}
+
+// Shared in-memory voice cache so the picker and the Voice Lab stay in sync.
+const _voiceCache = { voices: [], ts: 0, listeners: new Set() };
+async function refreshVoices() {
+  try {
+    const res = await fetch('/webhook/local-voices');
+    const j = await res.json();
+    _voiceCache.voices = j.voices || [];
+  } catch {
+    _voiceCache.voices = [];
+  }
+  _voiceCache.ts = Date.now();
+  for (const fn of _voiceCache.listeners) try { fn(_voiceCache.voices); } catch {}
+}
+function useVoiceCatalogue() {
+  const [voices, setVoices] = useState(_voiceCache.voices);
+  useEffect(() => {
+    _voiceCache.listeners.add(setVoices);
+    if (Date.now() - _voiceCache.ts > 5000) refreshVoices();
+    return () => { _voiceCache.listeners.delete(setVoices); };
+  }, []);
+  return [voices, refreshVoices];
+}
+
+function VoicePicker({ value, onChange }) {
+  const [voices] = useVoiceCatalogue();
+  const known = voices.find(v => v.id === value);
+  return (
+    <select className={styles.input} value={value || ''} onChange={e => onChange(e.target.value)}>
+      <option value="">— Select a voice —</option>
+      {voices.map(v => (
+        <option key={v.id} value={v.id}>
+          {v.displayName} · {v.language || 'ta'} · {v.gender || 'unknown'}{v.builtin ? '' : ' (cloned)'}
+        </option>
+      ))}
+      {value && !known && <option value={value}>{value} (not on server)</option>}
+    </select>
+  );
+}
+
+function VoiceLab({ token }) {
+  const [voices, reload] = useVoiceCatalogue();
+  const [mode, setMode] = useState('prompt');   // 'prompt' or 'clone'
+  const [voiceId, setVoiceId] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [language, setLanguage] = useState('ta');
+  const [gender, setGender] = useState('female');
+  const [description, setDescription] = useState(
+    'A warm, professional female speaker delivers her words clearly and naturally in Tamil with a friendly, conversational tone, moderate pace, and very high studio audio quality with no background noise.'
+  );
+  const [file, setFile] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewing, setPreviewing] = useState('');
+
+  async function clone(e) {
+    e.preventDefault();
+    if (!token)   { setMsg('Set Webhook Token in Telephony first — required to save voices.'); return; }
+    if (mode === 'clone' && !file) { setMsg('Pick a 6–10 sec mono WAV reference clip.'); return; }
+    if (mode === 'prompt' && !description.trim()) { setMsg('Write a voice style description (Parler-TTS will use it as a prompt).'); return; }
+    if (!voiceId) { setMsg('Enter a voice ID (e.g. priya-tamil-warm).'); return; }
+    setBusy(true); setMsg('');
+    try {
+      const fd = new FormData();
+      if (file && mode === 'clone') fd.append('file', file);
+      fd.append('voiceId', voiceId);
+      fd.append('displayName', displayName || voiceId);
+      fd.append('language', language);
+      fd.append('gender', gender);
+      fd.append('description', description);
+      fd.append('engine', mode === 'clone' ? 'xtts' : 'parler');
+      const r = await fetch(`/webhook/local-voices?wt=${encodeURIComponent(token)}`, { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+      setMsg(`✓ Cloned "${j.voice?.displayName || voiceId}"`);
+      setVoiceId(''); setDisplayName(''); setFile(null);
+      await reload();
+    } catch (err) {
+      setMsg(`✗ ${err.message}`);
+    } finally { setBusy(false); }
+  }
+
+  async function remove(id) {
+    if (!token) { setMsg('Set Webhook Token first.'); return; }
+    if (!window.confirm(`Delete voice "${id}"? This cannot be undone.`)) return;
+    setBusy(true);
+    try {
+      const r = await fetch(`/webhook/local-voices/${encodeURIComponent(id)}?wt=${encodeURIComponent(token)}`, { method: 'DELETE' });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+      setMsg(`✓ Deleted "${id}"`);
+      await reload();
+    } catch (err) { setMsg(`✗ ${err.message}`); }
+    finally { setBusy(false); }
+  }
+
+  async function preview(id, opts = {}) {
+    setPreviewing(id); setMsg('');
+    try {
+      const r = await fetch('/webhook/local-voices/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          voice: id,
+          text: 'வணக்கம், நான் உங்கள் தமிழ் AI உதவியாளர். நான் எப்படி உதவலாம்?',
+          description: opts.description || undefined,
+        }),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const blob = await r.blob();
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(URL.createObjectURL(blob));
+    } catch (err) { setMsg(`✗ Preview failed: ${err.message}`); }
+    finally { setPreviewing(''); }
+  }
+
+  return (
+    <Card label="Voice Lab" badge="Design or clone premium Tamil voices">
+      <p style={{ margin: '0 0 14px', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+        Two ways to add a voice — both produce studio-grade Tamil audio:<br />
+        <b>1. Prompt-only (premium, default)</b> — describe the voice in plain English (e.g. "warm female Tamil
+        speaker, slow expressive delivery, professional studio quality") and Indic-Parler-TTS synthesises it.
+        Modify any voice anytime by editing the prompt — no re-recording.<br />
+        <b>2. Clone from a WAV</b> — upload a 6–10 second clean reference and XTTS-v2 clones the speaker instantly.<br />
+        Per-campaign override: set <code>localTtsVoice</code> and/or <code>localVoiceDescription</code> in campaign metadata.
+      </p>
+
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+          Available Voices ({voices.length})
+        </div>
+        {voices.length === 0 ? (
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '10px 0' }}>
+            No voices yet. Clone your first voice below — or drop reference WAVs into <code>inference-server/voices/</code> on the GPU box.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {voices.map(v => (
+              <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: '#F8FAFC', border: '1px solid var(--border)', borderRadius: 6 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                    {v.displayName}
+                    <span style={{ marginLeft: 8, padding: '1px 6px', fontSize: 10, fontWeight: 500, borderRadius: 4, background: v.engine === 'parler' ? '#DBEAFE' : '#FEF3C7', color: v.engine === 'parler' ? '#1E40AF' : '#92400E' }}>
+                      {v.engine === 'parler' ? 'PROMPT' : 'CLONED'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                    {v.id} · {v.language} · {v.gender}{v.durationSeconds ? ` · ${v.durationSeconds}s` : ''}
+                    {v.builtin ? ' · built-in' : ''}
+                  </div>
+                  {v.description && (
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontStyle: 'italic', lineHeight: 1.4 }}>
+                      "{v.description.length > 140 ? v.description.slice(0, 140) + '…' : v.description}"
+                    </div>
+                  )}
+                </div>
+                <button type="button" className={styles.copyBtn} onClick={() => preview(v.id)} disabled={!!previewing} style={{ fontSize: 11 }}>
+                  {previewing === v.id ? 'Synthing…' : '▶ Preview'}
+                </button>
+                {!v.builtin && (
+                  <button type="button" className={styles.copyBtn} onClick={() => remove(v.id)} disabled={busy} style={{ fontSize: 11, color: '#DC2626' }}>
+                    Delete
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {previewUrl && (
+          <div style={{ marginTop: 10 }}>
+            <audio controls autoPlay src={previewUrl} style={{ width: '100%' }} />
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={clone} style={{ background: '#F8FAFC', border: '1.5px dashed var(--border)', borderRadius: 8, padding: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Add a New Voice
+          </div>
+          <div style={{ display: 'flex', gap: 4, padding: 3, background: '#fff', border: '1px solid var(--border)', borderRadius: 6 }}>
+            {[
+              { id: 'prompt', label: 'Prompt-only (Parler)' },
+              { id: 'clone',  label: 'Clone from WAV (XTTS)' },
+            ].map(opt => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setMode(opt.id)}
+                style={{
+                  padding: '5px 12px', fontSize: 11, fontWeight: 600, borderRadius: 4, border: 'none', cursor: 'pointer',
+                  background: mode === opt.id ? 'var(--primary)' : 'transparent',
+                  color: mode === opt.id ? '#fff' : 'var(--text-secondary)',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={styles.grid}>
+          <Field label="Voice ID" hint="Lowercase, no spaces. Used as the API identifier.">
+            <input className={styles.input} value={voiceId} onChange={e => setVoiceId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))} placeholder="priya-tamil-warm" />
+          </Field>
+          <Field label="Display Name" hint="Shown in the dropdown.">
+            <input className={styles.input} value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Priya — Warm Tamil Female" />
+          </Field>
+          <Field label="Language">
+            <select className={styles.input} value={language} onChange={e => setLanguage(e.target.value)}>
+              <option value="ta">Tamil</option>
+              <option value="hi">Hindi</option>
+              <option value="en">English</option>
+              <option value="te">Telugu</option>
+              <option value="kn">Kannada</option>
+              <option value="ml">Malayalam</option>
+            </select>
+          </Field>
+          <Field label="Gender">
+            <select className={styles.input} value={gender} onChange={e => setGender(e.target.value)}>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </Field>
+          <Field
+            label={mode === 'prompt' ? 'Voice Style Prompt (required)' : 'Voice Style Prompt (optional but recommended)'}
+            hint='Describe pace, tone, gender, pitch, recording quality. Example: "A warm female Tamil speaker, slow expressive delivery, slightly breathy, professional studio recording with no background noise."'
+            wide
+          >
+            <textarea className={styles.input} rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="A warm, professional female Tamil speaker, moderate pace, friendly tone, very high studio audio quality." />
+          </Field>
+          {mode === 'clone' && (
+            <Field label="Reference Audio" hint="6–10 sec clean mono WAV at ≥16 kHz. No music, no background noise. Max 10 MB." wide>
+              <input type="file" accept="audio/wav,audio/x-wav" onChange={e => setFile(e.target.files?.[0] || null)} className={styles.input} />
+              {file && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{file.name} · {(file.size / 1024).toFixed(1)} KB</div>}
+            </Field>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
+          <button type="submit" className={styles.saveBtn} disabled={busy} style={{ padding: '8px 18px', fontSize: 13 }}>
+            {busy ? 'Saving…' : (mode === 'prompt' ? 'Create Voice' : 'Clone Voice')}
+          </button>
+          {msg && <span style={{ fontSize: 12, color: msg.startsWith('✓') ? '#16A34A' : '#DC2626' }}>{msg}</span>}
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+function LocalEngineSection({ s, savedCreds, onChange }) {
+  const [health, setHealth] = useState(null);
+  const [probing, setProbing] = useState(false);
+
+  async function probe() {
+    setProbing(true);
+    try {
+      const res = await fetch('/webhook/local-health');
+      setHealth(await res.json());
+    } catch (e) {
+      setHealth({ ok: false, error: e.message });
+    }
+    setProbing(false);
+  }
+
+  useEffect(() => { probe(); /* eslint-disable-next-line */ }, []);
+
+  const stateColor = (st) =>
+    st === 'ready' ? '#16A34A' : st === 'loading' ? '#D97706' : '#DC2626';
+
+  return (
+    <>
+      <h2 className={styles.sectionTitle}>Local Engine — Self-Hosted Inference</h2>
+      <p className={styles.sectionSub}>
+        Run your own STT + LLM + TTS on a GPU box (RTX 4090 / A10 / L4 recommended). Tamil-first quality on par with
+        ElevenLabs, no per-minute API cost, full control over the voice and prompt. Sarvam / ElevenLabs remain
+        available as automatic fallbacks for any call where your inference server is degraded.
+      </p>
+
+      <Card label="Inference Server Connection" badge="Required">
+        <div className={styles.grid}>
+          <Field label="Inference URL" hint="Public HTTPS URL of your GPU inference server (the FastAPI service in /inference-server). Example: https://gpu.your-domain.com:8800" wide>
+            <input className={styles.input} value={s.localInferenceUrl || ''} onChange={e => onChange('localInferenceUrl', e.target.value)} placeholder="https://gpu.your-domain.com:8800" />
+          </Field>
+          <Field label="Bearer Token" hint="Set the same value as KURALAI_INFERENCE_TOKEN on the GPU box. Leave blank if your server has no auth." wide>
+            <SecretInput name="localInferenceToken" value={s.localInferenceToken || ''} onChange={e => onChange('localInferenceToken', e.target.value)} placeholder="Optional bearer token" alreadySaved={savedCreds.has('localInferenceToken')} />
+          </Field>
+        </div>
+
+        <div className={styles.webhookBox} style={{ marginTop: 14 }}>
+          <div className={styles.webhookBoxTitle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Inference Server Health</span>
+            <button type="button" className={styles.copyBtn} onClick={probe} disabled={probing} style={{ fontSize: 11, padding: '2px 10px' }}>
+              {probing ? 'Probing…' : 'Refresh'}
+            </button>
+          </div>
+          {!health ? (
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', padding: '6px 0' }}>Checking…</div>
+          ) : !health.ok ? (
+            <div style={{ fontSize: 12, color: '#DC2626', padding: '6px 0' }}>
+              ✗ Cannot reach inference server: {health.error || `status ${health.status}`}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 0' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: health.ready ? '#16A34A' : '#D97706' }}>
+                {health.ready ? '✓ All engines ready' : '⚠ Some engines still loading'}
+                {health.uptimeSeconds ? <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8 }}>uptime {Math.round(health.uptimeSeconds / 60)} min</span> : null}
+              </div>
+              {Object.entries(health.engines || {}).map(([name, eng]) => (
+                <div key={name} style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', gap: 8 }}>
+                  <span style={{ minWidth: 36, fontFamily: 'monospace', textTransform: 'uppercase' }}>{name}</span>
+                  <span style={{ color: stateColor(eng.state), fontWeight: 600 }}>{eng.state}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>{eng.model || ''}</span>
+                  {eng.error && <span style={{ color: '#DC2626' }}>· {eng.error}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <Card label="Models & Voice" badge="Tamil-first">
+        <div className={styles.grid}>
+          <Field label="Speech-to-Text Model" hint="whisper-large-v3 = best Tamil quality (10 GB VRAM). Use whisper-medium / small or indic-conformer for lower-VRAM boxes.">
+            <select className={styles.input} value={s.localSttModel || 'whisper-large-v3'} onChange={e => onChange('localSttModel', e.target.value)}>
+              <option value="whisper-large-v3">whisper-large-v3 (recommended)</option>
+              <option value="whisper-medium">whisper-medium</option>
+              <option value="whisper-small">whisper-small (low VRAM)</option>
+              <option value="indic-conformer">AI4Bharat IndicConformer (Tamil-only)</option>
+            </select>
+          </Field>
+          <Field label="Language Model" hint="Qwen2.5-7B is the recommended default — strong Tamil + tight instruction following at 14 GB VRAM.">
+            <select className={styles.input} value={s.localLlmModel || 'qwen2.5:7b-instruct'} onChange={e => onChange('localLlmModel', e.target.value)}>
+              <option value="qwen2.5:7b-instruct">Qwen2.5-7B-Instruct (recommended)</option>
+              <option value="qwen2.5:14b-instruct">Qwen2.5-14B-Instruct (better, more VRAM)</option>
+              <option value="llama3.1:8b-instruct">Llama-3.1-8B-Instruct</option>
+              <option value="gemma2:9b-instruct">Gemma2-9B-Instruct</option>
+            </select>
+          </Field>
+          <Field label="TTS Model" hint="XTTS-v2 = highest quality Tamil with voice cloning. Indic-Parler-TTS is an alternative tuned for Indian languages.">
+            <select className={styles.input} value={s.localTtsModel || 'indic-parler-tts'} onChange={e => onChange('localTtsModel', e.target.value)}>
+              <option value="indic-parler-tts">AI4Bharat Indic-Parler-TTS — premium, prompt-driven (default)</option>
+              <option value="xtts-v2">Coqui XTTS-v2 — for reference-WAV voice cloning</option>
+            </select>
+          </Field>
+          <Field label="TTS Voice" hint="Pick from your inference server's voice catalogue. Add new voices below in the Voice Lab.">
+            <VoicePicker value={s.localTtsVoice || ''} onChange={(v) => onChange('localTtsVoice', v)} />
+          </Field>
+          <Field label="Voice Style Prompt" hint="Plain-language description that steers Parler-TTS: pace, tone, gender, pitch, recording quality. Modify the voice without re-recording anything." wide>
+            <textarea
+              className={styles.input}
+              rows={3}
+              value={s.localVoiceDescription || ''}
+              onChange={e => onChange('localVoiceDescription', e.target.value)}
+              placeholder="A warm, professional female speaker delivers her words clearly and naturally in Tamil with a friendly, conversational tone, moderate pace, and very high studio audio quality with no background noise."
+            />
+          </Field>
+          <Field label="Conversation Mode" hint="Free-form = no pre-defined flow, the LLM handles the conversation organically (recommended for general voice agents). Guided = layer scripts/workflows on top.">
+            <select className={styles.input} value={s.localConversationMode || 'freeform'} onChange={e => onChange('localConversationMode', e.target.value)}>
+              <option value="freeform">Free-form (no scripted flow)</option>
+              <option value="guided">Guided (use call workflows)</option>
+            </select>
+          </Field>
+          <Field label="Language" hint="BCP-47 code for STT/TTS hints. ta-IN is Tamil; the engine will still transcribe English mixed in.">
+            <select className={styles.input} value={s.localLanguageCode || 'ta-IN'} onChange={e => onChange('localLanguageCode', e.target.value)}>
+              <option value="ta-IN">தமிழ் (ta-IN)</option>
+              <option value="hi-IN">हिन्दी (hi-IN)</option>
+              <option value="en-IN">English – India (en-IN)</option>
+              <option value="te-IN">తెలుగు (te-IN)</option>
+              <option value="kn-IN">ಕನ್ನಡ (kn-IN)</option>
+              <option value="ml-IN">മലയാളം (ml-IN)</option>
+            </select>
+          </Field>
+          <Field label="Greeting (optional)" hint="First sentence the agent speaks. Supports {{customer_name}}. Falls back to the Sarvam greeting if blank.">
+            <textarea className={styles.input} rows={2} value={s.localGreeting || ''} onChange={e => onChange('localGreeting', e.target.value)} placeholder="வணக்கம் {{customer_name}}, நான் சமுத்ரா..." />
+          </Field>
+          <Field label="System Prompt (optional)" hint="Agent's behaviour. Supports {{customer_name}}, {{company_name}}, {{services}}, {{office_hours}}, {{support_number}}, {{purpose}}, {{custom_fields}}. Falls back to the Sarvam prompt if blank." wide>
+            <textarea className={styles.input} rows={6} value={s.localSystemPrompt || ''} onChange={e => onChange('localSystemPrompt', e.target.value)} placeholder="நீங்கள் சமுத்ரா — {{company_name}}-ன் தமிழ் AI உதவியாளர்..." />
+          </Field>
+          <Field label="Engine Fallback Chain" hint="Comma-separated. Order matters. If the local engine fails (per-call OR per-turn) we try the next engine. Example: local,sarvam,elevenlabs" wide>
+            <input className={styles.input} value={s.engineFallbackChain || 'local,sarvam'} onChange={e => onChange('engineFallbackChain', e.target.value)} placeholder="local,sarvam" />
+          </Field>
+          <Field
+            label="Exotel Voicebot App ID (Local)"
+            hint="ONLY needed if Telephony Provider = Exotel. Create an Exotel App with a Voicebot Applet pointing to wss://<your-app-url>/local-stream and paste that App ID here."
+            wide
+          >
+            <input className={styles.input} value={s.exotelLocalAppId || ''} onChange={e => onChange('exotelLocalAppId', e.target.value)} placeholder="e.g. 1234567" />
+          </Field>
+        </div>
+      </Card>
+
+      <VoiceLab token={s.webhookToken || s.exotelWebhookToken || ''} />
+
+      <Card label="Deployment Runbook" badge="Read me first">
+        <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+          <li>Provision a GPU box (24 GB+ VRAM recommended).</li>
+          <li>Clone the repo, <code>cd inference-server</code>.</li>
+          <li>Generate a token: <code>echo "KURALAI_INFERENCE_TOKEN=$(openssl rand -hex 32)" &gt; .env</code></li>
+          <li>Boot: <code>docker compose up -d</code> (first run pulls models — 5–15 min).</li>
+          <li>Tail logs until you see <code>all engines ready</code>: <code>docker compose logs -f inference</code></li>
+          <li>Paste the URL + token above and click <strong>Refresh</strong> to verify.</li>
+          <li>Set <strong>Default Voice Engine</strong> = Local in the AI &amp; Voice tab.</li>
+        </ol>
       </Card>
     </>
   );
@@ -736,6 +1147,7 @@ export default function Settings() {
     switch (activeSection) {
       case 'telephony':  return <TelephonySection  {...props} />;
       case 'ai':         return <AiVoiceSection    {...props} elVoicePreset={elVoicePreset} setElVoicePreset={setElVoicePreset} />;
+      case 'local':      return <LocalEngineSection {...props} />;
       case 'payment':    return <PaymentGatewaySection {...props} />;
       case 'storage':    return <StorageSection    {...props} />;
       case 'behaviour':  return <BehaviourSection  {...props} />;
