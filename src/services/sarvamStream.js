@@ -54,16 +54,20 @@ function init(server) {
     const s           = getSettingsSync();
     const expected    = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
 
-    // Authorization: require a valid wt token. The Voicebot/Stream URL the user
-    // configures for the telephony provider MUST include `?wt=<token>` —
-    // documented in the Settings UI hint.
-    if (wt !== expected) {
-      logger.warn(`[sarvam-stream] missing/bad wt token, closing (callId=${queryCallId || 'n/a'})`);
-      try { ws.close(4003, 'unauthorized'); } catch {}
-      return;
+    // Authorization: prefer wt from query string, but Twilio's media-streams
+    // client sometimes drops the query string on the WS upgrade. In that case
+    // we accept the connection and validate the wt from the `start` message's
+    // customParameters (we set it as a <Parameter> in the TwiML). As a
+    // belt-and-braces fallback, a callId that exists in our active call store
+    // is also trusted (only our dispatcher can register it).
+    const wtFromQuery = wt && wt === expected;
+    if (!wtFromQuery) {
+      logger.warn(`[sarvam-stream] no wt in query (callId=${queryCallId || 'n/a'}) — deferring auth to start message`);
     }
 
     const session = new Session(ws, queryCallId);
+    session.expectedWt = expected;
+    session.wtVerified = wtFromQuery;
     session.start().catch(err => {
       logger.error(`[sarvam-stream] session error call=${session.callId}: ${err.message}`);
       try { ws.close(); } catch {}
@@ -161,6 +165,24 @@ class Session {
       case 'start':
         this.detectProtocol(msg);
         this.bindCallIdFromStart(msg);
+        if (!this.wtVerified) {
+          const start = msg.start || {};
+          const cp = start.customParameters || start.custom_parameters || start.custom_param || {};
+          const wtFromParam = cp.wt || cp.WT;
+          const callKnown = this.callId && hasCall(this.callId);
+          if (wtFromParam === this.expectedWt) {
+            this.wtVerified = true;
+            logger.info(`[sarvam-stream] wt verified from <Parameter> for call=${this.callId}`);
+          } else if (callKnown) {
+            this.wtVerified = true;
+            logger.info(`[sarvam-stream] wt missing but callId=${this.callId} found in active store — trusting`);
+          } else {
+            logger.warn(`[sarvam-stream] auth failed on start for call=${this.callId}, closing`);
+            try { this.ws.close(4003, 'unauthorized'); } catch {}
+            this.cleanup();
+            return;
+          }
+        }
         logger.info(`[sarvam-stream] START call=${this.callId} provider=${this.provider} stream=${this.streamSid} in=${this.inEncoding}@${this.inSampleRate}Hz`);
         await this.speakGreeting();
         return;

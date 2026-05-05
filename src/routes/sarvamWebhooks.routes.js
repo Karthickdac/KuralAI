@@ -36,6 +36,7 @@ router.post('/sarvam-voice', (req, res) => {
   <Connect>
     <Stream url="${escapeXml(streamUrl)}">
       <Parameter name="callId" value="${escapeXml(callId || '')}"/>
+      <Parameter name="wt" value="${escapeXml(expected)}"/>
     </Stream>
   </Connect>
 </Response>`;

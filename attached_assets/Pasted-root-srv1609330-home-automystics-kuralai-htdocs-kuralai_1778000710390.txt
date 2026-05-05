@@ -1,0 +1,44 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech## Place a call from the dashboard, wait ~10 seconds after answering, then run::
+sudo -u automystics-kuralai pm2 logs kuralai --lines 100 --nostream 2>&1 \
+  | grep -iE "dispatcher|sarvam-voice|sarvam-stream|START call|STOP call|STT|TTS|missing|error|❌" | tail -40
+]: ElevenLabs TTS cache hit in 0ms for 77 chars
+]: ElevenLabs TTS cache hit in 0ms for 70 chars
+]: ElevenLabs TTS cache hit in 0ms for 77 chars
+]: ElevenLabs TTS cache hit in 0ms for 85 chars
+]: ElevenLabs TTS cache hit in 0ms for 81 chars
+]: ElevenLabs TTS cache hit in 0ms for 88 chars
+]: ElevenLabs TTS cache hit in 0ms for 68 chars
+]: ElevenLabs TTS cache hit in 0ms for 81 chars
+]: ElevenLabs TTS cache hit in 0ms for 101 chars
+]: ElevenLabs TTS cache hit in 0ms for 75 chars
+]: ElevenLabs TTS cache hit in 0ms for 68 chars
+]: ElevenLabs TTS cache hit in 0ms for 98 chars
+]: ElevenLabs TTS cache hit in 0ms for 61 chars
+]: ElevenLabs TTS cache hit in 0ms for 84 chars
+]: ElevenLabs TTS cache hit in 0ms for 129 chars
+]: ElevenLabs TTS cache hit in 0ms for 130 chars
+]: ElevenLabs TTS cache hit in 0ms for 98 chars
+]: ElevenLabs TTS cache hit in 0ms for 205 chars
+]: ElevenLabs TTS cache hit in 0ms for 178 chars
+]: ElevenLabs TTS cache hit in 0ms for 47 chars
+]: ElevenLabs TTS cache hit in 0ms for 46 chars
+]: ElevenLabs TTS cache hit in 0ms for 39 chars
+]: ElevenLabs TTS cache hit in 0ms for 101 chars
+]: ElevenLabs TTS cache hit in 0ms for 101 chars
+]: ElevenLabs TTS cache hit in 0ms for 61 chars
+]: ElevenLabs TTS cache hit in 0ms for 68 chars
+]: ElevenLabs TTS cache hit in 0ms for 110 chars
+]: ElevenLabs TTS cache hit in 0ms for 72 chars
+]: ElevenLabs TTS cache hit in 0ms for 104 chars
+]: ElevenLabs TTS cache hit in 0ms for 67 chars
+]: ElevenLabs TTS cache hit in 0ms for 106 chars
+]: ElevenLabs TTS cache hit in 0ms for 82 chars
+]: ElevenLabs TTS cache hit in 0ms for 120 chars
+]: ElevenLabs TTS cache hit in 0ms for 87 chars
+]: ElevenLabs TTS cache hit in 0ms for 135 chars
+]: ElevenLabs TTS cache hit in 0ms for 112 chars
+]: Pre-warmed 63 TTS entries for call 1523dd8e-bedd-4bad-8560-763f2791156b (workflow: due_reminder)
+]: [sarvam-voice] TwiML returned for call 1523dd8e-bedd-4bad-8560-763f2791156b → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] missing/bad wt token, closing (callId=n/a)
+]: WEBHOOK HIT: POST /recording/status | ip=13.221.99.8 | qs={"callId":"1523dd8e-bedd-4bad-8560-763f2791156b","wt":"kuralai-wh"} | body={"RecordingSource":"OutboundAPI","RecordingTrack":"both","RecordingSid":"REcac88a804399f5496fe0fa6ee9eb8479","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REcac88a804399f5496fe0fa6ee9eb8479","RecordingStatus":"completed","RecordingChannels":"2","ErrorCode":"0","CallSid":"CA0bb5749cd246214c4348eac7764be763","RecordingStartTime":"Tue, 05 May 2026 17:04:34 +0000","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","RecordingDuration":"1"}
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
