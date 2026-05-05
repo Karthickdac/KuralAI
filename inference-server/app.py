@@ -198,22 +198,53 @@ async def upsert_voice(
     language: str = Form("ta"),
     gender: str = Form("unknown"),
     description: str = Form(...),
+    tags: str = Form(""),               # comma-separated
+    use_case: str = Form(""),
+    age: str = Form(""),
+    accent: str = Form(""),
     authorization: str | None = None,
 ) -> JSONResponse:
-    """Create or update a prompt-driven voice. Indic-Parler-TTS will use the
-    plain-language description as the style-steering prompt for every TTS
-    request that selects this voice ID. Modify any voice anytime by simply
-    updating the description — no audio re-recording required."""
+    """Create a prompt-driven voice. Indic-Parler-TTS uses the description as
+    the style-steering prompt. Modify anytime by editing the description — no
+    audio re-recording required."""
     _require_token(authorization)
     if not description.strip():
         raise HTTPException(400, "description is required")
+    tag_list = [t.strip() for t in (tags or "").split(",") if t.strip()]
     info = voice_store.save_voice(
         voice_id=voice_id,
         display_name=display_name,
         language=language,
         gender=gender,
         description=description,
+        tags=tag_list,
+        use_case=use_case,
+        age=age,
+        accent=accent,
     )
+    return JSONResponse({"voice": info})
+
+
+class VoicePatch(BaseModel):
+    displayName: str | None = None
+    language: str | None = None
+    gender: str | None = None
+    description: str | None = None
+    tags: list[str] | None = None
+    useCase: str | None = None
+    age: str | None = None
+    accent: str | None = None
+    favourite: bool | None = None
+
+
+@app.patch("/voices/{voice_id}")
+def patch_voice(voice_id: str, patch: VoicePatch, authorization: str | None = None) -> JSONResponse:
+    """Edit any subset of voice metadata (rename, retune description, retag)."""
+    _require_token(authorization)
+    try:
+        info = voice_store.update_voice(voice_id, patch.dict(exclude_unset=True))
+    except KeyError:
+        raise HTTPException(404, "voice not found")
     return JSONResponse({"voice": info})
 
 
@@ -223,6 +254,65 @@ def delete_voice(voice_id: str, authorization: str | None = None) -> JSONRespons
     if not voice_store.delete_voice(voice_id):
         raise HTTPException(404, "voice not found")
     return JSONResponse({"deleted": voice_id})
+
+
+# ─── Voice Design — generate 3 variants from a description ────────────────────
+class DesignRequest(BaseModel):
+    description: str
+    text: str | None = None             # preview text (defaults to a Tamil greeting)
+    language: str = "ta"
+    sample_rate: int = 22050
+
+
+@app.post("/tts/design")
+async def design_voice(req: DesignRequest, authorization: str | None = None) -> JSONResponse:
+    """Generate 3 audio variants of a voice from a base description.
+
+    Each variant appends a different curated style modifier (calm /
+    confident / warm) so the operator can A/B/C compare and pick one.
+    Returns base64-encoded WAVs in JSON so the browser can preview them
+    before committing to a save.
+    """
+    _require_token(authorization)
+    engine = REGISTRY.get("tts")
+    if not engine or not engine.is_ready():
+        raise HTTPException(503, "TTS not ready")
+    if not req.description.strip():
+        raise HTTPException(400, "description is required")
+
+    import base64 as _b64
+    import io as _io
+    import wave as _wave
+
+    text = (req.text or "வணக்கம், நான் உங்கள் தமிழ் AI உதவியாளர். நான் எப்படி உதவலாம்?").strip()
+    sr = max(req.sample_rate, 22050)
+    variants = []
+    for v in voice_store.DESIGN_VARIANTS:
+        full_desc = req.description.strip().rstrip(".") + "." + v["suffix"]
+        try:
+            pcm16 = await engine.synth(
+                text=text,
+                voice="design-preview",
+                language=req.language,
+                model="indic-parler-tts",
+                sample_rate=sr,
+                description=full_desc,
+            )
+            buf = _io.BytesIO()
+            with _wave.open(buf, "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(sr)
+                wf.writeframes(pcm16)
+            variants.append({
+                "label": v["label"],
+                "description": full_desc,
+                "audioBase64": _b64.b64encode(buf.getvalue()).decode("ascii"),
+            })
+        except Exception as e:
+            log.warning("design variant %s failed: %s", v["label"], e)
+            variants.append({"label": v["label"], "description": full_desc, "error": str(e)})
+    return JSONResponse({"variants": variants})
 
 
 @app.post("/tts/preview")

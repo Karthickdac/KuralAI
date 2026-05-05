@@ -89,6 +89,23 @@ const ICON = {
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     </svg>
   ),
+  voiceLab: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+      <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+  ),
+  agents: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="6" width="16" height="14" rx="2"/>
+      <circle cx="9" cy="13" r="1.3"/>
+      <circle cx="15" cy="13" r="1.3"/>
+      <line x1="12" y1="2" x2="12" y2="6"/>
+      <circle cx="12" cy="2" r="0.8"/>
+    </svg>
+  ),
 };
 
 const TENANT_NAV = [
@@ -98,6 +115,13 @@ const TENANT_NAV = [
       { key: 'calls', label: 'All Calls', path: '/calls', icon: ICON.calls },
       { key: 'customers', label: 'Customers', path: '/customers', icon: ICON.customers },
       { key: 'dynamic-call', label: 'Dynamic Call', path: '/dynamic-call', icon: ICON.calls },
+    ],
+  },
+  {
+    section: 'Voice AI',
+    items: [
+      { key: 'agents',    label: 'Agents',    path: '/agents',    icon: ICON.agents },
+      { key: 'voice-lab', label: 'Voice Lab', path: '/voice-lab', icon: ICON.voiceLab },
     ],
   },
   {

@@ -197,27 +197,64 @@ async function listVoices() {
 }
 
 /**
- * Clone a voice. Uploads a reference WAV (6–10 s clean speech recommended) and
- * registers it under `voiceId`. Returns the saved voice metadata.
+ * Create a prompt-driven voice. Indic-Parler-TTS uses the description as the
+ * style steering input. Modify any voice anytime by editing its description.
  */
-async function cloneVoice({ voiceId, wavBuffer, displayName = '', language = 'ta', gender = 'unknown' }) {
+async function saveVoice({
+  voiceId, displayName = '', language = 'ta', gender = 'unknown',
+  description = '', tags = [], useCase = '', age = '', accent = '',
+}) {
   const { baseUrl } = cfg();
   if (!baseUrl) throw new Error('Local inference URL not configured');
-  if (!wavBuffer || !wavBuffer.length) throw new Error('Reference audio is empty');
+  if (!description || !description.trim()) throw new Error('description is required');
 
   const fd = new FormData();
-  fd.append('file', wavBuffer, { filename: `${voiceId}.wav`, contentType: 'audio/wav' });
   fd.append('voice_id', voiceId);
   fd.append('display_name', displayName);
   fd.append('language', language);
   fd.append('gender', gender);
+  fd.append('description', description);
+  fd.append('tags', (tags || []).join(','));
+  fd.append('use_case', useCase || '');
+  fd.append('age', age || '');
+  fd.append('accent', accent || '');
 
   const resp = await axios.post(`${baseUrl}/voices`, fd, {
-    headers: authHeaders(fd.getHeaders()),
-    timeout: 60_000,
+    headers: authHeaders(fd.getHeaders ? fd.getHeaders() : {}),
+    timeout: 30_000,
     maxBodyLength: Infinity,
   });
   return resp.data?.voice || null;
+}
+
+/** Patch an existing voice's metadata (rename, retune description, retag). */
+async function updateVoice(voiceId, patch) {
+  const { baseUrl } = cfg();
+  if (!baseUrl) throw new Error('Local inference URL not configured');
+  const resp = await axios.patch(
+    `${baseUrl}/voices/${encodeURIComponent(voiceId)}`,
+    patch,
+    {
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      timeout: 15_000,
+    },
+  );
+  return resp.data?.voice || null;
+}
+
+/** Generate 3 audio variants of a voice from a base description. */
+async function designVoice({ description, text, language = 'ta', sampleRate = 22050 } = {}) {
+  const { baseUrl } = cfg();
+  if (!baseUrl) throw new Error('Local inference URL not configured');
+  const resp = await axios.post(
+    `${baseUrl}/tts/design`,
+    { description, text, language, sample_rate: sampleRate },
+    {
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      timeout: 180_000,
+    },
+  );
+  return resp.data?.variants || [];
 }
 
 async function deleteVoice(voiceId) {
@@ -260,5 +297,7 @@ async function previewVoice({ text, voice, languageCode = 'ta-IN', model, sample
 module.exports = {
   isConfigured, health,
   stt, chat, chatStream, tts,
-  listVoices, cloneVoice, deleteVoice, previewVoice,
+  listVoices, saveVoice, updateVoice, designVoice, deleteVoice, previewVoice,
+  // Backwards-compat alias — old code may still call cloneVoice.
+  cloneVoice: saveVoice,
 };

@@ -78,28 +78,43 @@ router.get('/local-voices', async (_req, res) => {
   }
 });
 
-// Clone voice (auth). Multipart: file + voiceId + displayName + language + gender.
-if (upload) {
-  router.post('/local-voices', requireAdmin, upload.single('file'), async (req, res) => {
-    try {
-      if (!req.file) return res.status(400).json({ error: 'audio file required' });
-      const voiceId = (req.body.voiceId || req.body.voice_id || '').trim();
-      if (!voiceId) return res.status(400).json({ error: 'voiceId required' });
-      const voice = await localApi.cloneVoice({
-        voiceId,
-        wavBuffer: req.file.buffer,
-        displayName: req.body.displayName || '',
-        language: req.body.language || 'ta',
-        gender: req.body.gender || 'unknown',
-      });
-      logger.info(`[local-voices] cloned voice id=${voiceId}`);
-      res.json({ voice });
-    } catch (e) {
-      logger.warn(`[local-voices] clone failed: ${e.message}`);
-      res.status(502).json({ error: e.message });
-    }
-  });
-}
+// Create voice (auth). Form fields: voiceId, displayName, language, gender,
+// description, tags (csv), useCase, age, accent.
+router.post('/local-voices', requireAdmin, express.urlencoded({ extended: true }), express.json(), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const voiceId = (b.voiceId || b.voice_id || '').trim();
+    if (!voiceId) return res.status(400).json({ error: 'voiceId required' });
+    if (!b.description || !b.description.trim()) return res.status(400).json({ error: 'description required' });
+    const voice = await localApi.saveVoice({
+      voiceId,
+      displayName: b.displayName || '',
+      language:    b.language    || 'ta',
+      gender:      b.gender      || 'unknown',
+      description: b.description,
+      tags:        Array.isArray(b.tags) ? b.tags : (b.tags ? String(b.tags).split(',').map(t => t.trim()).filter(Boolean) : []),
+      useCase:     b.useCase || '',
+      age:         b.age || '',
+      accent:      b.accent || '',
+    });
+    logger.info(`[local-voices] saved id=${voiceId}`);
+    res.json({ voice });
+  } catch (e) {
+    logger.warn(`[local-voices] save failed: ${e.message}`);
+    res.status(502).json({ error: e.message });
+  }
+});
+
+// Patch voice (auth). JSON body — any subset of editable fields.
+router.patch('/local-voices/:id', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const voice = await localApi.updateVoice(req.params.id, req.body || {});
+    res.json({ voice });
+  } catch (e) {
+    const status = /not found/i.test(e.message) ? 404 : 502;
+    res.status(status).json({ error: e.message });
+  }
+});
 
 // Delete voice (auth).
 router.delete('/local-voices/:id', requireAdmin, async (req, res) => {
@@ -112,17 +127,38 @@ router.delete('/local-voices/:id', requireAdmin, async (req, res) => {
 });
 
 // Audition: synth a short clip in the chosen voice and stream WAV back.
-router.post('/local-voices/preview', express.json(), async (req, res) => {
+// Auth required — synth burns GPU cycles and would otherwise be a DoS / cost
+// amplification vector. Text capped at 600 chars to bound runtime per call.
+router.post('/local-voices/preview', requireAdmin, express.json({ limit: '8kb' }), async (req, res) => {
   try {
     const { text, voice, languageCode } = req.body || {};
     if (!voice) return res.status(400).json({ error: 'voice required' });
+    const safeText = String(text || 'வணக்கம், நான் உங்கள் தமிழ் AI உதவியாளர்.').slice(0, 600);
     const wav = await localApi.previewVoice({
-      text: text || 'வணக்கம், நான் உங்கள் தமிழ் AI உதவியாளர்.',
+      text: safeText,
       voice,
       languageCode: languageCode || 'ta-IN',
     });
     res.setHeader('Content-Type', 'audio/wav');
     res.send(wav);
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+// Voice Design — generate 3 audio variants from a description.
+// Caps: description ≤ 1500 chars, preview text ≤ 600 chars (each variant is
+// a full TTS render so total cost = 3× preview).
+router.post('/local-voices/design', requireAdmin, express.json({ limit: '16kb' }), async (req, res) => {
+  try {
+    const { description, text, language } = req.body || {};
+    if (!description || !description.trim()) return res.status(400).json({ error: 'description required' });
+    const variants = await localApi.designVoice({
+      description: String(description).slice(0, 1500),
+      text:        text ? String(text).slice(0, 600) : undefined,
+      language:    language || 'ta',
+    });
+    res.json({ variants });
   } catch (e) {
     res.status(502).json({ error: e.message });
   }

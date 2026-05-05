@@ -71,6 +71,24 @@ export const usersApi = {
   remove: (id) => api.delete(`/api/users/${id}`),
 };
 
+export const agentsApi = {
+  list:   ()           => api.get('/api/agents'),
+  get:    (id)         => api.get(`/api/agents/${id}`),
+  getDefault: ()       => api.get('/api/agents/default'),
+  create: (data)       => api.post('/api/agents', data),
+  update: (id, patch)  => api.patch(`/api/agents/${id}`, patch),
+  delete: (id)         => api.delete(`/api/agents/${id}`),
+};
+
+export const voicesApi = {
+  list:    ()          => fetch('/webhook/local-voices').then(r => r.json()),
+  preview: (voice, text, language) => fetch('/webhook/local-voices/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ voice, text, languageCode: language }),
+  }).then(r => r.blob()),
+};
+
 export const settingsApi = {
   get: () => api.get('/api/settings'),
   update: (data) => api.put('/api/settings', data),

@@ -14,6 +14,7 @@ const logger = require('../utils/logger');
 const { getSettingsSync } = require('./settingsService');
 const { getCallMeta, forgetCallMeta, hasCall, getCallIdBySid } = require('./localSessionStore');
 const localApi = require('./localApi');
+const agentsService = (() => { try { return require('./agentsService'); } catch { return null; } })();
 const sarvamApi = (() => { try { return require('./sarvamApi'); } catch { return null; } })();
 const {
   muLawToPcm16,
@@ -70,6 +71,12 @@ class Session {
     this.meta      = getCallMeta(callId) || {};
     this.history   = [];
 
+    // Multi-agent — resolve persona by meta.agentId (or fall back to default
+    // agent). Agent fields populate meta so existing meta-driven code paths
+    // (voice override, system prompt, greeting) work unchanged.
+    this.agent = this.resolveAgent();
+    this.applyAgentToMeta();
+
     this.pcmChunks = [];
     this.pcmBytes  = 0;
     this.silentMs  = 0;
@@ -88,6 +95,25 @@ class Session {
     this.systemPrompt = this.buildSystemPrompt();
   }
 
+  resolveAgent() {
+    if (!agentsService) return null;
+    try {
+      const id = this.meta?.agentId;
+      return id ? (agentsService.get(id) || agentsService.getDefault()) : agentsService.getDefault();
+    } catch { return null; }
+  }
+
+  applyAgentToMeta() {
+    const a = this.agent;
+    if (!a) return;
+    const m = this.meta = { ...this.meta };
+    if (!m.localTtsVoice && a.voice)             m.localTtsVoice = a.voice;
+    if (!m.localVoiceDescription && a.voiceDescription) m.localVoiceDescription = a.voiceDescription;
+    if (!m.localGreeting && a.greeting)          m.localGreeting = a.greeting;
+    if (!m.localSystemPrompt && a.systemPrompt)  m.localSystemPrompt = a.systemPrompt;
+    if (!m.languageCode && a.language)           m.languageCode = a.language;
+  }
+
   buildSystemPrompt() {
     const s = getSettingsSync();
     const meta = this.meta || {};
@@ -101,9 +127,8 @@ class Session {
       ? Object.entries(meta.customData).map(([k, v]) => `- ${k}: ${v}`).join('\n')
       : '';
 
-    // Local engine reuses the Sarvam system prompt template if set, since both
-    // produce a Tamil-first conversational voice agent.
-    const customPrompt = (s.localSystemPrompt || s.sarvamSystemPrompt || '').trim();
+    // Per-call (agent-resolved) system prompt wins over global settings.
+    const customPrompt = (meta.localSystemPrompt || s.localSystemPrompt || s.sarvamSystemPrompt || '').trim();
 
     if (customPrompt) {
       return customPrompt
@@ -348,8 +373,10 @@ class Session {
     const s = getSettingsSync();
     const meta = this.meta || {};
     const customerName = meta.customerName || 'வாடிக்கையாளர்';
-    const greeting = (s.localGreeting || s.sarvamGreeting || '').trim() ||
-      `வணக்கம் ${customerName}, நான் சமுத்ரா. ${s.companyName || 'Automystics'} சார்பாக அழைக்கிறேன். உங்களுக்கு பேச நேரம் இருக்கிறதா?`;
+    const rawGreeting = (meta.localGreeting || s.localGreeting || s.sarvamGreeting || '').trim();
+    const greeting = (rawGreeting || `வணக்கம் ${customerName}, நான் சமுத்ரா. ${s.companyName || 'Automystics'} சார்பாக அழைக்கிறேன். உங்களுக்கு பேச நேரம் இருக்கிறதா?`)
+      .replace(/\{\{\s*customer_name\s*\}\}/gi, customerName)
+      .replace(/\{\{\s*company_name\s*\}\}/gi, s.companyName || 'Automystics');
     this.history.push({ role: 'assistant', content: greeting });
     this.persistTranscript('assistant', greeting).catch(() => {});
     await this.speak(greeting);

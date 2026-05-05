@@ -105,6 +105,7 @@ app.use('/api/superadmin', superadminRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/elevenlabs/tools', require('./routes/elevenlabsTools.routes'));
 app.use('/api/elevenlabs/webhooks', require('./routes/elevenlabsWebhooks.routes'));
+app.use('/api/agents', require('./routes/agents.routes'));
 
 // Sarvam engine answer webhook — MUST be mounted before legacy webhookRoutes
 // so its router-level validateExotelWebhook middleware does not capture us.

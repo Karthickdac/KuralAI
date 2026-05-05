@@ -7,6 +7,8 @@ import CallDetail from './pages/CallDetail';
 import Calls from './pages/Calls';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import VoiceLab from './pages/VoiceLab';
+import Agents from './pages/Agents';
 import Workflows from './pages/Workflows';
 import Reports from './pages/Reports';
 import Simulate from './pages/Simulate';
@@ -56,6 +58,8 @@ export default function App() {
         <Route path="/crm" element={<ProtectedRoute><CrmIntegration /></ProtectedRoute>} />
         <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
         <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/voice-lab" element={<ProtectedRoute><VoiceLab /></ProtectedRoute>} />
+        <Route path="/agents" element={<ProtectedRoute><Agents /></ProtectedRoute>} />
         <Route path="/superadmin" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
         <Route path="/superadmin/organizations" element={<SuperAdminRoute><SuperAdminOrganizations /></SuperAdminRoute>} />
         <Route path="/superadmin/organizations/:id" element={<SuperAdminRoute><SuperAdminOrganizations /></SuperAdminRoute>} />
