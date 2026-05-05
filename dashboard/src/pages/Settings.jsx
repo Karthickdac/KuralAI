@@ -535,7 +535,7 @@ function ApiSection({ s, onChange }) {
     try {
       const res = await fetch('/api/settings/generate-api-key', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem('kuralai_token')}` },
       });
       const data = await res.json();
       if (data.success) {

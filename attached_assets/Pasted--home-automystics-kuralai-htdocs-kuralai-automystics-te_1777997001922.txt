@@ -1,0 +1,88 @@
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/dashboard/src/pages/Settings.jsx:            hint={'ONLY needed if Telephony Provider = Exotel. In Exotel dashboard → App Bazaar → create a new App with a Voicebot Applet pointing to wss://<your-app-url>/sarvam-stream, then paste that App ID here.'}
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/dashboard/src/hooks/useWebSocket.js:    const ws = new WebSocket(wsUrl);
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:let wss = null;
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:  wss = new WebSocket.Server({ server, path: '/ws' });
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:  wss.on('connection', (ws, req) => {
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:  if (!wss || clients.size === 0) return;
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# TOKEN=$(curl -s -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@kuralai.com","password":"KuralAI@Super123"}' \
+  | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)
+
+# Test the actual /ws endpoint with a real token (expect HTTP 101 Switching Protocols)
+echo "--- WS handshake test ---"
+curl -sI --max-time 5 \
+  -H "Connection: Upgrade" \
+  -H "Upgrade: websocket" \
+  -H "Sec-WebSocket-Version: 13" \
+  -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+  "https://kuralai.automystics.tech/ws?token=$TOKEN"
+
+# Also check pm2 logs for any WS connection errors right after
+echo "--- pm2 logs (recent, non-audio errors) ---"
+sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -viE "EACCES|kuralai-audio|punycode" | tail -30
+
+unset TOKEN
+--- WS handshake test ---
+HTTP/2 200 
+server: nginx
+date: Tue, 05 May 2026 16:02:49 GMT
+content-type: text/html; charset=UTF-8
+content-length: 1043
+vary: Accept-Encoding
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+strict-transport-security: max-age=15552000; includeSubDomains
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+access-control-allow-origin: *
+access-control-allow-credentials: true
+accept-ranges: bytes
+cache-control: public, max-age=0
+last-modified: Tue, 05 May 2026 15:56:22 GMT
+etag: W/"413-19df8dad012"
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+x-permitted-cross-domain-policies: master-only
+referrer-policy: same-origin
+alt-svc: h3=":443"; ma=86400
+
+--- pm2 logs (recent, non-audio errors) ---
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: User logged in: superadmin@kuralai.com (role: superadmin, org: none)
+
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 

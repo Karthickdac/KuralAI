@@ -10,12 +10,22 @@ export function useWebSocket(onMessage) {
   const [connected, setConnected] = useState(false);
   const reconnectTimeout = useRef(null);
   const mountedRef = useRef(true);
+  const onMessageRef = useRef(onMessage);
+
+  // Keep latest onMessage in a ref so changing the callback does NOT trigger reconnects
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   const connect = useCallback(() => {
     const token = localStorage.getItem('kuralai_token');
     if (!token || !mountedRef.current) return;
 
-    // Use the current page's host — works behind any proxy (Replit, prod, etc.)
+    // Avoid duplicate sockets if one is already open/connecting
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws?token=${token}`;
 
@@ -29,24 +39,25 @@ export function useWebSocket(onMessage) {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (onMessage && mountedRef.current) onMessage(data);
+        if (onMessageRef.current && mountedRef.current) onMessageRef.current(data);
       } catch (e) {
         // ignore malformed messages
       }
     };
 
     ws.onclose = () => {
+      wsRef.current = null;
       if (mountedRef.current) {
         setConnected(false);
-        // Reconnect after 3 seconds
+        clearTimeout(reconnectTimeout.current);
         reconnectTimeout.current = setTimeout(connect, 3000);
       }
     };
 
     ws.onerror = () => {
-      ws.close();
+      try { ws.close(); } catch (_) {}
     };
-  }, [onMessage]);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -55,7 +66,8 @@ export function useWebSocket(onMessage) {
     return () => {
       mountedRef.current = false;
       clearTimeout(reconnectTimeout.current);
-      wsRef.current?.close();
+      try { wsRef.current?.close(); } catch (_) {}
+      wsRef.current = null;
     };
   }, [connect]);
 
