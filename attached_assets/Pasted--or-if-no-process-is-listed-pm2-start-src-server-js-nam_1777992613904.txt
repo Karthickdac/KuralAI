@@ -1,0 +1,31 @@
+# or, if no process is listed:
+pm2 start src/server.js --name kuralai --update-env
+
+# 4. Get the REAL error so we can fix the actual bug
+pm2 logs kuralai --lines 80 --nostream
+# (or `pm2 logs all --lines 80 --nostream` if the name differs)
+fatal: not a git repository (or any of the parent directories): .git
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 6  │ automystics-api    │ default     │ 0.0.0   │ fork    │ 288690   │ 6D     │ 18   │ online    │ 0%       │ 104.4mb  │ root     │ disabled │
+│ 2  │ fitro360           │ default     │ 1.0.0   │ fork    │ 404918   │ 2D     │ 7    │ online    │ 0%       │ 118.9mb  │ root     │ disabled │
+│ 3  │ kalvicore-api      │ default     │ 0.0.0   │ fork    │ 409713   │ 2D     │ 1    │ online    │ 0%       │ 112.6mb  │ root     │ disabled │
+│ 7  │ mystics-api        │ default     │ 0.0.0   │ fork    │ 372639   │ 3D     │ 7    │ online    │ 0%       │ 306.9mb  │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Applying action restartProcessId on app [all](ids: [ 2, 3, 6, 7 ])
+[PM2] [fitro360](2) ✓
+[PM2] [kalvicore-api](3) ✓
+[PM2] [automystics-api](6) ✓
+[PM2] [mystics-api](7) ✓
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 6  │ automystics-api    │ default     │ 0.0.0   │ fork    │ 541314   │ 0s     │ 19   │ online    │ 0%       │ 17.3mb   │ root     │ disabled │
+│ 2  │ fitro360           │ default     │ 1.0.0   │ fork    │ 541298   │ 0s     │ 8    │ online    │ 0%       │ 59.0mb   │ root     │ disabled │
+│ 3  │ kalvicore-api      │ default     │ 0.0.0   │ fork    │ 541305   │ 0s     │ 2    │ online    │ 0%       │ 53.0mb   │ root     │ disabled │
+│ 7  │ mystics-api        │ default     │ 0.0.0   │ fork    │ 541319   │ 0s     │ 8    │ online    │ 0%       │ 23.0mb   │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2][ERROR] Script not found: /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js
+[TAILING] Tailing last 80 lines for [kuralai] process (change the value with --lines option)
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
