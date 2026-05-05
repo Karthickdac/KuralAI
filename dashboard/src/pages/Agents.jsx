@@ -317,6 +317,7 @@ function AgentEditor({ initial, isEditing, voices, onSave, onClose, onPreviewVoi
     llmModel:         initial?.llmModel || 'qwen2.5:7b-instruct',
     temperature:      typeof initial?.temperature === 'number' ? initial.temperature : 0.6,
     maxTokens:        typeof initial?.maxTokens === 'number' ? initial.maxTokens : 256,
+    engineFallbackChain: initial?.engineFallbackChain || 'local,sarvam',
     conversationMode: initial?.conversationMode || 'freeform',
     tags:             (initial?.tags || []).join(', '),
     isDefault:        !!initial?.isDefault,
@@ -460,6 +461,13 @@ function AgentEditor({ initial, isEditing, voices, onSave, onClose, onPreviewVoi
               <div className={styles.field}>
                 <label>Max tokens per turn</label>
                 <input type="number" className={styles.input} value={f.maxTokens} min="32" max="2048" step="16" onChange={e => set('maxTokens', e.target.value)} />
+              </div>
+              <div className={styles.fieldFull}>
+                <label>Fallback chain</label>
+                <input className={styles.input} value={f.engineFallbackChain}
+                       onChange={e => set('engineFallbackChain', e.target.value)}
+                       placeholder="local,sarvam" />
+                <div className={styles.hint}>Comma-separated engines tried per turn (STT/LLM/TTS). E.g. <code>local,sarvam</code> keeps calls flowing if the GPU box is down.</div>
               </div>
             </div>
           )}

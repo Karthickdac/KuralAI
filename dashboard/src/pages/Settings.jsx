@@ -682,6 +682,9 @@ function LocalEngineSection({ s, savedCreds, onChange }) {
               <div style={{ fontSize: 12, fontWeight: 600, color: health.ready ? '#16A34A' : '#D97706' }}>
                 {health.ready ? '✓ All engines ready' : '⚠ Some engines still loading'}
                 {health.uptimeSeconds ? <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8 }}>uptime {Math.round(health.uptimeSeconds / 60)} min</span> : null}
+                <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: 8 }}>
+                  · {Number(health.concurrentCalls || 0)} live call{Number(health.concurrentCalls || 0) === 1 ? '' : 's'}
+                </span>
               </div>
               {Object.entries(health.engines || {}).map(([name, eng]) => (
                 <div key={name} style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', gap: 8 }}>

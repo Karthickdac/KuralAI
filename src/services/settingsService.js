@@ -72,7 +72,10 @@ const DEFAULTS = {
   // Comma-separated engine fallback chain. Default is 'local' only — the
   // self-hosted stack is 100% open-source. Add 'sarvam' or 'elevenlabs' here
   // ONLY if you've explicitly chosen to bring in a proprietary fallback.
-  engineFallbackChain: 'local',
+  // Default fallback: local-first, then Sarvam if the GPU box is unreachable.
+  // This keeps live calls flowing during a GPU outage out of the box;
+  // operators can drop Sarvam by setting this to just `'local'`.
+  engineFallbackChain: 'local,sarvam',
   companyName: '', servicesList: '', officeHours: '', supportNumber: '', officeAddress: '',
 };
 

@@ -19,9 +19,17 @@ const upload = multer ? multer({ storage: multer.memoryStorage(), limits: { file
 
 // Auth middleware for write ops on the voice catalogue. Read ops are open so
 // the dashboard can populate the picker without auth.
+//
+// SECURITY: previously this fell back to the literal string 'kuralai-wh' when
+// no token was configured, which made write endpoints guessable on fresh
+// installs. We now refuse all writes until the operator explicitly sets a
+// webhook token — failing closed is the only safe default.
 function requireAdmin(req, res, next) {
   const s = getSettingsSync();
-  const expected = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || 'kuralai-wh';
+  const expected = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || '';
+  if (!expected) {
+    return res.status(503).json({ error: 'webhook token not configured — set Settings → Telephony → Webhook Token' });
+  }
   const got = req.query.wt || req.headers['x-webhook-token'];
   if (got !== expected) return res.status(403).json({ error: 'unauthorized' });
   next();

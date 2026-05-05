@@ -308,10 +308,21 @@ class Session {
     return { transcript: '' };
   }
 
+  // Per-agent LLM params (model / temperature / maxTokens) flow into every
+  // chat call — both streaming and non-streaming.
+  llmOpts(extra = {}) {
+    const a = this.agent || {};
+    const opts = { ...extra };
+    if (a.llmModel)                          opts.model       = a.llmModel;
+    if (typeof a.temperature === 'number')   opts.temperature = a.temperature;
+    if (typeof a.maxTokens === 'number')     opts.maxTokens   = a.maxTokens;
+    return opts;
+  }
+
   async chatWithFallback(messages) {
     for (const eng of this.fallbackChain()) {
       try {
-        if (eng === 'local')  return await localApi.chat(messages);
+        if (eng === 'local')  return await localApi.chat(messages, this.llmOpts());
         if (eng === 'sarvam' && sarvamApi) return await sarvamApi.chat(messages);
       } catch (e) {
         logger.warn(`[local-stream] chat engine=${eng} failed call=${this.callId}: ${e.message}`);
@@ -334,7 +345,7 @@ class Session {
     let buffer = '';
     let full   = '';
     try {
-      const reply = await localApi.chatStream(messages, {
+      const reply = await localApi.chatStream(messages, this.llmOpts({
         onToken: async (tok) => {
           if (this.barge) return; // user started talking; abandon
           buffer += tok;
@@ -348,7 +359,7 @@ class Session {
             if (sentence) { try { await onSentence(sentence); } catch {} }
           }
         },
-      });
+      }));
       // Flush any trailing fragment as the final sentence.
       const tail = (buffer || '').trim();
       if (tail && !this.barge) { try { await onSentence(tail); } catch {} }
@@ -509,7 +520,13 @@ class Session {
   }
 
   langCode() {
-    return getSettingsSync().localLanguageCode || getSettingsSync().sarvamLanguageCode || 'ta-IN';
+    // Per-agent / per-call language wins over the global setting so multi-
+    // language deployments work (e.g. Tamil agent on one campaign, Hindi on
+    // another). meta.languageCode is populated from agent.language in
+    // applyAgentToMeta(), but a campaign can also set it directly.
+    const meta = this.meta || {};
+    const s = getSettingsSync();
+    return meta.languageCode || s.localLanguageCode || s.sarvamLanguageCode || 'ta-IN';
   }
 
   async persistTranscript(role, text) {
