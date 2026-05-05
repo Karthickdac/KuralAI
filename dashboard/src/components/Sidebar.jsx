@@ -170,6 +170,13 @@ const SUPER_ADMIN_NAV = [
     ],
   },
   {
+    section: 'Voice AI',
+    items: [
+      { key: 'agents',    label: 'Agents',    path: '/agents',    icon: ICON.agents },
+      { key: 'voice-lab', label: 'Voice Lab', path: '/voice-lab', icon: ICON.voiceLab },
+    ],
+  },
+  {
     section: 'System',
     items: [
       { key: 'settings', label: 'Settings', path: '/settings', icon: ICON.settings },
