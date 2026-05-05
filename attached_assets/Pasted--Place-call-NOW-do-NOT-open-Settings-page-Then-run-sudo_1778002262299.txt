@@ -1,0 +1,19 @@
+==> Place call NOW (do NOT open Settings page). Then run:
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream | grep -iE 'sarvam-stream|TTS|STT|USER:|BOT :' | tail -15
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech#  sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream | grep -iE 'sarvam-stream|TTS|STT|USER:|BOT :' | tail -15
+]: ElevenLabs TTS completed in 328ms for 104 chars
+]: ElevenLabs TTS completed in 332ms for 106 chars
+]: ElevenLabs TTS completed in 345ms for 120 chars
+]: ElevenLabs TTS completed in 357ms for 112 chars
+]: ElevenLabs TTS completed in 359ms for 135 chars
+]: Pre-warmed 63 TTS entries for call 4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed (workflow: due_reminder)
+]: [sarvam-voice] TwiML returned for call 4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed
+]: [sarvam-stream] START call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed provider=twilio stream=MZ8d48c7a514b5cbbcc43421a86bbb556c in=mulaw@8000Hz
+]: [sarvam-stream] TTS failed call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed speaker=meera model=bulbul:v3 lang=ta-IN sr=8000: Request failed with status code 400 body={"error":{"message":"Speaker 'meera' is not recognized. Available speakers are: anushka, abhilash, manisha, vidya, arya, karun, hitesh, aditya, ritu, priya, neha, rahul, pooja, rohan, simran, kavya, amit, dev, ishita, shreya, ratan, varun, manan, sumit, roopa, kabir, aayan, shubh, ashutosh, advait, anand, tanya, tarun, sunny, mani, gokul, vijay, shruti, suhani, mohit, kavitha, rehan, soham, rupali","code":"invalid_request_error","request_id":"20260505_b05ed2c7-1b40-4eae-8f89-e0cbe85134e0"}}
+]: [sarvam-stream] STT failed call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STT failed call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STT failed call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed: Request failed with status code 400 body={"detail":"Model 'saarika:v2' has been deprecated. Please use 'saarika:v2.5' instead."}
+]: [sarvam-stream] STOP call=4c79b4e8-4e32-40f4-8a1d-0a2fef1429ed
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 

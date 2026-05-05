@@ -34,9 +34,9 @@ const DEFAULTS = {
   // Sarvam.ai conversational engine
   sarvamApiKey: '',
   sarvamLanguageCode: 'ta-IN',
-  sarvamVoice: 'meera',
+  sarvamVoice: 'anushka',
   sarvamTtsModel: 'bulbul:v2',
-  sarvamSttModel: 'saarika:v2',
+  sarvamSttModel: 'saarika:v2.5',
   sarvamChatModel: 'sarvam-m',
   sarvamSystemPrompt: '',
   sarvamGreeting: '',
