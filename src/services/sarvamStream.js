@@ -325,7 +325,8 @@ class Session {
           { model: getSettingsSync().sarvamChatModel || 'sarvam-m' }
         );
       } catch (e) {
-        logger.warn(`[sarvam-stream] chat failed call=${this.callId}: ${e.message}`);
+        const body = e.response?.data ? JSON.stringify(e.response.data).slice(0, 500) : '';
+        logger.warn(`[sarvam-stream] chat failed call=${this.callId}: ${e.message} body=${body}`);
         reply = 'மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?';
       }
       reply = (reply || '').trim() || 'மன்னிக்கவும், கேட்கவில்லை. திரும்ப சொல்ல முடியுமா?';

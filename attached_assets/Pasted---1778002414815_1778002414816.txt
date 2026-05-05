@@ -1,0 +1,19 @@
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+==> Place a fresh call, ANSWER it, stay 15s, then run:
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream | grep -iE 'sarvam-stream|TTS failed|STT failed|USER:|BOT :|speaker=|model=' | tail -15
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech#  sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream | grep -iE 'sarvam-stream|TTS failed|STT failed|USER:|BOT :|speaker=|model=' | tail -15
+]: [sarvam-voice] TwiML returned for call 8232c787-019d-4160-b941-1721a6d1a35a → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=8232c787-019d-4160-b941-1721a6d1a35a
+]: [sarvam-stream] START call=8232c787-019d-4160-b941-1721a6d1a35a provider=twilio stream=MZ8c3de5a77f2eb2893da6ba23d4031c82 in=mulaw@8000Hz
+]: [sarvam-stream] 8232c787-019d-4160-b941-1721a6d1a35a USER: ம் சரி சரி
+]: [sarvam-stream] chat failed call=8232c787-019d-4160-b941-1721a6d1a35a: Request failed with status code 400
+]: [sarvam-stream] 8232c787-019d-4160-b941-1721a6d1a35a BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] 8232c787-019d-4160-b941-1721a6d1a35a USER: சரிங்க பேசலாம்
+]: [sarvam-stream] chat failed call=8232c787-019d-4160-b941-1721a6d1a35a: Request failed with status code 400
+]: [sarvam-stream] 8232c787-019d-4160-b941-1721a6d1a35a BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] 8232c787-019d-4160-b941-1721a6d1a35a USER: நான் பேசுகிற புரியலையா
+]: [sarvam-stream] chat failed call=8232c787-019d-4160-b941-1721a6d1a35a: Request failed with status code 400
+]: [sarvam-stream] 8232c787-019d-4160-b941-1721a6d1a35a BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] STOP call=8232c787-019d-4160-b941-1721a6d1a35a
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
