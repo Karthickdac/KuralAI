@@ -1,0 +1,34 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech#sudo -u automystics-kuralai pm2 logs kuralai --lines 120 --nostream 2>&1 | grep -iE "sarvam|stream|ws|connected|websocket|webhook|tamil|error|fail|❌|TwiML|status=|disconnect" | tail -500
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 120 lines:
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/6364d8f0-87fe-4cba-92c8-d2e4c2e4f20c.mp3'
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/bd3f2344-83ae-45a9-947d-a40512d26863.mp3'
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/de3eb5f4-dd82-435f-b783-3341cdc40dc0.mp3'
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/c8babd5c-3007-4506-84ed-6efd7f97c8bf.mp3'
+0|kuralai  | 2026-05-05T15:36:09: Error: EACCES: permission denied, open '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+]: Dashboard WebSocket connected. Total clients: 1
+]: ✅ Database connected
+]: 🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)
+]: ✅ WebSocket servers initialized (dashboard + sarvam-stream)
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: [dispatcher] engine=sarvam call=f72bb230-65ca-4360-be82-13946babf427
+]: [Sarvam→Twilio] Dialing +917358337470 (call f72bb230-65ca-4360-be82-13946babf427)
+]: Failed to initiate call:
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 2
+]: Dashboard WebSocket connected. Total clients: 1
+]: [dispatcher] engine=sarvam call=b2b868fd-59fc-4362-9756-b7df89f6d310
+]: [Sarvam→Twilio] Dialing +917358337470 (call b2b868fd-59fc-4362-9756-b7df89f6d310)
+]: WEBHOOK HIT: POST /call/status | ip=18.205.117.105 | qs={"callId":"b2b868fd-59fc-4362-9756-b7df89f6d310","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 16:55:02 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"0","CallSid":"CA9ba7a0d289838d20ec43875f670bb3ff","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"initiated","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: Greeting TwiML pre-cached for call b2b868fd-59fc-4362-9756-b7df89f6d310 in ring phase
+]: WEBHOOK HIT: POST /call/status | ip=54.162.13.235 | qs={"callId":"b2b868fd-59fc-4362-9756-b7df89f6d310","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 16:55:05 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"1","CallSid":"CA9ba7a0d289838d20ec43875f670bb3ff","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"ringing","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: WEBHOOK HIT: POST /call/status | ip=54.159.76.73 | qs={"callId":"b2b868fd-59fc-4362-9756-b7df89f6d310","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 16:55:10 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"2","CallSid":"CA9ba7a0d289838d20ec43875f670bb3ff","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"in-progress","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: [sarvam-voice] TwiML returned for call b2b868fd-59fc-4362-9756-b7df89f6d310 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] missing/bad wt token, closing (callId=n/a)
+]: WEBHOOK HIT: POST /call/status | ip=98.81.241.164 | qs={"callId":"b2b868fd-59fc-4362-9756-b7df89f6d310","wt":"kuralai-wh"} | body={"Called":"+917358337470","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REc71ae2f60b0805b9e80c9b34ed08b0e5","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 16:55:11 +0000","CallbackSource":"call-progress-events","SipResponseCode":"200","CallerState":"IA","ToZip":"","SequenceNumber":"3","CallSid":"CA9ba7a0d289838d20ec43875f670bb3ff","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"completed","RecordingSid":"REc71ae2f60b0805b9e80c9b34ed08b0e5","Duration":"1","From":"+16416666746","CallDuration":"1","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","RecordingDuration":"1","FromState":"IA"}
+]: WEBHOOK HIT: POST /recording/status | ip=44.211.130.26 | qs={"callId":"b2b868fd-59fc-4362-9756-b7df89f6d310","wt":"kuralai-wh"} | body={"RecordingSource":"OutboundAPI","RecordingTrack":"both","RecordingSid":"REc71ae2f60b0805b9e80c9b34ed08b0e5","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REc71ae2f60b0805b9e80c9b34ed08b0e5","RecordingStatus":"completed","RecordingChannels":"2","ErrorCode":"0","CallSid":"CA9ba7a0d289838d20ec43875f670bb3ff","RecordingStartTime":"Tue, 05 May 2026 16:55:10 +0000","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","RecordingDuration":"1"}
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
