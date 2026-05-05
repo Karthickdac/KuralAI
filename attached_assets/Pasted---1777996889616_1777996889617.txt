@@ -1,0 +1,61 @@
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo chown -R automystics-kuralai:automystics-kuralai /tmp/kuralai-audio
+sudo chmod 755 /tmp/kuralai-audio
+ls -ld /tmp/kuralai-audio
+drwxr-xr-x 2 automystics-kuralai automystics-kuralai 4096 May  5 15:56 /tmp/kuralai-audio
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Check what nginx sends for websocket upgrade requests
+echo "--- nginx vhost (location / block) ---"
+grep -A 15 "location / " /etc/nginx/sites-enabled/kuralai.automystics.tech.conf
+
+# 2. Test WS handshake directly
+curl -sI -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Version: 13" \
+  -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+  https://kuralai.automystics.tech/socket.io/?EIO=4\&transport=websocket | head -20
+
+# 3. Find what WS path the backend uses
+sudo -u automystics-kuralai bash -lc 'grep -rE "socket\.io|new WebSocket|wss?://" /home/automystics-kuralai/htdocs/kuralai.automystics.tech/dashboard/src 2>/dev/null | head -10'
+grep -rE "io\(|new Server|WebSocketServer|wss" /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/ 2>/dev/null | head -10
+--- nginx vhost (location / block) ---
+  location / {
+    proxy_pass http://127.0.0.1:3000/;
+    proxy_http_version 1.1;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_pass_request_headers on;
+    proxy_max_temp_file_size 0;
+    proxy_connect_timeout 900;
+    proxy_send_timeout 900;
+    proxy_read_timeout 900;
+HTTP/2 200 
+server: nginx
+date: Tue, 05 May 2026 16:01:12 GMT
+content-type: text/html; charset=UTF-8
+content-length: 1043
+vary: Accept-Encoding
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+strict-transport-security: max-age=15552000; includeSubDomains
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+access-control-allow-origin: *
+access-control-allow-credentials: true
+accept-ranges: bytes
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/dashboard/src/pages/Settings.jsx:            hint={'ONLY needed if Telephony Provider = Exotel. In Exotel dashboard → App Bazaar → create a new App with a Voicebot Applet pointing to wss://<your-app-url>/sarvam-stream, then paste that App ID here.'}
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/dashboard/src/hooks/useWebSocket.js:    const ws = new WebSocket(wsUrl);
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:let wss = null;
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:  wss = new WebSocket.Server({ server, path: '/ws' });
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:  wss.on('connection', (ws, req) => {
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/websocket/wsServer.js:  if (!wss || clients.size === 0) return;
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
