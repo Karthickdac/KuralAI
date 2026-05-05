@@ -1,0 +1,64 @@
+
+=== AFTER you click Call in dashboard, run: ===
+sudo -u automystics-kuralai pm2 logs kuralai --lines 40 --nostream 2>&1 | grep -E 'ElevenLabs|Call'
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u postgres psql -At -d kuralai <<'SQL'
+SELECT
+  'agentId='        || COALESCE(data->>'elevenlabsAgentId','MISSING')        || E'\n' ||
+  'phoneNumberId='  || COALESCE(data->>'elevenlabsAgentPhoneNumberId','MISSING') || E'\n' ||
+  'apiKeyLen='      || length(COALESCE(data->>'elevenLabsApiKey','')) :: text  || E'\n' ||
+  'webhookBaseUrl=' || COALESCE(data->>'webhookBaseUrl','MISSING')           || E'\n' ||
+  'telProvider='    || COALESCE(data->>'telephonyProvider','MISSING')
+FROM app_settings WHERE key='main';
+SQL
+
+API_KEY=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenLabsApiKey' FROM app_settings WHERE key='main'")
+AGENT_ID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenlabsAgentId' FROM app_settings WHERE key='main'")
+PHONE_ID=$(sudo -u postgres psql -At -d kuralai -c "SELECT data->>'elevenlabsAgentPhoneNumberId' FROM app_settings WHERE key='main'")
+
+echo "Agent: $AGENT_ID  / PhoneID: $PHONE_ID  / Key length: ${#API_KEY}"
+
+echo "=== ElevenLabs phone numbers ==="
+curl -s "https://api.elevenlabs.io/v1/convai/phone-numbers" -H "xi-api-key: $API_KEY" | python3 -m json.tool
+
+echo "=== direct outbound-call test ==="
+curl -s -X POST "https://api.elevenlabs.io/v1/convai/twilio/outbound-call" \
+  -H "xi-api-key: $API_KEY" -H "Content-Type: application/json" \
+  -d '{"agent_id":"'"$AGENT_ID"'","agent_phone_number_id":"'"$PHONE_ID"'","to_number":"+917358337470"}' \
+  | python3 -m json.tool
+
+# Now place a call from dashboard, then:
+echo "=== AFTER clicking Call in dashboard, run: ==="
+echo "  sudo -u automystics-kuralai pm2 logs kuralai --lines 30 --nostream | grep -E 'ElevenLabs|Call'"
+
+unset API_KEY AGENT_ID PHONE_ID
+agentId=agent_6101kpdbj58jf7cat9gfvr1am094
+phoneNumberId=phnum_8901kpdkbqcgez4rrr5d445q5t4m
+apiKeyLen=64
+webhookBaseUrl=MISSING
+telProvider=twilio
+Agent: agent_6101kpdbj58jf7cat9gfvr1am094  / PhoneID: phnum_8901kpdkbqcgez4rrr5d445q5t4m  / Key length: 64
+=== ElevenLabs phone numbers ===
+[
+    {
+        "phone_number": "+16416666746",
+        "label": "Automystics",
+        "supports_inbound": true,
+        "supports_outbound": true,
+        "phone_number_id": "phnum_8901kpdkbqcgez4rrr5d445q5t4m",
+        "assigned_agent": {
+            "agent_id": "agent_6101kpdbj58jf7cat9gfvr1am094",
+            "agent_name": "Samuthra"
+        },
+        "provider": "twilio"
+    }
+]
+=== direct outbound-call test ===
+{
+    "success": false,
+    "message": "HTTP 401 error: Unable to create record: Authenticate",
+    "conversation_id": null,
+    "callSid": null
+}
+=== AFTER clicking Call in dashboard, run: ===
+  sudo -u automystics-kuralai pm2 logs kuralai --lines 30 --nostream | grep -E 'ElevenLabs|Call'
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
