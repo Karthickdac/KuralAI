@@ -467,7 +467,7 @@ function AgentEditor({ initial, isEditing, voices, onSave, onClose, onPreviewVoi
                 <input className={styles.input} value={f.engineFallbackChain}
                        onChange={e => set('engineFallbackChain', e.target.value)}
                        placeholder="local,sarvam" />
-                <div className={styles.hint}>Comma-separated engines tried per turn (STT/LLM/TTS). E.g. <code>local,sarvam</code> keeps calls flowing if the GPU box is down.</div>
+                <div className={styles.hint}>Comma-separated engines tried per turn (STT/LLM/TTS). Supported in-turn: <code>local</code>, <code>sarvam</code>. <code>elevenlabs</code> and <code>kuralai</code> are honored at call-init only — if the local stack is unreachable when dialing, the call is re-dispatched through them.</div>
               </div>
             </div>
           )}

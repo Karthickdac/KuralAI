@@ -502,9 +502,10 @@ function VoiceLab({ token }) {
   }
 
   async function preview(id, opts = {}) {
+    if (!token) { setMsg('Set Webhook Token in Telephony first — required to preview voices.'); return; }
     setPreviewing(id); setMsg('');
     try {
-      const r = await fetch('/webhook/local-voices/preview', {
+      const r = await fetch(`/webhook/local-voices/preview?wt=${encodeURIComponent(token)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

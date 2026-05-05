@@ -324,6 +324,9 @@ class Session {
       try {
         if (eng === 'local')  return await localApi.chat(messages, this.llmOpts());
         if (eng === 'sarvam' && sarvamApi) return await sarvamApi.chat(messages);
+        // 'elevenlabs' / 'kuralai' do not have in-turn STT/LLM/TTS clients
+        // here — they are call-init-time fallbacks only (see localCallService).
+        // Skip silently rather than mislead the operator with a fake retry.
       } catch (e) {
         logger.warn(`[local-stream] chat engine=${eng} failed call=${this.callId}: ${e.message}`);
       }
