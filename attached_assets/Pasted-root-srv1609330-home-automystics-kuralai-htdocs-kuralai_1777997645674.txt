@@ -1,0 +1,57 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Was our /ws block actually added?
+sudo grep -A 12 "location /ws" /etc/nginx/sites-enabled/kuralai.automystics.tech.conf
+
+# 2. Is there ANOTHER proxy in front of nginx? (HAProxy/Varnish on port 443/8443?)
+sudo ss -lntp | grep -E ":(80|443|8080|8443)\b"
+
+# 3. Look for CloudPanel HAProxy (very common on this server type)
+sudo ls /etc/haproxy/ 2>/dev/null
+sudo cat /etc/haproxy/haproxy.cfg 2>/dev/null | grep -B2 -A 8 "kuralai\|frontend\|backend" | head -40
+
+# 4. What does nginx itself return when we hit /ws bypassing any frontend proxy?
+curl -sI --max-time 4 \
+  -H "Connection: Upgrade" -H "Upgrade: websocket" \
+  -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+  -H "Host: kuralai.automystics.tech" \
+  http://127.0.0.1/ws?token=test 2>&1 | head -15
+
+# 5. Check what ACTUALLY hits the backend by tailing logs while you reload browser
+echo "--- run this in a separate terminal while you reload the browser ---"
+echo "  sudo -u automystics-kuralai pm2 logs kuralai --lines 0 --raw | grep -iE 'ws|socket|upgrade|frame'"
+  location /ws {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_cache off;
+    gzip off;
+LISTEN 0      511          0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=746578,fd=8),("nginx",pid=746576,fd=8),("nginx",pid=746574,fd=8),("nginx",pid=746573,fd=8),("nginx",pid=1112,fd=8))     
+LISTEN 0      511          0.0.0.0:8443       0.0.0.0:*    users:(("nginx",pid=1080,fd=6),("nginx",pid=1079,fd=6),("nginx",pid=1078,fd=6),("nginx",pid=1074,fd=6),("nginx",pid=1067,fd=6))             
+LISTEN 0      511          0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=746578,fd=11),("nginx",pid=746576,fd=11),("nginx",pid=746574,fd=11),("nginx",pid=746573,fd=11),("nginx",pid=1112,fd=11))
+LISTEN 0      511             [::]:80            [::]:*    users:(("nginx",pid=746578,fd=9),("nginx",pid=746576,fd=9),("nginx",pid=746574,fd=9),("nginx",pid=746573,fd=9),("nginx",pid=1112,fd=9))     
+LISTEN 0      511             [::]:8443          [::]:*    users:(("nginx",pid=1080,fd=7),("nginx",pid=1079,fd=7),("nginx",pid=1078,fd=7),("nginx",pid=1074,fd=7),("nginx",pid=1067,fd=7))             
+LISTEN 0      511             [::]:443           [::]:*    users:(("nginx",pid=746578,fd=13),("nginx",pid=746576,fd=13),("nginx",pid=746574,fd=13),("nginx",pid=746573,fd=13),("nginx",pid=1112,fd=13))
+LISTEN 0      511                *:8080             *:*    users:(("node",pid=378270,fd=22))                                                                                                           
+HTTP/1.1 301 Moved Permanently
+Server: nginx
+Date: Tue, 05 May 2026 16:13:54 GMT
+Content-Type: text/html
+Content-Length: 162
+Connection: keep-alive
+Location: https://kuralai.automystics.tech/ws?token=test?token=test
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+X-Permitted-Cross-Domain-Policies: master-only
+Referrer-Policy: same-origin
+alt-svc: h3=":443"; ma=86400
+
+--- run this in a separate terminal while you reload the browser ---
+  sudo -u automystics-kuralai pm2 logs kuralai --lines 0 --raw | grep -iE 'ws|socket|upgrade|frame'
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
