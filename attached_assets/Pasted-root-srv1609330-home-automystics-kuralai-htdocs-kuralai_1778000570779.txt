@@ -1,0 +1,79 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Look at what the SERVER actually received during the last call attempt
+sudo -u automystics-kuralai pm2 logs kuralai --lines 200 --nostream 2>&1 \
+  | grep -E "sarvam-stream|sarvam-voice|missing/bad|START call|STOP call" | tail -20
+
+# 2. Run wscat AND tail server logs simultaneously to see what arrived
+( sudo -u automystics-kuralai pm2 logs kuralai --raw --lines 0 & PID=$!; sleep 1
+  echo "--- TEST A: through nginx with wt ---"
+  timeout 3 wscat -c "wss://kuralai.automystics.tech/sarvam-stream?callId=test123&wt=kuralai-wh" 2>&1 | head -3
+  sleep 1
+  echo "--- TEST B: through nginx WITHOUT wt (should show missing/bad) ---"
+  timeout 3 wscat -c "wss://kuralai.automystics.tech/sarvam-stream" 2>&1 | head -3
+  sleep 2
+  kill $PID 2>/dev/null
+) 2>&1 | grep -E "TEST|sarvam-stream|missing|connected|error|^>" | head -30
+]: 🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)
+]: ✅ WebSocket servers initialized (dashboard + sarvam-stream)
+]: 🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)
+]: ✅ WebSocket servers initialized (dashboard + sarvam-stream)
+]: [sarvam-voice] TwiML returned for call b2b868fd-59fc-4362-9756-b7df89f6d310 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] missing/bad wt token, closing (callId=n/a)
+--- TEST A: through nginx with wt ---
+--- TEST B: through nginx WITHOUT wt (should show missing/bad) ---
+]: [sarvam-stream] missing/bad wt token, closing (callId=n/a)
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 3. Add explicit /sarvam-stream block
+CONF=/etc/nginx/sites-enabled/kuralai.automystics.tech.conf
+sudo cp $CONF $CONF.bak.$(date +%s)
+
+# Insert /sarvam-stream block right before the /ws block
+sudo python3 <<'PY'
+p = "/etc/nginx/sites-enabled/kuralai.automystics.tech.conf"
+src = open(p).read()
+if "/sarvam-stream" in src:
+    print("already present")
+else:
+    block = """  location /sarvam-stream {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_cache off;
+    gzip off;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+  }
+
+"""
+    src = src.replace("  location /ws {", block + "  location /ws {", 1)
+    open(p, "w").write(src)
+    print("inserted")
+PY
+
+sudo nginx -t && sudo systemctl reload nginx && echo "✅ nginx reloaded"
+
+# 4. Re-test through nginx
+echo "--- After nginx fix: test query string preservation ---"
+echo "    sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -iE 'sarvam|stream|error' | tail -30"
+inserted
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/kalvicore.automystics.tech.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/kuralai.automystics.tech.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/mysticshr.automystics.tech.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/mysticsinv.automystics.tech.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/solarnexus.automystics.tech.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.automystics.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.fitro360.com.crt"
+nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/www.fitro360.com.crt"
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+✅ nginx reloaded
+--- After nginx fix: test query string preservation ---
+==> Now place a real call and paste the new logs:
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -iE 'sarvam|stream|error' | tail -30
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
