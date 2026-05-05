@@ -1,0 +1,34 @@
+# 3. Also list the phone numbers attached to your ElevenLabs account
+echo "=== ElevenLabs phone numbers on your account ==="
+curl -s "https://api.elevenlabs.io/v1/convai/phone-numbers" -H "xi-api-key: $API_KEY" | python3 -m json.tool 2>/dev/null | head -40
+
+unset API_KEY AGENT_ID PHONE_ID
+88:    logger.info(`[ElevenLabs] Call response: ${JSON.stringify(data)}`); logger.info(`[ElevenLabs] Call queued: sid=${sid} conversation=${conversationId}`);
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [kuralai](ids: [ 0 ])
+[PM2] [kuralai](0) ✓
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ 1.0.0   │ fork    │ 810720   │ 0s     │ 3    │ online    │ 0%       │ 22.5mb   │ aut… │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+ERROR:  column "value" does not exist
+LINE 1: SELECT value FROM app_settings WHERE key='elevenLabsApiKey'
+               ^
+ERROR:  column "value" does not exist
+LINE 1: SELECT value FROM app_settings WHERE key='elevenlabsAgentId'
+               ^
+ERROR:  column "value" does not exist
+LINE 1: SELECT value FROM app_settings WHERE key='elevenlabsAgentPho...
+               ^
+Agent ID: 
+-bash: !: event not found
+API key length: 0
+=== ElevenLabs phone numbers on your account ===
+{
+    "detail": {
+        "status": "needs_authorization",
+        "message": "Neither authorization header nor xi-api-key received, please provide one."
+    }
+}
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
