@@ -1,0 +1,80 @@
+  sudo -u automystics-kuralai pm2 logs kuralai --lines 0 --raw | grep -iE 'ws|socket|upgrade|frame'
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Did nginx reload pick up the new /ws block? Check the actual loaded config
+sudo nginx -T 2>/dev/null | grep -B1 -A 13 "location /ws" | head -25
+
+# 2. What is the 8443 nginx? (CloudPanel admin? or a varnish-like layer?)
+sudo cat /etc/nginx/nginx.conf 2>/dev/null | grep -E "include|server|listen" | head -20
+sudo ls /etc/nginx/conf.d/ /etc/nginx/sites-enabled/ 2>/dev/null
+sudo grep -rn "listen.*8443\|proxy_pass.*8443" /etc/nginx/ 2>/dev/null | head
+
+# 3. Real WS handshake test against HTTPS (expect 101 Switching Protocols)
+TOKEN=$(curl -s -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@kuralai.com","password":"KuralAI@Super123"}' \
+  | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)
+echo "--- HTTPS WS handshake test ---"
+curl -sv --max-time 4 \
+  -H "Connection: Upgrade" -H "Upgrade: websocket" \
+  -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+  "https://kuralai.automystics.tech/ws?token=$TOKEN" 2>&1 | grep -E "^[<>]|HTTP/|Connection|Upgrade" | head -20
+
+# 4. Look at the actual frame coming back via wscat (install if missing)
+which wscat || sudo npm install -g wscat 2>&1 | tail -3
+echo "--- attempting real WS connection (will hang if successful, ctrl-C after 3s) ---"
+timeout 4 wscat -n -c "wss://kuralai.automystics.tech/ws?token=$TOKEN" 2>&1 | head -10
+
+unset TOKEN
+
+  location /ws {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_cache off;
+    gzip off;
+    proxy_read_timeout 86400s;
+include /etc/nginx/modules-enabled/*.conf;
+    server_names_hash_bucket_size 128;
+    server_tokens off;
+    include /etc/nginx/blocked_ips;
+    ssl_prefer_server_ciphers on;
+    include /etc/nginx/mime.types;
+    include /etc/nginx/sites-enabled/*.conf;
+/etc/nginx/conf.d/:
+
+/etc/nginx/sites-enabled/:
+default.conf                     kuralai.automystics.tech.conf                 mysticshr.automystics.tech.conf   solarnexus.automystics.tech.conf  www.fitro360.com.conf
+kalvicore.automystics.tech.conf  kuralai.automystics.tech.conf.bak.1777997518  mysticsinv.automystics.tech.conf  www.automystics.com.conf
+--- HTTPS WS handshake test ---
+* using HTTP/2
+* [HTTP/2] [1] OPENED stream for https://kuralai.automystics.tech/ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ZWM5ZTk1OS05Mzk2LTQ3MDktYTIwZC0xZDgwOTllNThjOTUiLCJyb2xlIjoic3VwZXJhZG1pbiIsIm9yZ2FuaXphdGlvbklkIjpudWxsLCJpYXQiOjE3Nzc5OTc2OTAsImV4cCI6MTc3ODYwMjQ5MH0.xXfOIg2II8k5ViqQjjo33LrYMMJI8kNAwDNpD6IhebA
+* [HTTP/2] [1] [:method: GET]
+* [HTTP/2] [1] [:scheme: https]
+* [HTTP/2] [1] [:authority: kuralai.automystics.tech]
+* [HTTP/2] [1] [:path: /ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ZWM5ZTk1OS05Mzk2LTQ3MDktYTIwZC0xZDgwOTllNThjOTUiLCJyb2xlIjoic3VwZXJhZG1pbiIsIm9yZ2FuaXphdGlvbklkIjpudWxsLCJpYXQiOjE3Nzc5OTc2OTAsImV4cCI6MTc3ODYwMjQ5MH0.xXfOIg2II8k5ViqQjjo33LrYMMJI8kNAwDNpD6IhebA]
+* [HTTP/2] [1] [user-agent: curl/8.5.0]
+* [HTTP/2] [1] [accept: */*]
+* [HTTP/2] [1] [sec-websocket-version: 13]
+* [HTTP/2] [1] [sec-websocket-key: dGhlIHNhbXBsZSBub25jZQ==]
+> GET /ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ZWM5ZTk1OS05Mzk2LTQ3MDktYTIwZC0xZDgwOTllNThjOTUiLCJyb2xlIjoic3VwZXJhZG1pbiIsIm9yZ2FuaXphdGlvbklkIjpudWxsLCJpYXQiOjE3Nzc5OTc2OTAsImV4cCI6MTc3ODYwMjQ5MH0.xXfOIg2II8k5ViqQjjo33LrYMMJI8kNAwDNpD6IhebA HTTP/2
+> Host: kuralai.automystics.tech
+> User-Agent: curl/8.5.0
+> Accept: */*
+> Connection: Upgrade
+> Upgrade: websocket
+> Sec-WebSocket-Version: 13
+> Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+> 
+< HTTP/2 200 
+
+added 9 packages in 915ms
+--- attempting real WS connection (will hang if successful, ctrl-C after 3s) ---
+{"type":"CONNECTED","timestamp":"2026-05-05T16:14:52.039Z"}
+error: Invalid WebSocket frame: RSV1 must be clear
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 

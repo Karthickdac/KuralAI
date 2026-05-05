@@ -11,7 +11,13 @@ let wss = null;
 const clients = new Set();
 
 function initWebSocket(server) {
-  wss = new WebSocket.Server({ server, path: '/ws' });
+  wss = new WebSocket.Server({
+    server,
+    path: '/ws',
+    // Disable per-message deflate. nginx in front double-handles compression
+    // and browsers were dropping frames with "Invalid frame header" / "RSV1 must be clear".
+    perMessageDeflate: false,
+  });
 
   wss.on('connection', (ws, req) => {
     // Authenticate WebSocket connection via token in query
