@@ -188,15 +188,12 @@ async function bootstrap() {
       try { pathname = new URL(req.url, 'http://x').pathname; }
       catch { socket.destroy(); return; }
 
-      if (pathname === '/ws') {
-        const w = getDashboardWss();
-        return w.handleUpgrade(req, socket, head, (ws) => w.emit('connection', ws, req));
-      }
-      if (pathname === '/sarvam-stream') {
-        const w = getSarvamWss();
-        return w.handleUpgrade(req, socket, head, (ws) => w.emit('connection', ws, req));
-      }
-      socket.destroy();
+      const target =
+        pathname === '/ws' ? getDashboardWss() :
+        pathname === '/sarvam-stream' ? getSarvamWss() :
+        null;
+      if (!target) { socket.destroy(); return; }
+      target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
     });
     logger.info('✅ WebSocket servers initialized (dashboard + sarvam-stream)');
 
