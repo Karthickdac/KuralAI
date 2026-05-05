@@ -174,12 +174,31 @@ async function bootstrap() {
     await initDatabase();
     logger.info('✅ Database connected');
 
-    // Initialize WebSocket server (for real-time dashboard updates)
+    // Initialize WebSocket servers in noServer mode and route upgrades centrally.
+    // Previously each WebSocketServer attached its own 'upgrade' listener to the
+    // same http.Server. The losing handler called abortHandshake(socket, 400) on
+    // sockets the winner had already upgraded, writing raw "HTTP/1.1 400 ..." onto
+    // the WebSocket stream — the dashboard client then saw "RSV1 must be clear".
     initWebSocket(server);
-    logger.info('✅ WebSocket server initialized');
-
-    // Initialize Sarvam Media Stream WS (Twilio audio bridge for Sarvam engine)
     require('./services/sarvamStream').init(server);
+    const { getWss: getDashboardWss } = require('./websocket/wsServer');
+    const { getWss: getSarvamWss } = require('./services/sarvamStream');
+    server.on('upgrade', (req, socket, head) => {
+      let pathname;
+      try { pathname = new URL(req.url, 'http://x').pathname; }
+      catch { socket.destroy(); return; }
+
+      if (pathname === '/ws') {
+        const w = getDashboardWss();
+        return w.handleUpgrade(req, socket, head, (ws) => w.emit('connection', ws, req));
+      }
+      if (pathname === '/sarvam-stream') {
+        const w = getSarvamWss();
+        return w.handleUpgrade(req, socket, head, (ws) => w.emit('connection', ws, req));
+      }
+      socket.destroy();
+    });
+    logger.info('✅ WebSocket servers initialized (dashboard + sarvam-stream)');
 
     // Start call retry scheduler (cron job)
     startRetryScheduler();

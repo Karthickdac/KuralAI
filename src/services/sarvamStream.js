@@ -37,8 +37,15 @@ const MIN_SPEECH_MS      = 200;     // ignore <200ms blips
 const MAX_TURN_MS        = 15000;   // hard cap per turn
 const FRAME_MS           = 20;      // outbound pacing chunk
 
+let _wss = null;
+function getWss() { return _wss; }
+
 function init(server) {
-  const wss = new WebSocket.Server({ server, path: '/sarvam-stream' });
+  // noServer mode — upgrade routing is centralized in server.js so we don't
+  // call abortHandshake() on sockets that the dashboard /ws server already
+  // upgraded (which corrupts the WS frame stream with a stray HTTP/1.1 400).
+  const wss = new WebSocket.Server({ noServer: true });
+  _wss = wss;
 
   wss.on('connection', (ws, req) => {
     const url = new URL(req.url, 'http://x');
@@ -411,4 +418,4 @@ class Session {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-module.exports = { init };
+module.exports = { init, getWss };

@@ -11,11 +11,12 @@ let wss = null;
 const clients = new Set();
 
 function initWebSocket(server) {
+  // noServer mode — upgrade routing is done centrally in server.js so that
+  // a second WebSocket.Server (sarvam-stream) on the same http.Server cannot
+  // call abortHandshake() on a socket we've already upgraded (which produced
+  // "Invalid frame header / RSV1 must be clear" on the dashboard client).
   wss = new WebSocket.Server({
-    server,
-    path: '/ws',
-    // Disable per-message deflate. nginx in front double-handles compression
-    // and browsers were dropping frames with "Invalid frame header" / "RSV1 must be clear".
+    noServer: true,
     perMessageDeflate: false,
   });
 
@@ -83,4 +84,6 @@ async function notifyDashboard(event) {
   });
 }
 
-module.exports = { initWebSocket, notifyDashboard };
+function getWss() { return wss; }
+
+module.exports = { initWebSocket, notifyDashboard, getWss };
