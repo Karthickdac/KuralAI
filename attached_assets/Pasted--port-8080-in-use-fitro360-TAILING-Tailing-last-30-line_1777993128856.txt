@@ -1,0 +1,245 @@
+                 
+  ↑ port 8080 in use
+===== fitro360 =====
+[TAILING] Tailing last 30 lines for [fitro360] process (change the value with --lines option)
+/root/.pm2/logs/fitro360-error.log last 30 lines:
+2|fitro360 | }
+2|fitro360 | Internal Server Error: error: column "status_updated_at" does not exist
+2|fitro360 |     at /home/fitro360/htdocs/www.fitro360.com/dist/index.cjs:74:13356
+2|fitro360 |     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+2|fitro360 |     at async /home/fitro360/htdocs/www.fitro360.com/dist/index.cjs:80:37980
+2|fitro360 |     at async /home/fitro360/htdocs/www.fitro360.com/dist/index.cjs:120:28902 {
+2|fitro360 |   length: 118,
+2|fitro360 |   severity: 'ERROR',
+2|fitro360 |   code: '42703',
+2|fitro360 |   detail: undefined,
+2|fitro360 |   hint: undefined,
+2|fitro360 |   position: '185',
+2|fitro360 |   internalPosition: undefined,
+2|fitro360 |   internalQuery: undefined,
+2|fitro360 |   where: undefined,
+2|fitro360 |   schema: undefined,
+2|fitro360 |   table: undefined,
+2|fitro360 |   column: undefined,
+2|fitro360 |   dataType: undefined,
+2|fitro360 |   constraint: undefined,
+2|fitro360 |   file: 'parse_relation.c',
+2|fitro360 |   line: '3722',
+2|fitro360 |   routine: 'errorMissingColumn'
+2|fitro360 | }
+2|fitro360 | Warning: connect.session() MemoryStore is not
+2|fitro360 | designed for a production environment, as it will leak
+2|fitro360 | memory, and will not scale past a single process.
+2|fitro360 | Warning: connect.session() MemoryStore is not
+2|fitro360 | designed for a production environment, as it will leak
+2|fitro360 | memory, and will not scale past a single process.
+
+===== kalvicore-api =====
+[TAILING] Tailing last 30 lines for [kalvicore-api] process (change the value with --lines option)
+/root/.pm2/logs/kalvicore-api-error.log last 30 lines:
+===== automystics-api =====
+[TAILING] Tailing last 30 lines for [automystics-api] process (change the value with --lines option)
+/var/log/automystics/api.err.log last 30 lines:
+6|automyst | 2026-04-29T13:02:09: Failed to prune sessions: error: relation "user_sessions" does not exist
+6|automyst | 2026-04-29T13:02:09:     at file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11
+6|automyst | 2026-04-29T13:02:09:     at processTicksAndRejections (node:internal/process/task_queues:103:5)
+6|automyst | 2026-04-29T13:02:09:     at PGStore._asyncQuery (file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/connect-pg-simple@10.0.0/node_modules/connect-pg-simple/index.js:322:21) {
+6|automyst | 2026-04-29T13:02:09:   length: 112,
+6|automyst | 2026-04-29T13:02:09:   severity: 'ERROR',
+6|automyst | 2026-04-29T13:02:09:   code: '42P01',
+6|automyst | 2026-04-29T13:02:09:   detail: undefined,
+6|automyst | 2026-04-29T13:02:09:   hint: undefined,
+6|automyst | 2026-04-29T13:02:09:   position: '13',
+6|automyst | 2026-04-29T13:02:09:   internalPosition: undefined,
+6|automyst | 2026-04-29T13:02:09:   internalQuery: undefined,
+6|automyst | 2026-04-29T13:02:09:   where: undefined,
+6|automyst | 2026-04-29T13:02:09:   schema: undefined,
+6|automyst | 2026-04-29T13:02:09:   table: undefined,
+6|automyst | 2026-04-29T13:02:09:   column: undefined,
+6|automyst | 2026-04-29T13:02:09:   dataType: undefined,
+6|automyst | 2026-04-29T13:02:09:   constraint: undefined,
+6|automyst | 2026-04-29T13:02:09:   file: 'parse_relation.c',
+6|automyst | 2026-04-29T13:02:09:   line: '1449',
+6|automyst | 2026-04-29T13:02:09:   routine: 'parserOpenTable'
+6|automyst | 2026-04-29T13:02:09: }
+6|automyst | 2026-04-29T13:06:51: error: relation "user_sessions" does not exist
+6|automyst | 2026-04-29T13:06:51:     at file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11
+6|automyst | 2026-04-29T13:06:51:     at processTicksAndRejections (node:internal/process/task_queues:103:5)
+6|automyst | 2026-04-29T13:06:51:     at PGStore._asyncQuery (file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/connect-pg-simple@10.0.0/node_modules/connect-pg-simple/index.js:322:21)
+
+===== mystics-api =====
+[TAILING] Tailing last 30 lines for [mystics-api] process (change the value with --lines option)
+/root/.pm2/logs/mystics-api-error.log last 30 lines:
+7|mystics- | (node:284394) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284406) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284418) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284430) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284459) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284475) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284487) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284499) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284512) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284524) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284536) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284548) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284560) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284572) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+7|mystics- | (node:284584) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+7|mystics- | (Use `node --trace-deprecation ...` to show where the warning was created)
+
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server# ls -l /proc/378270/cwd            # shows the directory KuralAI was started from
+cat /proc/378270/cmdline | tr '\0' ' '; echo   # shows the exact command
+ps -o user= -p 378270             # shows which user owns it
+lrwxrwxrwx 1 automystics-mysticshr automystics-mysticshr 0 May  2 11:19 /proc/378270/cwd -> /home/automystics-mysticshr/htdocs/mysticshr.automystics.tech
+node --enable-source-maps artifacts/api-server/dist/index.mjs 
+automystics-mysticshr
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server# cd ..
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics/artifacts# cd ..
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics# ls -l /proc/378270/cwd            # shows the directory KuralAI was started from
+cat /proc/378270/cmdline | tr '\0' ' '; echo   # shows the exact command
+ps -o user= -p 378270             # shows which user owns it
+lrwxrwxrwx 1 automystics-mysticshr automystics-mysticshr 0 May  2 11:19 /proc/378270/cwd -> /home/automystics-mysticshr/htdocs/mysticshr.automystics.tech
+node --enable-source-maps artifacts/api-server/dist/index.mjs 
+automystics-mysticshr
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics# # 1. ALL node processes with their cwd, user, and command
+for pid in $(pgrep -x node); do
+  echo "--- pid=$pid user=$(ps -o user= -p $pid) ---"
+  echo "  cwd: $(readlink /proc/$pid/cwd 2>/dev/null)"
+  echo "  cmd: $(tr '\0' ' ' < /proc/$pid/cmdline)"
+  echo "  ports: $(ss -lntp 2>/dev/null | grep "pid=$pid" | awk '{print $4}' | tr '\n' ' ')"
+done
+
+# 2. The nginx vhost for kuralai — tells us the upstream port directly
+grep -RhA2 "kuralai" /etc/nginx/ /home/*/conf/nginx/ 2>/dev/null | grep -E "proxy_pass|server_name|listen" | head -20
+
+# 3. Find the actual KuralAI source code on disk (look for our specific files)
+find / -xdev -maxdepth 8 -name "customer.routes.js" -path "*kuralai*" 2>/dev/null
+find / -xdev -maxdepth 8 -name "customer.routes.js" 2>/dev/null | head -10
+
+# 4. systemd services that mention kuralai
+systemctl list-units --type=service --state=running --no-pager | grep -i kura
+--- pid=378270 user=automystics-mysticshr ---
+  cwd: /home/automystics-mysticshr/htdocs/mysticshr.automystics.tech
+  cmd: node --enable-source-maps artifacts/api-server/dist/index.mjs 
+  ports: *:8080 
+--- pid=491250 user=automystics-solarnexus ---
+  cwd: /home/automystics-solarnexus/htdocs/solarnexus.automystics.tech/app
+  cmd: node /usr/bin/pnpm --filter @workspace/api-server run start 
+  ports: 
+--- pid=491263 user=automystics-solarnexus ---
+  cwd: /home/automystics-solarnexus/htdocs/solarnexus.automystics.tech/app/artifacts/api-server
+  cmd: node --enable-source-maps ./dist/index.mjs 
+  ports: *:9000 
+  server_name kuralai.automystics.tech;
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics# # 1. Show the FULL nginx vhost for kuralai (the proxy_pass line we need was truncated)
+ls /home/automystics-kuralai/conf/nginx/ /etc/nginx/sites-enabled/ 2>/dev/null
+cat /home/automystics-kuralai/conf/nginx/*.conf 2>/dev/null
+grep -rl "kuralai.automystics.tech" /etc/nginx/ /home/*/conf/nginx/ 2>/dev/null | xargs -r cat
+
+# 2. Confirm KuralAI really is down right now
+curl -s -o /dev/null -w "kuralai login: %{http_code}\n" -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@kuralai.com","password":"KuralAI@Super123"}'
+
+# 3. Where is KuralAI's source code? Search the whole disk for our distinctive files
+find / -xdev -name "customer.routes.js" 2>/dev/null | head -10
+find / -xdev -name "Samuthra*" -o -name "*kuralai*" -type d 2>/dev/null | grep -vE "node_modules|\.cache|\.git/" | head -20
+
+# 4. Check journalctl for the last time something kuralai-related ran
+journalctl --since "7 days ago" 2>/dev/null | grep -iE "kuralai" | tail -20
+/etc/nginx/sites-enabled/:
+default.conf                     kuralai.automystics.tech.conf    mysticsinv.automystics.tech.conf  www.automystics.com.conf
+kalvicore.automystics.tech.conf  mysticshr.automystics.tech.conf  solarnexus.automystics.tech.conf  www.fitro360.com.conf
+server {
+  listen 80;
+  listen [::]:80;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
+  ssl_certificate_key /etc/nginx/ssl-certificates/kuralai.automystics.tech.key;
+  ssl_certificate /etc/nginx/ssl-certificates/kuralai.automystics.tech.crt;
+  server_name kuralai.automystics.tech;
+  root /home/automystics-kuralai/htdocs/kuralai.automystics.tech;
+
+  access_log /home/automystics-kuralai/logs/nginx/access.log main;
+  error_log /home/automystics-kuralai/logs/nginx/error.log;
+
+  if ($scheme != "https") {
+    rewrite ^ https://$host$request_uri permanent;
+  }
+
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+
+  
+
+  include /etc/nginx/global_settings;
+
+  index index.html;
+
+  location / {
+    proxy_pass http://127.0.0.1:3000/;
+    proxy_http_version 1.1;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Host $host;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_pass_request_headers on;
+    proxy_max_temp_file_size 0;
+    proxy_connect_timeout 900;
+    proxy_send_timeout 900;
+    proxy_read_timeout 900;
+    proxy_buffer_size 128k;
+    proxy_buffers 4 256k;
+    proxy_busy_buffers_size 256k;
+    proxy_temp_file_write_size 256k;
+  }
+}
+kuralai login: 502
+/home/automystics-kuralai
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+/tmp/kuralai-audio
+May 05 10:19:02 srv1609330 nginx[480743]: nginx: [warn] "ssl_stapling" ignored, no OCSP responder URL in the certificate "/etc/nginx/ssl-certificates/kuralai.automystics.tech.crt"
+May 05 14:32:46 srv1609330 sudo[497717]:     root : TTY=pts/2 ; PWD=/home/automystics-kuralai/htdocs/kuralai.automystics.tech ; USER=postgres ; COMMAND=/usr/bin/psql kuralai -c 'ALTER TABLE chit_accounts ADD COLUMN IF NOT EXISTS "isPrimary" BOOLEAN DEFAULT TRUE;'
+May 05 14:51:44 srv1609330 sudo[545833]:     root : TTY=pts/2 ; PWD=/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server ; USER=automystics-kuralai ; COMMAND=/usr/bin/bash -lc 'cd ~ && find . -maxdepth 4 -name ".git" -type d 2>/dev/null'
+May 05 14:51:44 srv1609330 sudo[545833]: pam_unix(sudo:session): session opened for user automystics-kuralai(uid=1003) by root(uid=0)
+May 05 14:51:44 srv1609330 sudo[545833]: pam_unix(sudo:session): session closed for user automystics-kuralai
+May 05 14:51:44 srv1609330 sudo[545841]:     root : TTY=pts/2 ; PWD=/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server ; USER=automystics-kuralai ; COMMAND=/usr/bin/bash -lc 'find /home/automystics-kuralai -maxdepth 6 -name "server.js" -path "*/src/*" 2>/dev/null'
+May 05 14:51:44 srv1609330 sudo[545841]: pam_unix(sudo:session): session opened for user automystics-kuralai(uid=1003) by root(uid=0)
+May 05 14:51:44 srv1609330 sudo[545841]: pam_unix(sudo:session): session closed for user automystics-kuralai
+May 05 14:51:44 srv1609330 sudo[545848]:     root : TTY=pts/2 ; PWD=/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server ; USER=automystics-kuralai ; COMMAND=/usr/bin/bash -lc 'pm2 list'
+May 05 14:51:44 srv1609330 sudo[545848]: pam_unix(sudo:session): session opened for user automystics-kuralai(uid=1003) by root(uid=0)
+May 05 14:51:45 srv1609330 sudo[545848]: pam_unix(sudo:session): session closed for user automystics-kuralai
+May 05 14:51:45 srv1609330 sudo[545873]:     root : TTY=pts/2 ; PWD=/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server ; USER=automystics-kuralai ; COMMAND=/usr/bin/bash -lc 'pm2 logs <name> --lines 120 --nostream'
+May 05 14:51:45 srv1609330 sudo[545873]: pam_unix(sudo:session): session opened for user automystics-kuralai(uid=1003) by root(uid=0)
+May 05 14:51:45 srv1609330 sudo[545873]: pam_unix(sudo:session): session closed for user automystics-kuralai
+May 05 14:52:12 srv1609330 sudo[547002]:     root : TTY=pts/2 ; PWD=/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server ; USER=automystics-kuralai ; COMMAND=/usr/bin/bash -lc 'cd <KURALAI_DIR> && git pull && pm2 restart <name> --update-env'
+May 05 14:52:12 srv1609330 sudo[547002]: pam_unix(sudo:session): session opened for user automystics-kuralai(uid=1003) by root(uid=0)
+May 05 14:52:12 srv1609330 sudo[547002]: pam_unix(sudo:session): session closed for user automystics-kuralai
+May 05 14:52:54 srv1609330 sudo[548825]:     root : TTY=pts/2 ; PWD=/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server ; USER=automystics-kuralai ; COMMAND=/usr/bin/bash -lc 'pm2 list'
+May 05 14:52:54 srv1609330 sudo[548825]: pam_unix(sudo:session): session opened for user automystics-kuralai(uid=1003) by root(uid=0)
+May 05 14:52:54 srv1609330 sudo[548825]: pam_unix(sudo:session): session closed for user automystics-kuralai
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics# 
