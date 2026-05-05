@@ -1,0 +1,170 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # ============ Apply app-settings via API + safe .env additions ============
+TOKEN=$(curl -s -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@kuralai.com","password":"KuralAI@Super123"}' \
+  | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)
+echo "Token: ${TOKEN:0:30}..."
+
+# 1. PUT all app-settings (Twilio/Exotel/OpenAI/Azure/ElevenLabs/Razorpay/etc.)
+#    NOTE: appUrl forced to KuralAI domain (not artificialintellizence.com)
+curl -s -X PUT https://kuralai.automystics.tech/api/settings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "telephonyProvider": "twilio",
+    "exotelSid": "kyro3602",
+    "exotelApiKey": "acbb96a876b5f77649272f3cadda84ab85a1298e1ef1ceed",
+    "exotelApiToken": "70f6c0c7ce0d5b45ac1ee31df49ba89160f16415611a413e",
+    "exotelPhoneNumber": "+918047280398",
+    "exotelWebhookToken": "kuralai-secret-2026",
+    "appUrl": "https://kuralai.automystics.tech",
+    "twilioAccountSid": "ACb0d77cd81e661ed093bcb0617c57d99e",
+    "twilioAuthToken": "4da1b5be8142661305d42cdd75b9cace",
+    "twilioPhoneNumber": "+16416666746",
+    "openaiApiKey": "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",
+    "openaiModel": "gpt-4o",
+    "ttsProvider": "elevenlabs",
+    "azureSpeechKey": "FMgRuyPGWgvB5lwh7uBbeKhMggSTHnGmpE38QLWHMwwb3npaox4KJQQJ99CDACGhslBXJ3w3AAAYACOG5Ibc",
+    "azureSpeechRegion": "centralindia",
+    "azureSpeechVoice": "ta-IN-PallaviNeural",
+    "elevenLabsApiKey": "cbbba04944fef103d1feff7da66277ceba16592b7886845695ba94abeba8b0ae",
+    "elevenLabsVoiceId": "ewhDNMMyMBipnXXTYPwy",
+    "awsRegion": "ap-south-1",
+    "maxCallDurationSeconds": 300,
+    "callRetryAttempts": 3,
+    "callRetryDelaySeconds": 60,
+    "silenceTimeoutSeconds": 5,
+    "apiKey": "kural_07930f9f93d3fd374fda9c474c18b979e2b3fdbe1f60b23e",
+unset TOKENil":"superadmin@kuralai.com","password":"KuralAI@Super123"}'ralai.automystics.tech/api/auth/login \
+Token: eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...
+{"success":true,"settings":{"telephonyProvider":"twilio","exotelSid":"••••••••","exotelApiKey":"••••••••","exotelApiToken":"••••••••","exotelPhoneNumber":"+918047280398","exotelWebhookToken":"••••••••","appUrl":"https://kuralai.automystics.tech","twilioAccountSid":"••••••••","twilioAuthToken":"••••••••"
+[PM2] Applying action restartProcessId on app [kuralai](ids: [ 0 ])
+[PM2] [kuralai](0) ✓
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ 1.0.0   │ fork    │ 693531   │ 0s     │ 1    │ online    │ 0%       │ 22.1mb   │ aut… │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+--- GET /api/settings (creds masked) ---
+{"success":true,"settings":{"telephonyProvider":"twilio","exotelSid":"••••••••","exotelApiKey":"••••••••","exotelApiToken":"••••••••","exotelPhoneNumber":"+918047280398","exotelWebhookToken":"••••••••","appUrl":"https://kuralai.automystics.tech","twilioAccountSid":"••••••••","twilioAuthToken":"••••••••","twilioPhoneNumber":"+16416666746","openaiApiKey":"••••••••","openaiModel":"gpt-4o","ttsProvider":"elevenlabs","azureSpeechKey":"••••••••","azureSpeechRegion":"centralindia","azureSpeechVoice":"ta-IN-PallaviNeural","elevenLabsApiKey":"••••••••","elevenLabsVoiceId":"ewhDNMMyMBipnXXTYPwy","awsAccessKeyId":"","awsSecretAccessKey":"","s3BucketName":"","awsRegion":"ap-south-1","maxCallDurationSeconds":300,"callRetryAttempts":3,"callRetryDelaySeconds":60,"silenceTimeoutSeconds":5,"escalationPhone":"","escalationWebhookUrl":"","inboundWorkflowId":"","a
+login: HTTP 200
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# TOKEN=$(curl -s -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@kuralai.com","password":"KuralAI@Super123"}' \
+  | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)
+
+# 1. What does GET /api/settings actually return (status + body)?
+echo "--- GET /api/settings ---"
+curl -s -w "\nHTTP %{http_code}\n" -H "Authorization: Bearer $TOKEN" \
+  https://kuralai.automystics.tech/api/settings
+
+# 2. Recent errors from kuralai
+echo "--- pm2 logs (last 60 lines) ---"
+sudo -u automystics-kuralai pm2 logs kuralai --lines 60 --nostream --err
+
+# 3. Does the app_settings table exist?
+sudo -u postgres psql kuralai -c "\dt app_settings"
+sudo -u postgres psql kuralai -c "SELECT key, jsonb_object_keys(data) FROM app_settings;" 2>&1 | head -20
+
+# 4. Does the config dir exist and is it writable?
+ls -la /home/automystics-kuralai/htdocs/kuralai.automystics.tech/config/ 2>&1
+
+unset TOKEN
+--- GET /api/settings ---
+{"success":true,"settings":{"telephonyProvider":"twilio","exotelSid":"••••••••","exotelApiKey":"••••••••","exotelApiToken":"••••••••","exotelPhoneNumber":"+918047280398","exotelWebhookToken":"••••••••","appUrl":"https://kuralai.automystics.tech","twilioAccountSid":"••••••••","twilioAuthToken":"••••••••","twilioPhoneNumber":"+16416666746","openaiApiKey":"••••••••","openaiModel":"gpt-4o","ttsProvider":"elevenlabs","azureSpeechKey":"••••••••","azureSpeechRegion":"centralindia","azureSpeechVoice":"ta-IN-PallaviNeural","elevenLabsApiKey":"••••••••","elevenLabsVoiceId":"ewhDNMMyMBipnXXTYPwy","awsAccessKeyId":"","awsSecretAccessKey":"","s3BucketName":"","awsRegion":"ap-south-1","maxCallDurationSeconds":300,"callRetryAttempts":3,"callRetryDelaySeconds":60,"silenceTimeoutSeconds":5,"escalationPhone":"","escalationWebhookUrl":"","inboundWorkflowId":"","apiKey":"••••••••","razorpayKeyId":"••••••••","razorpayKeySecret":"••••••••","elevenlabsToolKey":"kuralai_automystics","elevenlabsAgentId":"agent_6101kpdbj58jf7cat9gfvr1am094","elevenlabsAgentPhoneNumberId":"phnum_8901kpdkbqcgez4rrr5d445q5t4m","elevenlabsWebhookSecret":"","defaultEngine":"elevenlabs","sarvamApiKey":"","sarvamLanguageCode":"ta-IN","sarvamVoice":"meera","sarvamTtsModel":"bulbul:v2","sarvamSttModel":"saarika:v2","sarvamChatModel":"sarvam-m","sarvamSystemPrompt":"","sarvamGreeting":"","exotelSarvamAppId":"","companyName":"","servicesList":"","officeHours":"","supportNumber":"","officeAddress":"","usdToInrRate":92.5,"recordingDisclaimer":"இந்த அழைப்பு பயிற்சி மற்றும் தர ஆய்வுகளுக்காக பதிவு செய்யப்படுகிறது"}}
+HTTP 200
+--- pm2 logs (last 60 lines) ---
+[TAILING] Tailing last 60 lines for [kuralai] process (change the value with --lines option)
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 60 lines:
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:08:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:08:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:08:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:08:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:08:   path: '/tmp/kuralai-audio/6364d8f0-87fe-4cba-92c8-d2e4c2e4f20c.mp3'
+0|kuralai  | 2026-05-05T15:36:08: }
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/bd3f2344-83ae-45a9-947d-a40512d26863.mp3'
+0|kuralai  | 2026-05-05T15:36:08:     at Object.openSync (node:fs:560:18)
+0|kuralai  | 2026-05-05T15:36:08:     at Object.writeFileSync (node:fs:2444:35)
+0|kuralai  | 2026-05-05T15:36:08:     at storeAudioLocally (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:29:6)
+0|kuralai  | 2026-05-05T15:36:08:     at /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:221:33
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:08:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:08:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:08:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:08:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:08:   path: '/tmp/kuralai-audio/bd3f2344-83ae-45a9-947d-a40512d26863.mp3'
+0|kuralai  | 2026-05-05T15:36:08: }
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/de3eb5f4-dd82-435f-b783-3341cdc40dc0.mp3'
+0|kuralai  | 2026-05-05T15:36:08:     at Object.openSync (node:fs:560:18)
+0|kuralai  | 2026-05-05T15:36:08:     at Object.writeFileSync (node:fs:2444:35)
+0|kuralai  | 2026-05-05T15:36:08:     at storeAudioLocally (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:29:6)
+0|kuralai  | 2026-05-05T15:36:08:     at /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:221:33
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:08:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:08:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:08:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:08:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:08:   path: '/tmp/kuralai-audio/de3eb5f4-dd82-435f-b783-3341cdc40dc0.mp3'
+0|kuralai  | 2026-05-05T15:36:08: }
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/c8babd5c-3007-4506-84ed-6efd7f97c8bf.mp3'
+0|kuralai  | 2026-05-05T15:36:08:     at Object.openSync (node:fs:560:18)
+0|kuralai  | 2026-05-05T15:36:08:     at Object.writeFileSync (node:fs:2444:35)
+0|kuralai  | 2026-05-05T15:36:08:     at storeAudioLocally (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:29:6)
+0|kuralai  | 2026-05-05T15:36:08:     at /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:221:33
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:08:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:08:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:08:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:08:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:08:   path: '/tmp/kuralai-audio/c8babd5c-3007-4506-84ed-6efd7f97c8bf.mp3'
+0|kuralai  | 2026-05-05T15:36:08: }
+0|kuralai  | 2026-05-05T15:36:09: Error: EACCES: permission denied, open '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+0|kuralai  | 2026-05-05T15:36:09:     at Object.openSync (node:fs:560:18)
+0|kuralai  | 2026-05-05T15:36:09:     at Object.writeFileSync (node:fs:2444:35)
+0|kuralai  | 2026-05-05T15:36:09:     at storeAudioLocally (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:29:6)
+0|kuralai  | 2026-05-05T15:36:09:     at /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:221:33
+0|kuralai  | 2026-05-05T15:36:09:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:09:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:09:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:09:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:09:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:09:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:09:   path: '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+0|kuralai  | 2026-05-05T15:36:09: }
+
+            List of relations
+ Schema |     Name     | Type  |  Owner  
+--------+--------------+-------+---------
+ public | app_settings | table | kuralai
+(1 row)
+
+ key  |      jsonb_object_keys       
+------+------------------------------
+ main | apiKey
+ main | appUrl
+ main | awsRegion
+ main | exotelSid
+ main | companyName
+ main | officeHours
+ main | openaiModel
+ main | sarvamVoice
+ main | ttsProvider
+ main | exotelApiKey
+ main | openaiApiKey
+ main | s3BucketName
+ main | sarvamApiKey
+ main | servicesList
+ main | usdToInrRate
+ main | defaultEngine
+ main | officeAddress
+ main | razorpayKeyId
+total 60
+drwxrwx---  2 automystics-kuralai automystics-kuralai  4096 May  5 15:14 .
+drwxrwx--- 13 automystics-kuralai automystics-kuralai  4096 May  5 15:36 ..
+-rw-rw----  1 automystics-kuralai automystics-kuralai  2395 May  5 15:50 app-settings.json
+-rw-rw----  1 automystics-kuralai automystics-kuralai 37161 May  5 15:14 workflows.json
