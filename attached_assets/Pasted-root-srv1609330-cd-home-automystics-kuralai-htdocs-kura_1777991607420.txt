@@ -1,0 +1,42 @@
+root@srv1609330:~# cd /home/automystics-kuralai/htdocs/kuralai.automystics.tech
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # On the VPS — fix the DB schema (one-time)
+sudo -u postgres psql kuralai -c 'ALTER TABLE chit_accounts ADD COLUMN IF NOT EXISTS "isPrimary" BOOLEAN DEFAULT TRUE;'
+
+# Pull the new resilient controller and restart
+cd /root && git pull && pm2 restart kuralai --update-env
+
+# Verify
+curl -s https://kuralai.automystics.tech/api/dashboard/stats -H "Authorization: Bearer YOUR_TOKEN" | head -c 120
+curl -s https://kuralai.automystics.tech/api/customers     -H "Authorization: Bearer YOUR_TOKEN" | head -c 120
+NOTICE:  column "isPrimary" of relation "chit_accounts" already exists, skipping
+ALTER TABLE
+remote: Enumerating objects: 37, done.
+remote: Counting objects: 100% (37/37), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 24 (delta 18), reused 24 (delta 18), pack-reused 0 (from 0)
+Unpacking objects: 100% (24/24), 181.37 KiB | 6.48 MiB/s, done.
+From https://github.com/Karthickdac/MysticsHR
+   e686b7e..652f8bd  main       -> origin/main
+Updating e686b7e..652f8bd
+Fast-forward
+ artifacts/mysticshr/src/App.tsx                                                                  |   9 +++++++
+ artifacts/mysticshr/src/components/layout/nav-config.ts                                          |   8 ++++++
+ artifacts/mysticshr/src/pages/settings/api-docs.tsx                                              | 110 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ artifacts/mysticshr/src/pages/settings/api-keys.tsx                                              |   2 +-
+ artifacts/mysticshr/vite.config.ts                                                               |  21 +++++++--------
+ attached_assets/Pasted--You-have-new-mail-Last-login-Sat-May-2-04-42-32-2026-f_1777719819658.txt | 109 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ attached_assets/image_1777720352707.png                                                          | Bin 0 -> 189247 bytes
+ 7 files changed, 247 insertions(+), 12 deletions(-)
+ create mode 100644 artifacts/mysticshr/src/pages/settings/api-docs.tsx
+ create mode 100644 attached_assets/Pasted--You-have-new-mail-Last-login-Sat-May-2-04-42-32-2026-f_1777719819658.txt
+ create mode 100644 attached_assets/image_1777720352707.png
+[PM2][ERROR] Process or Namespace kuralai not found
+<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>ngin<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginroot@srv1609330:~# 
