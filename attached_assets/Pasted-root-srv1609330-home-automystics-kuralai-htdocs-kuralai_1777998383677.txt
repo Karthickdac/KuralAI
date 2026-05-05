@@ -1,0 +1,89 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# APP=/home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# 1. Check if server.js attaches anything else to /ws or upgrade events
+grep -nE "upgrade|/ws|noServer|handleUpgrade" $APP/src/server.js | head -20
+
+# 2. Hard kill + start (not just restart) — pm2 restart sometimes keeps cached modules
+sudo -u automystics-kuralai pm2 delete kuralai
+sudo -u automystics-kuralai pm2 start $APP/src/server.js --name kuralai --cwd $APP
+sleep 3
+sudo -u automystics-kuralai pm2 logs kuralai --lines 20 --nostream
+
+# 3. Re-test WS frames
+TOKEN=$(curl -s -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"superadmin@kuralai.com","password":"KuralAI@Super123"}' \
+  | grep -oE '"token":"[^"]+"' | cut -d'"' -f4)
+echo "=== WS test ==="
+timeout 4 wscat -n -c "wss://kuralai.automystics.tech/ws?token=$TOKEN" 2>&1 | head -5
+
+# 4. If still fails, also try with explicit no-extensions header (proves whether it's the negotiation or nginx)
+echo "=== WS test with no extensions requested ==="
+timeout 4 wscat -n --no-color -c "wss://kuralai.automystics.tech/ws?token=$TOKEN" -P "" 2>&1 | head -5
+
+unset TOKEN
+17:const { initWebSocket } = require('./websocket/wsServer');
+[PM2] Applying action deleteProcessId on app [kuralai](ids: [ 0 ])
+[PM2] [kuralai](0) ✓
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Starting /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/server.js in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ 1.0.0   │ fork    │ 782074   │ 0s     │ 0    │ online    │ 0%       │ 25.4mb   │ aut… │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[TAILING] Tailing last 20 lines for [kuralai] process (change the value with --lines option)
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 20 lines:
+0|kuralai  | 2026-05-05T15:36:08:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:08:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:08:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:08:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:08:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:08:   path: '/tmp/kuralai-audio/c8babd5c-3007-4506-84ed-6efd7f97c8bf.mp3'
+0|kuralai  | 2026-05-05T15:36:08: }
+0|kuralai  | 2026-05-05T15:36:09: Error: EACCES: permission denied, open '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+0|kuralai  | 2026-05-05T15:36:09:     at Object.openSync (node:fs:560:18)
+0|kuralai  | 2026-05-05T15:36:09:     at Object.writeFileSync (node:fs:2444:35)
+0|kuralai  | 2026-05-05T15:36:09:     at storeAudioLocally (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:29:6)
+0|kuralai  | 2026-05-05T15:36:09:     at /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:221:33
+0|kuralai  | 2026-05-05T15:36:09:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:09:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:09:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:09:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:09:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:09:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:09:   path: '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+0|kuralai  | 2026-05-05T15:36:09: }
+
+/home/automystics-kuralai/.pm2/logs/kuralai-out.log last 20 lines:
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: 📦 Serving dashboard from build directory
+]: ✅ Database connected
+]: ✅ WebSocket server initialized
+]: 🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)
+]: Retry scheduler started (runs every minute)
+]: ✅ Retry scheduler started
+]: 🚀 KuralAI server running on port 3000
+]:    Environment: production
+]:    App URL: https://kuralai.automystics.tech
+]: ElevenLabs TTS completed in 236ms for 61 chars
+]: ElevenLabs TTS completed in 247ms for 51 chars
+]: ElevenLabs TTS completed in 249ms for 82 chars
+]: ElevenLabs TTS completed in 271ms for 85 chars
+]: ElevenLabs TTS completed in 379ms for 69 chars
+]: ✅ Pre-warmed 5 static TTS phrases
+]: Dashboard WebSocket connected. Total clients: 1
+
+=== WS test ===
+{"type":"CONNECTED","timestamp":"2026-05-05T16:25:58.536Z"}
+error: Invalid WebSocket frame: RSV1 must be clear
+=== WS test with no extensions requested ===
+{"type":"CONNECTED","timestamp":"2026-05-05T16:25:58.647Z"}
+error: Invalid WebSocket frame: RSV1 must be clear
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
