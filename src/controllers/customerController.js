@@ -42,13 +42,27 @@ async function listCustomers(req, res) {
     const results = [];
 
     for (const c of customers) {
-      const chits = await ChitAccount.findAll({
-        where: { customerId: c.id },
-        order: [['isPrimary', 'DESC']],
-      });
+      let chits = [];
+      try {
+        chits = await ChitAccount.findAll({
+          where: { customerId: c.id },
+          order: [['isPrimary', 'DESC']],
+        });
+      } catch (chitErr) {
+        // Tolerate stale schema (e.g. older DBs missing isPrimary column).
+        logger.warn(`chits lookup failed for customer ${c.id}: ${chitErr.message}`);
+        try {
+          chits = await ChitAccount.findAll({ where: { customerId: c.id } });
+        } catch (_) { chits = []; }
+      }
       const primary = chits.find(ch => ch.isPrimary) || chits[0];
       const others  = chits.filter(ch => !ch.isPrimary);
-      const meta    = primary ? buildChitMetadata(c, primary, others[0] || null) : {};
+      let meta = {};
+      try {
+        meta = primary ? buildChitMetadata(c, primary, others[0] || null) : {};
+      } catch (metaErr) {
+        logger.warn(`buildChitMetadata failed for ${c.id}: ${metaErr.message}`);
+      }
 
       results.push({
         id:          c.id,
