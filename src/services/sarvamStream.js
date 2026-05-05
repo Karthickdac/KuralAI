@@ -308,7 +308,8 @@ class Session {
         });
         userText = (transcript || '').trim();
       } catch (e) {
-        logger.warn(`[sarvam-stream] STT failed call=${this.callId}: ${e.message}`);
+        const body = e.response?.data ? JSON.stringify(e.response.data).slice(0, 500) : '';
+        logger.warn(`[sarvam-stream] STT failed call=${this.callId}: ${e.message} body=${body}`);
       }
 
       if (!userText) { this.processing = false; return; }
@@ -361,7 +362,8 @@ class Session {
     try {
       wav = await tts(text, { speaker, model: ttsModel, languageCode: lang, sampleRate: targetSr });
     } catch (e) {
-      logger.warn(`[sarvam-stream] TTS failed call=${this.callId}: ${e.message}`);
+      const body = e.response?.data ? JSON.stringify(e.response.data).slice(0, 500) : '';
+      logger.warn(`[sarvam-stream] TTS failed call=${this.callId} speaker=${speaker} model=${ttsModel} lang=${lang} sr=${targetSr}: ${e.message} body=${body}`);
       return;
     }
 

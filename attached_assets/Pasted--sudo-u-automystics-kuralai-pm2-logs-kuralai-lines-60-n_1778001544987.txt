@@ -1,0 +1,28 @@
+  sudo -u automystics-kuralai pm2 logs kuralai --lines 60 --nostream | grep -iE 'sarvam-stream|TTS|STT|chat|error' | tail -25
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u automystics-kuralai pm2 logs kuralai --lines 60 --nostream | grep -iE 'sarvam-stream|TTS|STT|chat|error' | tail -25
+]: ElevenLabs TTS completed in 447ms for 205 chars
+]: ElevenLabs TTS completed in 204ms for 61 chars
+]: ElevenLabs TTS completed in 214ms for 72 chars
+]: ElevenLabs TTS completed in 231ms for 68 chars
+]: ElevenLabs TTS completed in 314ms for 101 chars
+]: ElevenLabs TTS completed in 326ms for 101 chars
+]: ElevenLabs TTS completed in 329ms for 110 chars
+]: ElevenLabs TTS completed in 207ms for 67 chars
+]: ElevenLabs TTS completed in 217ms for 87 chars
+]: ElevenLabs TTS completed in 242ms for 82 chars
+]: ElevenLabs TTS completed in 324ms for 104 chars
+]: ElevenLabs TTS completed in 330ms for 106 chars
+]: ElevenLabs TTS completed in 356ms for 120 chars
+]: ElevenLabs TTS completed in 375ms for 135 chars
+]: ElevenLabs TTS completed in 377ms for 112 chars
+]: Pre-warmed 63 TTS entries for call ef1b07cb-e718-4171-8bae-e5cc28c52078 (workflow: due_reminder)
+]: [sarvam-voice] TwiML returned for call ef1b07cb-e718-4171-8bae-e5cc28c52078 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=ef1b07cb-e718-4171-8bae-e5cc28c52078
+]: [sarvam-stream] START call=ef1b07cb-e718-4171-8bae-e5cc28c52078 provider=twilio stream=MZ61eaadf39277db41ca0bb316216a10ff in=mulaw@8000Hz
+]: [sarvam-stream] TTS failed call=ef1b07cb-e718-4171-8bae-e5cc28c52078: Request failed with status code 400
+]: [sarvam-stream] STT failed call=ef1b07cb-e718-4171-8bae-e5cc28c52078: Request failed with status code 400
+]: [sarvam-stream] STT failed call=ef1b07cb-e718-4171-8bae-e5cc28c52078: Request failed with status code 400
+]: [sarvam-stream] STOP call=ef1b07cb-e718-4171-8bae-e5cc28c52078
+]: WEBHOOK HIT: POST /recording/status | ip=98.87.8.131 | qs={"callId":"ef1b07cb-e718-4171-8bae-e5cc28c52078","wt":"kuralai-wh"} | body={"RecordingSource":"OutboundAPI","RecordingTrack":"both","RecordingSid":"REd4fedd70b5f5e8cba967085722734f72","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REd4fedd70b5f5e8cba967085722734f72","RecordingStatus":"completed","RecordingChannels":"2","ErrorCode":"0","CallSid":"CA06476001f8d3240609117cd527b0df55","RecordingStartTime":"Tue, 05 May 2026 17:18:29 +0000","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","RecordingDuration":"7"}
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
