@@ -1,0 +1,22 @@
+==> Place a real call now, then run:
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -iE 'sarvam|stream|wt|START call|STOP call|error' | tail -30
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# Place a real call now, then run:
+    sudo -u automystics-kuralai pm2 logs kuralai --lines 80 --nostream | grep -iE 'sarvam|stream|wt|START call|STOP call|error' | tail -30
+Place: command not found
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 80 lines:
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/6364d8f0-87fe-4cba-92c8-d2e4c2e4f20c.mp3'
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/bd3f2344-83ae-45a9-947d-a40512d26863.mp3'
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/de3eb5f4-dd82-435f-b783-3341cdc40dc0.mp3'
+0|kuralai  | 2026-05-05T15:36:08: Error: EACCES: permission denied, open '/tmp/kuralai-audio/c8babd5c-3007-4506-84ed-6efd7f97c8bf.mp3'
+0|kuralai  | 2026-05-05T15:36:09: Error: EACCES: permission denied, open '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+]: [dispatcher] engine=sarvam call=2dd5230f-53e2-4ac1-a854-7af0e87ea4cf
+]: [Sarvam→Twilio] Dialing +917358337470 (call 2dd5230f-53e2-4ac1-a854-7af0e87ea4cf)
+]: WEBHOOK HIT: POST /call/status | ip=18.215.247.20 | qs={"callId":"2dd5230f-53e2-4ac1-a854-7af0e87ea4cf","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 17:08:01 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"0","CallSid":"CA130a56937e1b9448c073f5630ad67bfb","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"initiated","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: WEBHOOK HIT: POST /call/status | ip=54.227.7.117 | qs={"callId":"2dd5230f-53e2-4ac1-a854-7af0e87ea4cf","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 17:08:04 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"1","CallSid":"CA130a56937e1b9448c073f5630ad67bfb","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"ringing","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: WEBHOOK HIT: POST /call/status | ip=35.175.204.184 | qs={"callId":"2dd5230f-53e2-4ac1-a854-7af0e87ea4cf","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Tue, 05 May 2026 17:08:06 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"2","CallSid":"CA130a56937e1b9448c073f5630ad67bfb","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"in-progress","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: [sarvam-voice] TwiML returned for call 2dd5230f-53e2-4ac1-a854-7af0e87ea4cf → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=2dd5230f-53e2-4ac1-a854-7af0e87ea4cf
+]: [sarvam-stream] START call=2dd5230f-53e2-4ac1-a854-7af0e87ea4cf provider=twilio stream=MZ4fa950d0e194b0ea926b49404bd3b1a9 in=mulaw@8000Hz
+]: [sarvam-stream] TTS failed call=2dd5230f-53e2-4ac1-a854-7af0e87ea4cf: Request failed with status code 403
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
