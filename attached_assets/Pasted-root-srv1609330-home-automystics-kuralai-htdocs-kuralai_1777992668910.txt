@@ -1,0 +1,156 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Show where each PM2 process actually runs from — the one with kuralai/server.js is your backend
+pm2 describe automystics-api | grep -E "script path|exec cwd|name"
+pm2 describe mystics-api     | grep -E "script path|exec cwd|name"
+
+# 2. Once you know the real path (let's call it $KURALAI_DIR), pull + restart there:
+KURALAI_DIR=$(pm2 describe automystics-api | awk '/exec cwd/ {print $5}')
+echo "KuralAI lives at: $KURALAI_DIR"
+cd "$KURALAI_DIR" && git pull && pm2 restart automystics-api --update-env
+
+# 3. Get the REAL error from the right process
+pm2 logs automystics-api --lines 100 --nostream | tail -120
+ Describing process with id 6 - name automystics-api 
+│ name              │ automystics-api                                                                              │
+│ namespace         │ default                                                                                      │
+│ script path       │ /home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server/dist/index.mjs │
+│ exec cwd          │ /home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server                │
+ Trigger via: pm2 trigger automystics-api <action_name>
+ Describing process with id 7 - name mystics-api 
+│ name              │ mystics-api                                                                                                          │
+│ namespace         │ default                                                                                                              │
+│ script path       │ /home/automystics-mysticsinv/htdocs/mysticsinv.automystics.tech/MysticsInventory/artifacts/api-server/dist/index.mjs │
+│ exec cwd          │ /home/automystics-mysticsinv/htdocs/mysticsinv.automystics.tech/MysticsInventory                                     │
+ Trigger via: pm2 trigger mystics-api <action_name>
+KuralAI lives at: /home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server
+Already up to date.
+[PM2] Applying action restartProcessId on app [automystics-api](ids: [ 6 ])
+[PM2] [automystics-api](6) ✓
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 6  │ automystics-api    │ default     │ 0.0.0   │ fork    │ 543673   │ 0s     │ 20   │ online    │ 0%       │ 16.4mb   │ root     │ disabled │
+│ 2  │ fitro360           │ default     │ 1.0.0   │ fork    │ 541298   │ 57s    │ 8    │ online    │ 0%       │ 103.9mb  │ root     │ disabled │
+│ 3  │ kalvicore-api      │ default     │ 0.0.0   │ fork    │ 541305   │ 57s    │ 2    │ online    │ 0%       │ 98.5mb   │ root     │ disabled │
+│ 7  │ mystics-api        │ default     │ 0.0.0   │ fork    │ 541319   │ 57s    │ 8    │ online    │ 0%       │ 141.2mb  │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+6|automyst | 2026-04-29T13:02:09:     at PGStore._asyncQuery (file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/connect-pg-simple@10.0.0/node_modules/connect-pg-simple/index.js:322:21) {
+6|automyst | 2026-04-29T13:02:09:   length: 112,
+6|automyst | 2026-04-29T13:02:09:   severity: 'ERROR',
+6|automyst | 2026-04-29T13:02:09:   code: '42P01',
+6|automyst | 2026-04-29T13:02:09:   detail: undefined,
+6|automyst | 2026-04-29T13:02:09:   hint: undefined,
+6|automyst | 2026-04-29T13:02:09:   position: '13',
+6|automyst | 2026-04-29T13:02:09:   internalPosition: undefined,
+6|automyst | 2026-04-29T13:02:09:   internalQuery: undefined,
+6|automyst | 2026-04-29T13:02:09:   where: undefined,
+6|automyst | 2026-04-29T13:02:09:   schema: undefined,
+6|automyst | 2026-04-29T13:02:09:   table: undefined,
+6|automyst | 2026-04-29T13:02:09:   column: undefined,
+6|automyst | 2026-04-29T13:02:09:   dataType: undefined,
+6|automyst | 2026-04-29T13:02:09:   constraint: undefined,
+6|automyst | 2026-04-29T13:02:09:   file: 'parse_relation.c',
+6|automyst | 2026-04-29T13:02:09:   line: '1449',
+6|automyst | 2026-04-29T13:02:09:   routine: 'parserOpenTable'
+6|automyst | 2026-04-29T13:02:09: }
+6|automyst | 2026-04-29T13:06:51: error: relation "user_sessions" does not exist
+6|automyst | 2026-04-29T13:06:51:     at file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/pg-pool@3.13.0_pg@8.20.0/node_modules/pg-pool/index.js:45:11
+6|automyst | 2026-04-29T13:06:51:     at processTicksAndRejections (node:internal/process/task_queues:103:5)
+6|automyst | 2026-04-29T13:06:51:     at PGStore._asyncQuery (file:///home/automystics/htdocs/www.automystics.com/automystics/node_modules/.pnpm/connect-pg-simple@10.0.0/node_modules/connect-pg-simple/index.js:322:21)
+
+/var/log/automystics/api.out.log last 100 lines:
+6|automyst | 26-05-05T09:20:54: {"level":30,"time":1777972854861,"pid":288690,"hostname":"srv1609330","req":{"id":2953,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T09:21:05: {"level":30,"time":1777972865274,"pid":288690,"hostname":"srv1609330","req":{"id":2954,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T09:21:15: {"level":30,"time":1777972875649,"pid":288690,"hostname":"srv1609330","req":{"id":2955,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T09:21:25: {"level":30,"time":1777972885991,"pid":288690,"hostname":"srv1609330","req":{"id":2956,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T09:21:36: {"level":30,"time":1777972896362,"pid":288690,"hostname":"srv1609330","req":{"id":2957,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T09:21:46: {"level":30,"time":1777972906769,"pid":288690,"hostname":"srv1609330","req":{"id":2958,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T09:21:57: {"level":30,"time":1777972917075,"pid":288690,"hostname":"srv1609330","req":{"id":2959,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T09:22:07: {"level":30,"time":1777972927528,"pid":288690,"hostname":"srv1609330","req":{"id":2960,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T09:22:17: {"level":30,"time":1777972937849,"pid":288690,"hostname":"srv1609330","req":{"id":2961,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T09:22:28: {"level":30,"time":1777972948295,"pid":288690,"hostname":"srv1609330","req":{"id":2962,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T09:22:38: {"level":30,"time":1777972958600,"pid":288690,"hostname":"srv1609330","req":{"id":2963,"method":"GET","url":"/xmlrpc.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T09:41:24: {"level":30,"time":1777974084108,"pid":288690,"hostname":"srv1609330","req":{"id":2964,"method":"GET","url":"/robots.txt"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T10:12:53: {"level":30,"time":1777975973830,"pid":288690,"hostname":"srv1609330","req":{"id":2965,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T10:42:51: {"level":30,"time":1777977771123,"pid":288690,"hostname":"srv1609330","req":{"id":2966,"method":"GET","url":"/"},"res":{"statusCode":304},"responseTime":10,"msg":"request completed"}
+6|automyst | 2026-05-05T10:42:52: {"level":30,"time":1777977772115,"pid":288690,"hostname":"srv1609330","req":{"id":2967,"method":"GET","url":"/api/public/products"},"res":{"statusCode":304},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T10:42:52: {"level":30,"time":1777977772123,"pid":288690,"hostname":"srv1609330","req":{"id":2968,"method":"GET","url":"/api/public/site"},"res":{"statusCode":304},"responseTime":8,"msg":"request completed"}
+6|automyst | 2026-05-05T10:42:52: {"level":30,"time":1777977772125,"pid":288690,"hostname":"srv1609330","req":{"id":2969,"method":"GET","url":"/logo.jpeg"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T10:42:52: {"level":30,"time":1777977772130,"pid":288690,"hostname":"srv1609330","req":{"id":2970,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":304},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T10:42:52: {"level":30,"time":1777977772137,"pid":288690,"hostname":"srv1609330","req":{"id":2971,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":304},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T10:43:57: {"level":30,"time":1777977837648,"pid":288690,"hostname":"srv1609330","req":{"id":2972,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:02: {"level":30,"time":1777977842194,"pid":288690,"hostname":"srv1609330","req":{"id":2973,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:02: {"level":30,"time":1777977842475,"pid":288690,"hostname":"srv1609330","req":{"id":2974,"method":"GET","url":"/assets/index-rKSCO7DF.js"},"res":{"statusCode":200},"responseTime":40,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:03: {"level":30,"time":1777977843184,"pid":288690,"hostname":"srv1609330","req":{"id":2975,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":11,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:03: {"level":30,"time":1777977843215,"pid":288690,"hostname":"srv1609330","req":{"id":2976,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:03: {"level":30,"time":1777977843223,"pid":288690,"hostname":"srv1609330","req":{"id":2977,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":9,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:12: {"level":30,"time":1777977852337,"pid":288690,"hostname":"srv1609330","req":{"id":2978,"method":"GET","url":"/txets.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:12: {"level":30,"time":1777977852792,"pid":288690,"hostname":"srv1609330","req":{"id":2979,"method":"GET","url":"/wp-content/txets.php"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:13: {"level":30,"time":1777977853906,"pid":288690,"hostname":"srv1609330","req":{"id":2980,"method":"GET","url":"/wp-admin/txets.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T10:44:19: {"level":30,"time":1777977859186,"pid":288690,"hostname":"srv1609330","req":{"id":2981,"method":"GET","url":"/wp-includes/txets.php"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:09:27: {"level":30,"time":1777979367362,"pid":288690,"hostname":"srv1609330","req":{"id":2982,"method":"GET","url":"/"},"res":{"statusCode":304},"responseTime":9,"msg":"request completed"}
+6|automyst | 2026-05-05T11:09:27: {"level":30,"time":1777979367830,"pid":288690,"hostname":"srv1609330","req":{"id":2983,"method":"GET","url":"/api/public/products"},"res":{"statusCode":304},"responseTime":4,"msg":"request completed"}
+6|automyst | 2026-05-05T11:09:27: {"level":30,"time":1777979367832,"pid":288690,"hostname":"srv1609330","req":{"id":2985,"method":"GET","url":"/api/public/site"},"res":{"statusCode":304},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:09:27: {"level":30,"time":1777979367839,"pid":288690,"hostname":"srv1609330","req":{"id":2984,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":304},"responseTime":12,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:14: {"level":30,"time":1777980014818,"pid":288690,"hostname":"srv1609330","req":{"id":2986,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:15: {"level":30,"time":1777980015945,"pid":288690,"hostname":"srv1609330","req":{"id":2987,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:16: {"level":30,"time":1777980016023,"pid":288690,"hostname":"srv1609330","req":{"id":2988,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":9,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:16: {"level":30,"time":1777980016064,"pid":288690,"hostname":"srv1609330","req":{"id":2989,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:16: {"level":30,"time":1777980016077,"pid":288690,"hostname":"srv1609330","req":{"id":2990,"method":"GET","url":"/logo.jpeg"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:16: {"level":30,"time":1777980016090,"pid":288690,"hostname":"srv1609330","req":{"id":2991,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:20:16: {"level":30,"time":1777980016675,"pid":288690,"hostname":"srv1609330","req":{"id":2992,"method":"GET","url":"/favicon.svg"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:21:31: {"level":30,"time":1777980091090,"pid":288690,"hostname":"srv1609330","req":{"id":2993,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:21:32: {"level":30,"time":1777980092394,"pid":288690,"hostname":"srv1609330","req":{"id":2994,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:21:32: {"level":30,"time":1777980092438,"pid":288690,"hostname":"srv1609330","req":{"id":2996,"method":"GET","url":"/logo.jpeg"},"res":{"statusCode":304},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T11:21:32: {"level":30,"time":1777980092450,"pid":288690,"hostname":"srv1609330","req":{"id":2995,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":26,"msg":"request completed"}
+6|automyst | 2026-05-05T11:21:32: {"level":30,"time":1777980092459,"pid":288690,"hostname":"srv1609330","req":{"id":2997,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:21:32: {"level":30,"time":1777980092479,"pid":288690,"hostname":"srv1609330","req":{"id":2998,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T11:27:08: {"level":30,"time":1777980428836,"pid":288690,"hostname":"srv1609330","req":{"id":2999,"method":"GET","url":"/wp-login.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:27:09: {"level":30,"time":1777980429661,"pid":288690,"hostname":"srv1609330","req":{"id":3000,"method":"GET","url":"/wp-login.php"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:27:09: {"level":30,"time":1777980429998,"pid":288690,"hostname":"srv1609330","req":{"id":3001,"method":"GET","url":"/wp-admin/"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:48:56: {"level":30,"time":1777981736143,"pid":288690,"hostname":"srv1609330","req":{"id":3002,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:48:56: {"level":30,"time":1777981736412,"pid":288690,"hostname":"srv1609330","req":{"id":3004,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":8,"msg":"request completed"}
+6|automyst | 2026-05-05T11:48:56: {"level":30,"time":1777981736413,"pid":288690,"hostname":"srv1609330","req":{"id":3003,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":11,"msg":"request completed"}
+6|automyst | 2026-05-05T11:48:56: {"level":30,"time":1777981736414,"pid":288690,"hostname":"srv1609330","req":{"id":3005,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":9,"msg":"request completed"}
+6|automyst | 2026-05-05T11:53:38: {"level":30,"time":1777982018991,"pid":288690,"hostname":"srv1609330","req":{"id":3006,"method":"GET","url":"/.git/config"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:53:39: {"level":30,"time":1777982019021,"pid":288690,"hostname":"srv1609330","req":{"id":3007,"method":"GET","url":"/.git/HEAD"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T11:53:39: {"level":30,"time":1777982019043,"pid":288690,"hostname":"srv1609330","req":{"id":3008,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T11:58:59: {"level":30,"time":1777982339653,"pid":288690,"hostname":"srv1609330","req":{"id":3009,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T11:59:00: {"level":30,"time":1777982340406,"pid":288690,"hostname":"srv1609330","req":{"id":3010,"method":"GET","url":"/contact"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T12:49:59: {"level":30,"time":1777985399776,"pid":288690,"hostname":"srv1609330","req":{"id":3011,"method":"GET","url":"/.env"},"res":{"statusCode":200},"responseTime":6,"msg":"request completed"}
+6|automyst | 2026-05-05T12:57:15: {"level":30,"time":1777985835071,"pid":288690,"hostname":"srv1609330","req":{"id":3012,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":14,"msg":"request aborted"}
+6|automyst | 2026-05-05T12:57:16: {"level":30,"time":1777985836255,"pid":288690,"hostname":"srv1609330","req":{"id":3013,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":6,"msg":"request completed"}
+6|automyst | 2026-05-05T12:57:16: {"level":30,"time":1777985836583,"pid":288690,"hostname":"srv1609330","req":{"id":3014,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":304},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T12:57:16: {"level":30,"time":1777985836590,"pid":288690,"hostname":"srv1609330","req":{"id":3015,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":5,"msg":"request completed"}
+6|automyst | 2026-05-05T12:57:16: {"level":30,"time":1777985836608,"pid":288690,"hostname":"srv1609330","req":{"id":3016,"method":"GET","url":"/logo.jpeg"},"res":{"statusCode":304},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T12:57:16: {"level":30,"time":1777985836676,"pid":288690,"hostname":"srv1609330","req":{"id":3017,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+6|automyst | 2026-05-05T13:00:25: {"level":30,"time":1777986025404,"pid":288690,"hostname":"srv1609330","req":{"id":3018,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:03: {"level":30,"time":1777986123976,"pid":288690,"hostname":"srv1609330","req":{"id":3019,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:04: {"level":30,"time":1777986124959,"pid":288690,"hostname":"srv1609330","req":{"id":3022,"method":"GET","url":"/logo.jpeg"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:04: {"level":30,"time":1777986124960,"pid":288690,"hostname":"srv1609330","req":{"id":3020,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":13,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:04: {"level":30,"time":1777986124965,"pid":288690,"hostname":"srv1609330","req":{"id":3023,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:04: {"level":30,"time":1777986124966,"pid":288690,"hostname":"srv1609330","req":{"id":3021,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":12,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:04: {"level":30,"time":1777986124992,"pid":288690,"hostname":"srv1609330","req":{"id":3024,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:02:10: {"level":30,"time":1777986130638,"pid":288690,"hostname":"srv1609330","req":{"id":3025,"method":"GET","url":"/favicon.svg"},"res":{"statusCode":304},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:54: {"level":30,"time":1777987194889,"pid":288690,"hostname":"srv1609330","req":{"id":3026,"method":"GET","url":"/contact"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:55: {"level":30,"time":1777987195426,"pid":288690,"hostname":"srv1609330","req":{"id":3027,"method":"GET","url":"/assets/index-rKSCO7DF.js"},"res":{"statusCode":200},"responseTime":3,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:55: {"level":30,"time":1777987195474,"pid":288690,"hostname":"srv1609330","req":{"id":3028,"method":"GET","url":"/assets/index-BH8VoYOJ.css"},"res":{"statusCode":200},"responseTime":9,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:56: {"level":30,"time":1777987196823,"pid":288690,"hostname":"srv1609330","req":{"id":3029,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":10,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:56: {"level":30,"time":1777987196836,"pid":288690,"hostname":"srv1609330","req":{"id":3030,"method":"GET","url":"/api/public/site"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:56: {"level":30,"time":1777987196841,"pid":288690,"hostname":"srv1609330","req":{"id":3031,"method":"GET","url":"/logo.jpeg"},"res":{"statusCode":304},"responseTime":0,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:56: {"level":30,"time":1777987196845,"pid":288690,"hostname":"srv1609330","req":{"id":3032,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:56: {"level":30,"time":1777987196863,"pid":288690,"hostname":"srv1609330","req":{"id":3033,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":200},"responseTime":6,"msg":"request completed"}
+6|automyst | 2026-05-05T13:19:57: {"level":30,"time":1777987197073,"pid":288690,"hostname":"srv1609330","req":{"id":3034,"method":"GET","url":"/favicon.svg"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T13:53:11: {"level":30,"time":1777989191415,"pid":288690,"hostname":"srv1609330","req":{"id":3035,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T14:07:14: {"level":30,"time":1777990034475,"pid":288690,"hostname":"srv1609330","req":{"id":3036,"method":"GET","url":"/robots.txt"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T14:07:17: {"level":30,"time":1777990037947,"pid":288690,"hostname":"srv1609330","req":{"id":3037,"method":"GET","url":"/logo-icon.png"},"res":{"statusCode":200},"responseTime":2,"msg":"request completed"}
+6|automyst | 2026-05-05T14:37:04: {"level":30,"time":1777991824703,"pid":288690,"hostname":"srv1609330","req":{"id":3038,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":10,"msg":"request aborted"}
+6|automyst | 2026-05-05T14:37:06: {"level":30,"time":1777991826067,"pid":288690,"hostname":"srv1609330","req":{"id":3039,"method":"GET","url":"/api/public/site"},"res":{"statusCode":304},"responseTime":4,"msg":"request completed"}
+6|automyst | 2026-05-05T14:37:06: {"level":30,"time":1777991826087,"pid":288690,"hostname":"srv1609330","req":{"id":3040,"method":"GET","url":"/api/public/locations"},"res":{"statusCode":304},"responseTime":4,"msg":"request completed"}
+6|automyst | 2026-05-05T14:37:06: {"level":30,"time":1777991826116,"pid":288690,"hostname":"srv1609330","req":{"id":3041,"method":"GET","url":"/api/public/products"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+6|automyst | 2026-05-05T14:39:45: {"level":30,"time":1777991985609,"pid":288690,"hostname":"srv1609330","req":{"id":3042,"method":"GET","url":"/sitemap.xml"},"res":{"statusCode":200},"responseTime":1,"msg":"request completed"}
+6|automyst | 2026-05-05T14:49:58: {"level":30,"time":1777992598407,"pid":541314,"hostname":"srv1609330","staticDir":"/home/automystics/htdocs/www.automystics.com/automystics/artifacts/automystics/dist/public","msg":"Serving static frontend"}
+6|automyst | 2026-05-05T14:49:58: {"level":30,"time":1777992598418,"pid":541314,"hostname":"srv1609330","port":8090,"msg":"Server listening"}
+6|automyst | 2026-05-05T14:49:58: {"level":30,"time":1777992598473,"pid":541314,"hostname":"srv1609330","msg":"products table already populated, skipping seed"}
+6|automyst | 2026-05-05T14:49:58: {"level":30,"time":1777992598478,"pid":541314,"hostname":"srv1609330","username":"admin","msg":"default admin already exists"}
+
+root@srv1609330:/home/automystics/htdocs/www.automystics.com/automystics/artifacts/api-server# 
