@@ -1,0 +1,44 @@
+==> Call now
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech#sudo -u automystics-kuralai pm2 logs kuralai --lines 100 --nostream 2>&1 \\
+  | grep -iE "sarvam|stream|TTS|STT|chat|error|❌|status code|wt verified|START call" | tail -40
+]: ElevenLabs TTS completed in 230ms for 75 chars
+]: ElevenLabs TTS completed in 266ms for 81 chars
+]: ElevenLabs TTS completed in 317ms for 101 chars
+]: ElevenLabs TTS completed in 215ms for 61 chars
+]: ElevenLabs TTS completed in 217ms for 68 chars
+]: ElevenLabs TTS completed in 240ms for 84 chars
+]: ElevenLabs TTS completed in 338ms for 130 chars
+]: ElevenLabs TTS completed in 346ms for 98 chars
+]: ElevenLabs TTS completed in 354ms for 129 chars
+]: ElevenLabs TTS completed in 188ms for 46 chars
+]: ElevenLabs TTS completed in 190ms for 39 chars
+]: ElevenLabs TTS completed in 314ms for 98 chars
+]: ElevenLabs TTS completed in 423ms for 47 chars
+]: ElevenLabs TTS completed in 428ms for 178 chars
+]: ElevenLabs TTS completed in 437ms for 205 chars
+]: ElevenLabs TTS completed in 207ms for 61 chars
+]: ElevenLabs TTS completed in 211ms for 68 chars
+]: ElevenLabs TTS completed in 216ms for 72 chars
+]: ElevenLabs TTS completed in 336ms for 101 chars
+]: ElevenLabs TTS completed in 344ms for 101 chars
+]: ElevenLabs TTS completed in 346ms for 110 chars
+]: ElevenLabs TTS completed in 228ms for 82 chars
+]: ElevenLabs TTS completed in 229ms for 67 chars
+]: ElevenLabs TTS completed in 229ms for 87 chars
+]: ElevenLabs TTS completed in 336ms for 104 chars
+]: ElevenLabs TTS completed in 337ms for 106 chars
+]: ElevenLabs TTS completed in 352ms for 120 chars
+]: ElevenLabs TTS completed in 343ms for 112 chars
+]: ElevenLabs TTS completed in 358ms for 135 chars
+]: Pre-warmed 63 TTS entries for call 036860df-0ce1-4eac-8ef5-b3c0f8356c34 (workflow: due_reminder)
+]: [sarvam-voice] TwiML returned for call 036860df-0ce1-4eac-8ef5-b3c0f8356c34 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=036860df-0ce1-4eac-8ef5-b3c0f8356c34
+]: [sarvam-stream] START call=036860df-0ce1-4eac-8ef5-b3c0f8356c34 provider=twilio stream=MZ17ccacf41d735d1e3ea09795ee01aafc in=mulaw@8000Hz
+]: [sarvam-stream] TTS failed call=036860df-0ce1-4eac-8ef5-b3c0f8356c34: Request failed with status code 400
+]: [sarvam-stream] STT failed call=036860df-0ce1-4eac-8ef5-b3c0f8356c34: Request failed with status code 400
+]: [sarvam-stream] STT failed call=036860df-0ce1-4eac-8ef5-b3c0f8356c34: Request failed with status code 400
+]: [sarvam-stream] STT failed call=036860df-0ce1-4eac-8ef5-b3c0f8356c34: Request failed with status code 400
+]: [sarvam-stream] STOP call=036860df-0ce1-4eac-8ef5-b3c0f8356c34
+]: WEBHOOK HIT: POST /recording/status | ip=3.80.88.123 | qs={"callId":"036860df-0ce1-4eac-8ef5-b3c0f8356c34","wt":"kuralai-wh"} | body={"RecordingSource":"OutboundAPI","RecordingTrack":"both","RecordingSid":"RE076c1f4856335df09d089fc49cdaf732","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/RE076c1f4856335df09d089fc49cdaf732","RecordingStatus":"completed","RecordingChannels":"2","ErrorCode":"0","CallSid":"CAbc022a735f8b5ea34094bfde7e175dd0","RecordingStartTime":"Tue, 05 May 2026 17:14:06 +0000","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","RecordingDuration":"9"}
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
