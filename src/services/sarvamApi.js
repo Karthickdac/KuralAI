@@ -80,20 +80,25 @@ async function tts(text, {
   // Sarvam TTS has a per-input length cap (~500 chars). Chunk if needed.
   const chunks = chunkText(text, 480);
   const audios = [];
+  // bulbul:v3 (and v3-beta) do NOT accept pitch/loudness — Sarvam returns 400.
+  const isV3 = /^bulbul:v3/i.test(model);
   for (const chunk of chunks) {
+    const payload = {
+      inputs: [chunk],
+      target_language_code: languageCode,
+      speaker,
+      model,
+      speech_sample_rate: sampleRate,
+      pace,
+      enable_preprocessing: true,
+    };
+    if (!isV3) {
+      payload.pitch = pitch;
+      payload.loudness = loudness;
+    }
     const resp = await axios.post(
       `${SARVAM_BASE}/text-to-speech`,
-      {
-        inputs: [chunk],
-        target_language_code: languageCode,
-        speaker,
-        model,
-        speech_sample_rate: sampleRate,
-        pitch,
-        pace,
-        loudness,
-        enable_preprocessing: true,
-      },
+      payload,
       {
         headers: authHeaders({ 'Content-Type': 'application/json' }),
         timeout: 30000,
