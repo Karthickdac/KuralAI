@@ -304,7 +304,7 @@ class Session {
       try {
         const { transcript } = await stt(wav, {
           languageCode: this.langCode(),
-          model: getSettingsSync().sarvamSttModel || 'saarika:v2',
+          model: getSettingsSync().sarvamSttModel || 'saarika:v2.5',
         });
         userText = (transcript || '').trim();
       } catch (e) {

@@ -25,7 +25,7 @@ function authHeaders(extra = {}) {
  * Speech-to-Text. Accepts a WAV buffer.
  * Returns { transcript, languageCode }.
  */
-async function stt(wavBuffer, { languageCode = 'ta-IN', model = 'saarika:v2' } = {}) {
+async function stt(wavBuffer, { languageCode = 'ta-IN', model = 'saarika:v2.5' } = {}) {
   const fd = new FormData();
   fd.append('file', wavBuffer, { filename: 'turn.wav', contentType: 'audio/wav' });
   fd.append('model', model);
