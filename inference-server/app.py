@@ -22,7 +22,7 @@ import logging
 import os
 import time
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel
@@ -49,13 +49,21 @@ BOOT_TS = time.time()
 
 
 # ─── Auth ─────────────────────────────────────────────────────────────────────
-def _require_token(authorization: str | None) -> None:
+# Header(...) makes FastAPI extract the value from HTTP headers (it converts
+# `authorization` → `Authorization`). Without Header(), FastAPI treats the
+# parameter as a query string arg and the bearer token never reaches the check.
+def require_token(authorization: str | None = Header(None)) -> None:
     if not API_TOKEN:
-        return  # auth disabled
+        return  # auth disabled (dev mode)
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "missing bearer token")
     if authorization.removeprefix("Bearer ").strip() != API_TOKEN:
         raise HTTPException(403, "invalid token")
+
+
+# Back-compat alias for any code path that still calls it manually.
+def _require_token(authorization: str | None) -> None:
+    require_token(authorization)
 
 
 # ─── Startup: warm models ─────────────────────────────────────────────────────
@@ -82,10 +90,14 @@ async def _warmup() -> None:
 def health() -> JSONResponse:
     engines = {name: e.status() for name, e in REGISTRY.items()}
     ready = all(s.get("state") == "ready" for s in engines.values())
+    # Concurrent inference count — sum of in-flight requests reported by each
+    # engine when available (engines that don't track this report 0).
+    concurrent = sum(int(s.get("in_flight", 0) or 0) for s in engines.values())
     return JSONResponse(
         {
             "ready": ready,
             "uptime_seconds": int(time.time() - BOOT_TS),
+            "concurrent_requests": concurrent,
             "engines": engines,
         },
         status_code=200 if ready else 503,
@@ -98,9 +110,8 @@ async def stt_endpoint(
     file: UploadFile = File(...),
     language: str = Form("auto"),
     model: str = Form("whisper-large-v3"),
-    authorization: str | None = None,
+    _: None = Depends(require_token),
 ) -> JSONResponse:
-    _require_token(authorization)
     engine = REGISTRY.get("stt")
     if not engine or not engine.is_ready():
         raise HTTPException(503, "STT not ready")
@@ -131,7 +142,7 @@ class ChatRequest(BaseModel):
 
 
 @app.post("/llm/chat")
-async def llm_chat(req: ChatRequest) -> StreamingResponse:
+async def llm_chat(req: ChatRequest, _: None = Depends(require_token)) -> StreamingResponse:
     engine = REGISTRY.get("llm")
     if not engine or not engine.is_ready():
         raise HTTPException(503, "LLM not ready")
@@ -160,7 +171,7 @@ class TtsRequest(BaseModel):
 
 
 @app.post("/tts")
-async def tts_endpoint(req: TtsRequest) -> Response:
+async def tts_endpoint(req: TtsRequest, _: None = Depends(require_token)) -> Response:
     engine = REGISTRY.get("tts")
     if not engine or not engine.is_ready():
         raise HTTPException(503, "TTS not ready")
@@ -202,12 +213,11 @@ async def upsert_voice(
     use_case: str = Form(""),
     age: str = Form(""),
     accent: str = Form(""),
-    authorization: str | None = None,
+    _: None = Depends(require_token),
 ) -> JSONResponse:
     """Create a prompt-driven voice. Indic-Parler-TTS uses the description as
     the style-steering prompt. Modify anytime by editing the description — no
     audio re-recording required."""
-    _require_token(authorization)
     if not description.strip():
         raise HTTPException(400, "description is required")
     tag_list = [t.strip() for t in (tags or "").split(",") if t.strip()]
@@ -238,9 +248,8 @@ class VoicePatch(BaseModel):
 
 
 @app.patch("/voices/{voice_id}")
-def patch_voice(voice_id: str, patch: VoicePatch, authorization: str | None = None) -> JSONResponse:
+def patch_voice(voice_id: str, patch: VoicePatch, _: None = Depends(require_token)) -> JSONResponse:
     """Edit any subset of voice metadata (rename, retune description, retag)."""
-    _require_token(authorization)
     try:
         info = voice_store.update_voice(voice_id, patch.dict(exclude_unset=True))
     except KeyError:
@@ -249,8 +258,7 @@ def patch_voice(voice_id: str, patch: VoicePatch, authorization: str | None = No
 
 
 @app.delete("/voices/{voice_id}")
-def delete_voice(voice_id: str, authorization: str | None = None) -> JSONResponse:
-    _require_token(authorization)
+def delete_voice(voice_id: str, _: None = Depends(require_token)) -> JSONResponse:
     if not voice_store.delete_voice(voice_id):
         raise HTTPException(404, "voice not found")
     return JSONResponse({"deleted": voice_id})
@@ -265,7 +273,7 @@ class DesignRequest(BaseModel):
 
 
 @app.post("/tts/design")
-async def design_voice(req: DesignRequest, authorization: str | None = None) -> JSONResponse:
+async def design_voice(req: DesignRequest, _: None = Depends(require_token)) -> JSONResponse:
     """Generate 3 audio variants of a voice from a base description.
 
     Each variant appends a different curated style modifier (calm /
@@ -273,7 +281,6 @@ async def design_voice(req: DesignRequest, authorization: str | None = None) -> 
     Returns base64-encoded WAVs in JSON so the browser can preview them
     before committing to a save.
     """
-    _require_token(authorization)
     engine = REGISTRY.get("tts")
     if not engine or not engine.is_ready():
         raise HTTPException(503, "TTS not ready")
@@ -316,7 +323,7 @@ async def design_voice(req: DesignRequest, authorization: str | None = None) -> 
 
 
 @app.post("/tts/preview")
-async def tts_preview(req: TtsRequest) -> Response:
+async def tts_preview(req: TtsRequest, _: None = Depends(require_token)) -> Response:
     """Same as /tts but returns a self-contained WAV (with header) at studio
     quality (≥22.05 kHz) so the dashboard can audition voices through an
     <audio> tag."""

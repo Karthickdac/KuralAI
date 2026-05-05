@@ -64,7 +64,12 @@ router.post('/local-voice', (req, res) => {
 // returns generic state.
 router.get('/local-health', async (_req, res) => {
   const h = await localApi.health({ force: true }).catch(e => ({ ok: false, error: e.message }));
-  res.json(h);
+  let concurrentCalls = 0;
+  try {
+    const stream = require('../services/localStream');
+    if (typeof stream.activeCallCount === 'function') concurrentCalls = stream.activeCallCount();
+  } catch {}
+  res.json({ ...h, concurrentCalls });
 });
 
 // ─── Voice Lab ──────────────────────────────────────────────────────────────
@@ -80,7 +85,13 @@ router.get('/local-voices', async (_req, res) => {
 
 // Create voice (auth). Form fields: voiceId, displayName, language, gender,
 // description, tags (csv), useCase, age, accent.
-router.post('/local-voices', requireAdmin, express.urlencoded({ extended: true }), express.json(), async (req, res) => {
+// Multipart parser is wired so dashboards posting FormData (Settings Voice Lab
+// card) populate req.body the same as JSON / urlencoded clients do.
+const parseVoiceBody = upload
+  ? [upload.none(), express.urlencoded({ extended: true }), express.json()]
+  : [express.urlencoded({ extended: true }), express.json()];
+
+router.post('/local-voices', requireAdmin, ...parseVoiceBody, async (req, res) => {
   try {
     const b = req.body || {};
     const voiceId = (b.voiceId || b.voice_id || '').trim();

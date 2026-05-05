@@ -35,6 +35,11 @@ const FRAME_MS           = 20;
 let _wss = null;
 function getWss() { return _wss; }
 
+// In-flight session counter (used by /local-health to expose concurrent call
+// count for ops dashboards).
+let _activeSessions = 0;
+function activeCallCount() { return _activeSessions; }
+
 function init(server) {
   const wss = new WebSocket.Server({ noServer: true });
   _wss = wss;
@@ -52,6 +57,9 @@ function init(server) {
     if (!session.wtVerified) {
       logger.warn(`[local-stream] no wt in query (callId=${queryCallId || 'n/a'}) — deferring auth to start message`);
     }
+    _activeSessions++;
+    const dec = () => { _activeSessions = Math.max(0, _activeSessions - 1); };
+    ws.once('close', dec);
     session.start().catch(err => {
       logger.error(`[local-stream] session error call=${session.callId}: ${err.message}`);
       try { ws.close(); } catch {}
@@ -255,6 +263,11 @@ class Session {
     const energy = pcm16Energy(pcm);
     const isSilent = energy < SILENCE_ENERGY;
     const frameMs = (pcm.length / 2 / 8000) * 1000;
+    // Barge-in — if the agent is currently speaking and the caller starts
+    // speaking, mark the session so the TTS streamer aborts mid-utterance.
+    if (!isSilent && this.speaking) {
+      this.barge = true;
+    }
     if (this.pcmChunks.length === 0 && isSilent) return;
     this.pcmChunks.push(pcm);
     this.pcmBytes += pcm.length;
@@ -273,9 +286,13 @@ class Session {
   }
 
   // ─── Engine fallback chain ─────────────────────────────────────────────────
+  // Per-agent override wins over the global default. Agents can declare their
+  // own chain (e.g. premium agents → 'local,elevenlabs', cheap agents →
+  // 'local'); falls back to settings.engineFallbackChain, then 'local,sarvam'.
   fallbackChain() {
     const s = getSettingsSync();
-    const raw = (s.engineFallbackChain || 'local,sarvam').toString();
+    const fromAgent = this.agent && (this.agent.engineFallbackChain || this.agent.fallbackChain);
+    const raw = (fromAgent || s.engineFallbackChain || 'local,sarvam').toString();
     return raw.split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
   }
 
@@ -301,6 +318,47 @@ class Session {
       }
     }
     return 'மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?';
+  }
+
+  /**
+   * Streamed chat — yields completed sentences as the LLM produces tokens, so
+   * TTS for the first sentence starts before the LLM has finished generating
+   * the rest. Falls back to non-streaming chat if streaming fails.
+   *
+   * onSentence is called once per finished sentence with the sentence text;
+   * the returned promise resolves to the full reply string.
+   */
+  async chatStreamSentences(messages, onSentence) {
+    // Sentence boundary: '.', '!', '?' or Tamil danda '।' '॥' or newline.
+    const SENT_RE = /[.!?।॥\n]+/;
+    let buffer = '';
+    let full   = '';
+    try {
+      const reply = await localApi.chatStream(messages, {
+        onToken: async (tok) => {
+          if (this.barge) return; // user started talking; abandon
+          buffer += tok;
+          full   += tok;
+          while (true) {
+            const m = buffer.match(SENT_RE);
+            if (!m) break;
+            const idx = m.index + m[0].length;
+            const sentence = buffer.slice(0, idx).trim();
+            buffer = buffer.slice(idx);
+            if (sentence) { try { await onSentence(sentence); } catch {} }
+          }
+        },
+      });
+      // Flush any trailing fragment as the final sentence.
+      const tail = (buffer || '').trim();
+      if (tail && !this.barge) { try { await onSentence(tail); } catch {} }
+      return reply || full;
+    } catch (e) {
+      logger.warn(`[local-stream] chat stream failed call=${this.callId}: ${e.message} — falling back to non-stream`);
+      const reply = await this.chatWithFallback(messages);
+      if (reply && !this.barge) { try { await onSentence(reply); } catch {} }
+      return reply;
+    }
   }
 
   async ttsWithFallback(text, targetSr) {
@@ -357,15 +415,27 @@ class Session {
       if (sysPrompt) msgs.push({ role: 'system', content: sysPrompt });
       msgs.push(...this.history.slice(-12));
 
-      const reply = ((await this.chatWithFallback(msgs)) || '').trim() ||
-        'மன்னிக்கவும், கேட்கவில்லை. திரும்ப சொல்ல முடியுமா?';
+      // Streamed: synth + send TTS sentence-by-sentence as the LLM produces
+      // them. First-audio latency drops from "wait for full reply" to "wait
+      // for first sentence boundary" — typically <500ms after STT returns.
+      this.barge = false;
+      let reply = '';
+      try {
+        reply = await this.chatStreamSentences(msgs, async (sentence) => {
+          if (this.barge || this.closed) return;
+          await this.speak(sentence);
+        });
+      } catch (e) {
+        logger.warn(`[local-stream] streamed chat failed: ${e.message}`);
+      }
+      reply = (reply || '').trim() || 'மன்னிக்கவும், கேட்கவில்லை. திரும்ப சொல்ல முடியுமா?';
 
       logger.info(`[local-stream] ${this.callId} BOT : ${reply}`);
       this.history.push({ role: 'assistant', content: reply });
       this.persistTranscript('assistant', reply).catch(() => {});
-      await this.speak(reply);
     } finally {
       this.processing = false;
+      this.barge = false;
     }
   }
 
@@ -393,7 +463,8 @@ class Session {
     const bytesPerFrameOut = this.outEncoding === 'mulaw' ? samplesPerFrame : samplesPerFrame * 2;
     const pcmBytesPerFrame = samplesPerFrame * 2;
 
-    for (let i = 0; i < pcmTarget.length && !this.closed; i += pcmBytesPerFrame) {
+    this.speaking = true;
+    for (let i = 0; i < pcmTarget.length && !this.closed && !this.barge; i += pcmBytesPerFrame) {
       const slicePcm = pcmTarget.slice(i, i + pcmBytesPerFrame);
       const padded   = slicePcm.length === pcmBytesPerFrame
         ? slicePcm
@@ -404,6 +475,18 @@ class Session {
         : Buffer.concat([frame, Buffer.alloc(Math.max(0, bytesPerFrameOut - frame.length), this.outEncoding === 'mulaw' ? 0xff : 0)]);
       this.sendMedia(out);
       await sleep(FRAME_MS);
+    }
+    this.speaking = false;
+    if (this.barge) {
+      // Tell provider to drop any audio still in its outbound buffer so the
+      // caller experiences true barge-in and not "AI keeps talking after I
+      // started speaking".
+      try {
+        const clear = this.provider === 'exotel'
+          ? { event: 'clear', stream_sid: this.streamSid || undefined }
+          : { event: 'clear', streamSid:  this.streamSid || undefined };
+        if (this.ws.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify(clear));
+      } catch {}
     }
     this.sendMark('end-of-utterance');
   }
@@ -449,4 +532,4 @@ class Session {
   }
 }
 
-module.exports = { init, getWss };
+module.exports = { init, getWss, activeCallCount };
