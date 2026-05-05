@@ -1,0 +1,45 @@
+
+# any leftover env file from previous deploy (this is critical — has DB password, JWT, Sarvam key)
+sudo -u automystics-kuralai bash -lc 'ls -la ~/ ~/.pm2/ ~/htdocs/ 2>/dev/null; find ~ -maxdepth 5 -name ".env*" -o -name "ecosystem.config*" 2>/dev/null'
+  location ~ /.well-known {
+  location / {
+    proxy_pass http://127.0.0.1:3000/;
+    proxy_pass_request_headers on;
+/home/automystics-kuralai/:
+total 64
+drwxrwx--- 10 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 .
+drwxr-xr-x 12 root                root                4096 May  5 09:54 ..
+drwxrwx---  3 automystics-kuralai automystics-kuralai 4096 Apr  1 14:15 backups
+-rw-------  1 automystics-kuralai automystics-kuralai 3754 Apr 22 17:27 .bash_history
+-rwxrwx---  1 automystics-kuralai automystics-kuralai  182 Apr  1 14:15 .bashrc
+drwx------  2 automystics-kuralai automystics-kuralai 4096 Apr 22 14:59 .cache
+drwxrwx---  3 automystics-kuralai automystics-kuralai 4096 Apr 22 14:54 htdocs
+drwxrwx---  4 automystics-kuralai automystics-kuralai 4096 Apr  1 14:15 logs
+drwxrwx---  7 automystics-kuralai automystics-kuralai 4096 Apr 22 14:54 .nvm
+drwxrwx---  5 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 .pm2
+-rwxrwx---  1 automystics-kuralai automystics-kuralai  675 Apr  1 14:15 .profile
+drwx------  2 automystics-kuralai automystics-kuralai 4096 Apr  1 14:15 .ssh
+drwxrwx---  2 automystics-kuralai automystics-kuralai 4096 Apr  1 14:15 tmp
+
+/home/automystics-kuralai/htdocs/:
+total 20
+drwxrwx---  3 automystics-kuralai automystics-kuralai 4096 Apr 22 14:54 .
+drwxrwx--- 10 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 ..
+-rwxrwx---  1 automystics-kuralai automystics-kuralai   11 Apr  1 14:15 .gitignore
+drwxrwx---  3 automystics-kuralai automystics-kuralai 4096 Apr 22 17:24 kuralai.automystics.tech
+
+/home/automystics-kuralai/.pm2/:
+total 44
+drwxrwx---  5 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 .
+drwxrwx--- 10 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 ..
+drwxrwx---  2 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 logs
+-rw-rw----  1 automystics-kuralai automystics-kuralai    2 Apr 22 17:20 module_conf.json
+drwxrwx---  2 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 modules
+drwxrwx---  2 automystics-kuralai automystics-kuralai 4096 Apr 22 17:20 pids
+-rw-rw----  1 automystics-kuralai automystics-kuralai 1828 May  4 17:20 pm2.log
+-rw-rw----  1 automystics-kuralai automystics-kuralai    5 Apr 22 17:20 pm2.pid
+srwxrwxr-x  1 automystics-kuralai automystics-kuralai    0 Apr 22 17:20 pub.sock
+srwxrwxr-x  1 automystics-kuralai automystics-kuralai    0 Apr 22 17:20 rpc.sock
+-rw-rw----  1 automystics-kuralai automystics-kuralai   13 Apr 22 17:20 touch
+/home/automystics-kuralai/htdocs/kuralai.automystics.tech/.env
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
