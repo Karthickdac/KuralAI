@@ -1,0 +1,115 @@
+
+Run `npm audit` for details.
+
+> kuralai-dashboard@1.0.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled successfully.
+
+File sizes after gzip:
+
+  254.98 kB  build/static/js/main.302e0611.js
+  30.01 kB   build/static/css/main.8f60e6d6.css
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+Use --update-env to update environment variables
+[PM2][ERROR] Process or Namespace kuralai not found
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# cd /opt/kuralai          # the path you cloned into in step 3
+git pull
+npm install
+cd dashboard && npm install && npm run build && cd ..
+pm2 restart kuralai
+-bash: cd: /opt/kuralai: No such file or directory
+fatal: not a git repository (or any of the parent directories): .git
+
+up to date, audited 643 packages in 2s
+
+64 packages are looking for funding
+  run `npm fund` for details
+
+24 vulnerabilities (1 moderate, 22 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+
+up to date, audited 1338 packages in 2s
+
+269 packages are looking for funding
+  run `npm fund` for details
+
+28 vulnerabilities (9 low, 4 moderate, 15 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> kuralai-dashboard@1.0.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled successfully.
+
+File sizes after gzip:
+
+  254.98 kB  build/static/js/main.302e0611.js
+  30.01 kB   build/static/css/main.8f60e6d6.css
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+Use --update-env to update environment variables
+[PM2][ERROR] Process or Namespace kuralai not found
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # Find where the repo actually is
+find / -name ".git" -type d 2>/dev/null | head
+# Or, if you've never cloned yet:
+cd /opt
+git clone https://github.com/Karthickdac/KuralAI.git kuralai
+cd kuralai
+/home/automystics-mysticsinv/htdocs/mysticsinv.automystics.tech/MysticsInventory/.git
+/home/automystics-kalvicore/htdocs/kalvicore.automystics.tech/.git
+/home/automystics/htdocs/www.automystics.com/automystics/.git
+/home/automystics-solarnexus/htdocs/solarnexus.automystics.tech/app/.git
+/home/fitro360/htdocs/www.fitro360.com/.git
+/home/fitro360/htdocs/www.fitro360.com/fitro360old/Fitro360/.git
+/home/automystics-mysticshr/htdocs/mysticshr.automystics.tech/.git
+/root/.git
+Cloning into 'kuralai'...
+remote: Enumerating objects: 2521, done.
+remote: Counting objects: 100% (2521/2521), done.
+remote: Compressing objects: 100% (548/548), done.
+remote: Total 2521 (delta 1988), reused 2465 (delta 1932), pack-reused 0 (from 0)
+Receiving objects: 100% (2521/2521), 15.29 MiB | 28.48 MiB/s, done.
+Resolving deltas: 100% (1988/1988), done.
+root@srv1609330:/opt/kuralai# 
