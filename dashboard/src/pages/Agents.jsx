@@ -90,12 +90,12 @@ export default function Agents() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [a, s] = await Promise.all([
+      const [a, t] = await Promise.all([
         agentsApi.list(),
-        settingsApi.get().catch(() => ({ data: {} })),
+        settingsApi.getWebhookToken().catch(() => ({ data: {} })),
       ]);
       setAgents(a.data?.agents || []);
-      setWebhookToken(s.data?.webhookToken || s.data?.exotelWebhookToken || '');
+      setWebhookToken(t.data?.token || '');
       try {
         const v = await fetch('/webhook/local-voices');
         const j = await v.json();

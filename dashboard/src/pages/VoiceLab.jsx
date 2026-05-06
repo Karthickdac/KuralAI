@@ -61,10 +61,13 @@ export default function VoiceLab() {
     let dead = false;
     (async () => {
       try {
-        const r = await settingsApi.get();
+        const [r, t] = await Promise.all([
+          settingsApi.get(),
+          settingsApi.getWebhookToken().catch(() => ({ data: {} })),
+        ]);
         if (dead) return;
-        setToken(r.data?.webhookToken || r.data?.exotelWebhookToken || '');
-        setDefaultVoice(r.data?.localTtsVoice || '');
+        setToken(t.data?.token || '');
+        setDefaultVoice(r.data?.settings?.localTtsVoice || '');
       } catch { /* ignore */ }
     })();
     return () => { dead = true; };
@@ -158,9 +161,8 @@ export default function VoiceLab() {
   async function handleSetDefault(voice) {
     try {
       // Pull current settings, patch only localTtsVoice + localVoiceDescription.
-      const cur = (await settingsApi.get()).data || {};
+      const cur = (await settingsApi.get()).data?.settings || {};
       await settingsApi.update({
-        ...cur,
         localTtsVoice: voice.id,
         localVoiceDescription: voice.description || cur.localVoiceDescription || '',
       });

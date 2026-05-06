@@ -236,6 +236,19 @@ router.post('/generate-api-key', requireAdmin, async (req, res) => {
   }
 });
 
+// GET /api/settings/webhook-token — admin only — returns the *raw* webhook
+// token so the dashboard (Voice Lab, Agents) can call /webhook/local-voices/*
+// endpoints. Kept separate from the main GET so credentials stay masked there.
+router.get('/webhook-token', requireAdmin, async (req, res) => {
+  try {
+    const s = await readSettingsFromDb();
+    const token = s.webhookToken || s.exotelWebhookToken || process.env.EXOTEL_WEBHOOK_TOKEN || '';
+    res.json({ success: true, token });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET /api/settings
 router.get('/', async (req, res) => {
   try {

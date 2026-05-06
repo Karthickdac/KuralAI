@@ -92,6 +92,7 @@ export const voicesApi = {
 export const settingsApi = {
   get: () => api.get('/api/settings'),
   update: (data) => api.put('/api/settings', data),
+  getWebhookToken: () => api.get('/api/settings/webhook-token'),
 };
 
 export const dynamicCallApi = {
