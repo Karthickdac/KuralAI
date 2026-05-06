@@ -99,7 +99,10 @@ export default function VoiceLab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voice: voice.id, text: text || previewText }),
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || `HTTP ${r.status}`);
+      }
       const blob = await r.blob();
       const url = URL.createObjectURL(blob);
       setPlayUrl(url);
@@ -152,7 +155,10 @@ export default function VoiceLab() {
     if (!window.confirm(`Delete voice "${voice.displayName}"?`)) return;
     try {
       const r = await fetch(`/webhook/local-voices/${encodeURIComponent(voice.id)}?wt=${encodeURIComponent(token)}`, { method: 'DELETE' });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || `HTTP ${r.status}`);
+      }
       flash('Voice deleted.');
       await reload();
     } catch (e) { flash(`Delete failed: ${e.message}`); }

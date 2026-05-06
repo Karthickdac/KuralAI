@@ -144,7 +144,10 @@ export default function Agents() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voice: agent.voice, text: agent.greeting || 'வணக்கம், நான் உங்கள் தமிழ் AI முகவர்.' }),
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        throw new Error(j.error || `HTTP ${r.status}`);
+      }
       const blob = await r.blob();
       const url = URL.createObjectURL(blob);
       new Audio(url).play();

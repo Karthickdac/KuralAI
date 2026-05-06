@@ -156,6 +156,11 @@ router.post('/local-voices/preview', requireAdmin, express.json({ limit: '8kb' }
   try {
     const { text, voice, languageCode } = req.body || {};
     if (!voice) return res.status(400).json({ error: 'voice required' });
+    if (!localApi.isConfigured()) {
+      return res.status(503).json({
+        error: 'Local inference server not configured — set Settings → Local Engine → Inference URL & Token first.',
+      });
+    }
     const safeText = String(text || 'வணக்கம், நான் உங்கள் தமிழ் AI உதவியாளர்.').slice(0, 600);
     const wav = await localApi.previewVoice({
       text: safeText,
@@ -165,7 +170,7 @@ router.post('/local-voices/preview', requireAdmin, express.json({ limit: '8kb' }
     res.setHeader('Content-Type', 'audio/wav');
     res.send(wav);
   } catch (e) {
-    res.status(502).json({ error: e.message });
+    res.status(502).json({ error: `Inference server error: ${e.message}` });
   }
 });
 
@@ -176,6 +181,11 @@ router.post('/local-voices/design', requireAdmin, express.json({ limit: '16kb' }
   try {
     const { description, text, language } = req.body || {};
     if (!description || !description.trim()) return res.status(400).json({ error: 'description required' });
+    if (!localApi.isConfigured()) {
+      return res.status(503).json({
+        error: 'Local inference server not configured — set Settings → Local Engine → Inference URL & Token first.',
+      });
+    }
     const variants = await localApi.designVoice({
       description: String(description).slice(0, 1500),
       text:        text ? String(text).slice(0, 600) : undefined,
@@ -183,7 +193,7 @@ router.post('/local-voices/design', requireAdmin, express.json({ limit: '16kb' }
     });
     res.json({ variants });
   } catch (e) {
-    res.status(502).json({ error: e.message });
+    res.status(502).json({ error: `Inference server error: ${e.message}` });
   }
 });
 
