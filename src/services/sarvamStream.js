@@ -323,7 +323,13 @@ class Session {
         const sysPrompt = (this.systemPrompt || '').trim();
         const msgs = [];
         if (sysPrompt) msgs.push({ role: 'system', content: sysPrompt });
-        msgs.push(...this.history.slice(-12));
+        // Sarvam chat requires the first non-system message to be from the user.
+        // Our greeting is recorded as an assistant turn, so trim leading assistant
+        // turns from the trailing window before sending.
+        const window = this.history.slice(-12);
+        let firstUser = window.findIndex(m => m.role === 'user');
+        if (firstUser === -1) firstUser = window.length;
+        msgs.push(...window.slice(firstUser));
         reply = await chat(msgs, { model: getSettingsSync().sarvamChatModel || 'sarvam-m' });
       } catch (e) {
         const body = e.response?.data ? JSON.stringify(e.response.data).slice(0, 500) : '';

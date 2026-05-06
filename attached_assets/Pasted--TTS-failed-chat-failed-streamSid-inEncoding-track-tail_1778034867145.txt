@@ -1,0 +1,23 @@
+|TTS failed|chat failed|streamSid|inEncoding|track=" | tail -100
+]: [sarvam-voice] TwiML returned for call 3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e
+]: [sarvam-stream] START call=3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e provider=twilio stream=MZe4194f0321f940ba5a68a8b8d111cf37 in=mulaw@8000Hz
+]: [sarvam-stream] 3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e USER: சொல்லலாம்
+]: [sarvam-stream] chat failed call=3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e: Request failed with status code 400 body={"error":{"message":"First message must be from user (or after system message)","code":"invalid_request_error","request_id":"20260505_c76040de-c120-4363-a5f3-0e6ba7c9ead8"}}
+]: [sarvam-stream] 3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] STOP call=3c5cf2e8-e26c-4bd2-ad0b-fc7c6a96f07e
+]: [sarvam-voice] TwiML returned for call 3aff7e53-b247-4bd6-b79f-f50155777452 → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=3aff7e53-b247-4bd6-b79f-f50155777452
+]: [sarvam-stream] START call=3aff7e53-b247-4bd6-b79f-f50155777452 provider=twilio stream=MZe1175f15d1f7677980231df83f37b613 in=mulaw@8000Hz
+]: [sarvam-stream] 3aff7e53-b247-4bd6-b79f-f50155777452 USER: ம் பேசலாம்
+]: [sarvam-stream] chat failed call=3aff7e53-b247-4bd6-b79f-f50155777452: Request failed with status code 400 body={"error":{"message":"First message must be from user (or after system message)","code":"invalid_request_error","request_id":"20260506_82926a5d-0f3f-48a4-97c3-d913f084b77c"}}
+]: [sarvam-stream] 3aff7e53-b247-4bd6-b79f-f50155777452 BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] 3aff7e53-b247-4bd6-b79f-f50155777452 USER: சரி தேங்க்யூ
+]: [sarvam-stream] chat failed call=3aff7e53-b247-4bd6-b79f-f50155777452: Request failed with status code 400 body={"error":{"message":"First message must be from user (or after system message)","code":"invalid_request_error","request_id":"20260506_f32a26c9-42be-47a3-b603-47377fc3d8a0"}}
+]: [sarvam-stream] 3aff7e53-b247-4bd6-b79f-f50155777452 BOT : மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?
+]: [sarvam-stream] STOP call=3aff7e53-b247-4bd6-b79f-f50155777452
+]: 🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)
+]: ✅ WebSocket servers initialized (dashboard + sarvam-stream + local-stream)
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
