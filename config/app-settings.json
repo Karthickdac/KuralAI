@@ -35,7 +35,7 @@
   "elevenlabsAgentId": "",
   "elevenlabsAgentPhoneNumberId": "",
   "elevenlabsWebhookSecret": "",
-  "defaultEngine": "kuralai",
+  "defaultEngine": "sarvam",
   "sarvamApiKey": "sk_4nc4z8re_1gugFXsM2PdnpLmPYwJeD9bf",
   "sarvamLanguageCode": "ta-IN",
   "sarvamVoice": "meera",
