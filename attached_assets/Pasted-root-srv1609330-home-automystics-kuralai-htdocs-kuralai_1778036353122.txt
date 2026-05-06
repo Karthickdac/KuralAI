@@ -1,0 +1,56 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # Test from the VPS itself (loopback)
+curl -i "http://localhost:3000/webhook/sarvam-voice?callId=test&wt=test" | head -20
+echo ---
+# Test from the public side (what Twilio sees)
+curl -i "https://kuralai.automystics.tech/webhook/sarvam-voice?callId=test&wt=test" | head -20
+echo ---
+# What is the App URL setting actually saved as?
+psql "$DATABASE_URL" -tAc "SELECT key, value FROM app_settings WHERE key IN ('appUrl','telephonyProvider','defaultEngine','sarvamApiKey','twilioPhoneNumber') ORDER BY key;" 2>/dev/null | sed 's/sarvamApiKey|.*/sarvamApiKey|<redacted>/'
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    47  100    47    0     0  11179      0 --:--:-- --:--:-- --:--:-- 11750
+HTTP/1.1 403 Forbidden
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=15552000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: SAMEORIGIN
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Content-Type: application/json; charset=utf-8
+Content-Length: 47
+ETag: W/"2f-S2OJlPLTmTw1U4krEUG247uo3do"
+Date: Wed, 06 May 2026 02:58:56 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    47  100    47    0     0    722      0 --:--:-- --:--:-- --:--:--   734
+HTTP/2 403 
+server: nginx
+date: Wed, 06 May 2026 02:58:57 GMT
+content-type: application/json; charset=utf-8
+content-length: 47
+vary: Accept-Encoding
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+strict-transport-security: max-age=15552000; includeSubDomains
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-xss-protection: 0
+access-control-allow-origin: *
+access-control-allow-credentials: true
+etag: W/"2f-S2OJlPLTmTw1U4krEUG247uo3do"
+---
