@@ -1,0 +1,112 @@
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# # 1. Tell git this folder is safe to operate on as root
+git config --global --add safe.directory /home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+cd /home/automystics-kuralai/htdocs/kuralai.automystics.tech
+
+# 2. Back up live config (skip if already done — these will overwrite)
+[ ! -f /tmp/kuralai.env.bak ] && cp .env /tmp/kuralai.env.bak 2>/dev/null
+[ ! -f /tmp/kuralai.app-settings.bak ] && cp config/app-settings.json /tmp/kuralai.app-settings.bak 2>/dev/null
+
+# 3. Wire git up properly
+git remote add origin https://github.com/Karthickdac/KuralAI.git 2>/dev/null || git remote set-url origin https://github.com/Karthickdac/KuralAI.git
+git fetch origin
+git reset --hard origin/main
+git branch -M main
+git branch --set-upstream-to=origin/main main
+
+# 4. Restore live config
+cp /tmp/kuralai.env.bak .env 2>/dev/null
+cp /tmp/kuralai.app-settings.bak config/app-settings.json 2>/dev/null
+
+# 5. Fix ownership back to the CloudPanel user (so the running app can read the new files)
+chown -R automystics-kuralai:automystics-kuralai .
+
+# 6. Rebuild
+sudo -u automystics-kuralai npm install
+cd dashboard && sudo -u automystics-kuralai npm install && sudo -u automystics-kuralai npm run build && cd ..
+
+# 7. Show how the app is running so we know how to restart
+pm2 list
+sudo -u automystics-kuralai pm2 list
+systemctl list-units --type=service | grep -i kural
+ps -ef | grep -E "node.*server\.js" | grep -v grep
+remote: Enumerating objects: 2521, done.
+remote: Counting objects: 100% (2521/2521), done.
+remote: Compressing objects: 100% (548/548), done.
+remote: Total 2521 (delta 1988), reused 2465 (delta 1932), pack-reused 0 (from 0)
+Receiving objects: 100% (2521/2521), 15.29 MiB | 30.12 MiB/s, done.
+Resolving deltas: 100% (1988/1988), done.
+From https://github.com/Karthickdac/KuralAI
+ * [new branch]      main       -> origin/main
+HEAD is now at c290bc2 Change text-to-speech provider to Azure for a more reliable voice output
+branch 'main' set up to track 'origin/main'.
+
+up to date, audited 643 packages in 4s
+
+64 packages are looking for funding
+  run `npm fund` for details
+
+24 vulnerabilities (1 moderate, 22 high, 1 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+
+up to date, audited 1338 packages in 4s
+
+269 packages are looking for funding
+  run `npm fund` for details
+
+28 vulnerabilities (9 low, 4 moderate, 15 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> kuralai-dashboard@1.0.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled successfully.
+
+File sizes after gzip:
+
+  271.09 kB (+16.11 kB)  build/static/js/main.9ec746ee.js
+  33.85 kB (+3.84 kB)    build/static/css/main.7a71b214.css
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 6  │ automystics-api    │ default     │ 0.0.0   │ fork    │ 554222   │ 11h    │ 21   │ online    │ 0%       │ 95.4mb   │ root     │ disabled │
+│ 2  │ fitro360           │ default     │ 1.0.0   │ fork    │ 554197   │ 11h    │ 9    │ online    │ 0%       │ 118.7mb  │ root     │ disabled │
+│ 3  │ kalvicore-api      │ default     │ 0.0.0   │ fork    │ 554213   │ 11h    │ 3    │ online    │ 0%       │ 110.0mb  │ root     │ disabled │
+│ 7  │ mystics-api        │ default     │ 0.0.0   │ fork    │ 554245   │ 11h    │ 9    │ online    │ 0%       │ 300.6mb  │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ 1.0.0   │ fork    │ 971219   │ 8h     │ 20   │ online    │ 0%       │ 137.3mb  │ aut… │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
