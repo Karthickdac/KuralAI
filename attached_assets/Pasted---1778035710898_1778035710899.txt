@@ -1,0 +1,27 @@
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[TAILING] Tailing last 10 lines for [kuralai] process (change the value with --lines option)
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 10 lines:
+0|kuralai  | 2026-05-05T15:36:09:     at storeAudioLocally (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:29:6)
+0|kuralai  | 2026-05-05T15:36:09:     at /home/automystics-kuralai/htdocs/kuralai.automystics.tech/src/services/speechService.js:221:33
+0|kuralai  | 2026-05-05T15:36:09:     at SpeechSynthesisAdapter.onSuccess [as privSuccessCallback] (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/sdk/SpeechSynthesizer.js:198:25)
+0|kuralai  | 2026-05-05T15:36:09:     at SpeechSynthesisAdapter.receiveMessage (/home/automystics-kuralai/htdocs/kuralai.automystics.tech/node_modules/microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisAdapterBase.js:271:38)
+0|kuralai  | 2026-05-05T15:36:09:     at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+0|kuralai  | 2026-05-05T15:36:09:   errno: -13,
+0|kuralai  | 2026-05-05T15:36:09:   code: 'EACCES',
+0|kuralai  | 2026-05-05T15:36:09:   syscall: 'open',
+0|kuralai  | 2026-05-05T15:36:09:   path: '/tmp/kuralai-audio/dcd4df45-d05c-45c3-8b70-649a35cbcf9d.mp3'
+0|kuralai  | 2026-05-05T15:36:09: }
+
+/home/automystics-kuralai/.pm2/logs/kuralai-out.log last 10 lines:
+]: ✅ Database connected
+]: 🎙️  Sarvam Media Stream WS ready at /sarvam-stream (Twilio + Exotel auto-detect)
+]: 🎙️  Local Inference Media Stream WS ready at /local-stream (Twilio + Exotel auto-detect)
+]: ✅ WebSocket servers initialized (dashboard + sarvam-stream + local-stream)
+]: Retry scheduler started (runs every minute)
+]: ✅ Retry scheduler started
+]: 🚀 KuralAI server running on port 3000
+]:    Environment: production
+]:    App URL: https://kuralai.automystics.tech
+]: Static TTS pre-warm skipped (engine=sarvam uses live TTS)
+
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
