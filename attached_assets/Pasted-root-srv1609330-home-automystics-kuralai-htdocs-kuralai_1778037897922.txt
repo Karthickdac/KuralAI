@@ -1,0 +1,34 @@
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# chown -R automystics-kuralai:automystics-kuralai /home/automystics-kuralai/htdocs/kuralai.automystics.tech/config
+ls -la /home/automystics-kuralai/htdocs/kuralai.automystics.tech/config/app-settings.json
+
+# Re-run the save (reuse the JWT you already have? if it expired, re-login)
+read -s -p "superadmin password: " PW; echo
+TOKEN_JWT=$(curl -s -X POST https://kuralai.automystics.tech/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"superadmin@kuralai.com\",\"password\":\"$PW\"}" | python3 -c "import sys,json;print(json.load(sys.stdin).get('token',''))")
+
+curl -s -X PUT https://kuralai.automystics.tech/api/settings \
+  -H "Authorization: Bearer $TOKEN_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"exotelWebhookToken":"kuralai-wh","webhookToken":"kuralai-wh"}'
+echo
+
+sudo -u automystics-kuralai pm2 restart kuralai --update-env
+sleep 3
+curl -s -o /tmp/twiml.xml -w "HTTP %{http_code}\n" -X POST "https://kuralai.automystics.tech/webhook/sarvam-voice?callId=test&wt=kuralai-wh"
+head -2 /tmp/twiml.xml; echo
+-rw-rw-r-- 1 automystics-kuralai automystics-kuralai 2401 May  6 02:47 /home/automystics-kuralai/htdocs/kuralai.automystics.tech/config/app-settings.json
+superadmin password: 
+{"success":true,"settings":{"telephonyProvider":"twilio","exotelSid":"••••••••","exotelApiKey":"••••••••","exotelApiToken":"••••••••","exotelPhoneNumber":"+918047280398","exotelWebhookToken":"••••••••","appUrl":"https://kuralai.automystics.tech","twilioAccountSid":"••••••••","twilioAuthToken":"••••••••","twilioPhoneNumber":"+16416666746","openaiApiKey":"••••••••","openaiModel":"gpt-4o","ttsProvider":"elevenlabs","azureSpeechKey":"••••••••","azureSpeechRegion":"centralindia","azureSpeechVoice":"ta-IN-PallaviNeural","elevenLabsApiKey":"••••••••","elevenLabsVoiceId":"ewhDNMMyMBipnXXTYPwy","awsAccessKeyId":"","awsSecretAccessKey":"","s3BucketName":"","awsRegion":"ap-south-1","maxCallDurationSeconds":300,"callRetryAttempts":3,"callRetryDelaySeconds":60,"silenceTimeoutSeconds":5,"escalationPhone":"","escalationWebhookUrl":"","inboundWorkflowId":"","apiKey":"••••••••","razorpayKeyId":"••••••••","razorpayKeySecret":"••••••••","elevenlabsToolKey":"kuralai_automystics","elevenlabsAgentId":"agent_6101kpdbj58jf7cat9gfvr1am094","elevenlabsAgentPhoneNumberId":"phnum_8901kpdkbqcgez4rrr5d445q5t4m","elevenlabsWebhookSecret":"","defaultEngine":"sarvam","sarvamApiKey":"••••••••","sarvamLanguageCode":"ta-IN","sarvamVoice":"anushka","sarvamTtsModel":"bulbul:v2","sarvamSttModel":"saarika:v2.5","sarvamChatModel":"sarvam-m","sarvamSystemPrompt":"நீங்கள் \"சமுத்ரா\" (Samuthra) என்ற பெயரில் ஒரு பெண் தமிழ் குரல் உதவியாளர். நீங்கள் {{COMPANY_NAME}} நிறுவனத்தின் சார்பாக வாடிக்கையாளர்களுடன் தொலைபேசியில் பேசுகிறீர்கள்.\n\n# உங்களின் பாத்திரம்\n- நட்பான, மரியாதையான, பொறுமையான தொனியில் பேசுங்கள்.\n- இயற்கையான, பேச்சுத் தமிழில் பதிலளிக்கவும் — புத்தக மொழி அல்ல.\n- ஒவ்வொரு பதிலும் 1 அல்லது 2 சிறிய வாக்கியங்களுக்கு மேல் இருக்கக்கூடாது.\n- ஒரே நேரத்தில் ஒரே ஒரு கேள்வி மட்டுமே கேளுங்கள்.\n\n# மொழி விதிகள்\n- தமிழில் மட்டுமே பதிலளிக்கவும். ஆங்கில வார்த்தைகளை முடிந்தவரை தவிர்க்கவும்.\n- எண்கள், தேதிகள், நேரம் — அனைத்தையும் தமிழ் வார்த்தைகளில் சொல்லுங்கள்.\n- markdown, bullet points, குறியீடுகள் பயன்படுத்தாதீர்கள்.\n\n# புரியாத போது\n- தெளிவில்லாதது: \"மன்னிக்கவும், இன்னும் கொஞ்சம் தெளிவாகச் சொல்ல முடியுமா?\"\n- தெரியாதது: \"அந்த விவரம் என்னிடம் இல்லை. எங்கள் குழுவை இணைக்கிறேன்.\"\n\n# நிறுவனம்\nநிறுவனம்: {{COMPANY_NAME}} | சேவைகள்: {{SERVICES_LIST}} | நேரம்: {{OFFICE_HOURS}} | ஆதரவு: {{SUPPORT_NUMBER}}\n\nஇப்போது உரையாடலைத் தொடங்குங்கள்.","sarvamGreeting":"","exotelSarvamAppId":"","companyName":"","servicesList":"","officeHours":"","supportNumber":"","officeAddress":"","usdToInrRate":92.5,"recordingDisclaimer":"இந்த அழைப்பு பயிற்சி மற்றும் தர ஆய்வுகளுக்காக பதிவு செய்யப்படுகிறது","webhookToken":"kuralai-wh"}}
+[PM2] Applying action restartProcessId on app [kuralai](ids: [ 0 ])
+[PM2] [kuralai](0) ✓
+┌────┬────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name       │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ kuralai    │ default     │ 1.0.0   │ fork    │ 2444047  │ 0s     │ 27   │ online    │ 0%       │ 23.0mb   │ aut… │ disabled │
+└────┴────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+HTTP 200
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
