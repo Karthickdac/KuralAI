@@ -1,0 +1,52 @@
+[PM2] Logs flushed
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u automystics-kuralai pm2 logs kuralai --lines 200 --nostream | grep -E "sarvam-stream|STT|USER:|BOT |TTS failed|chat failed|streamSid|inEncoding|Sarvam→|Call status" | tail -40
+]: [Sarvam→Twilio] Dialing +917358337470 (call 5b26c128-5fa5-4b49-acac-10355958f223)
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u automystics-kuralai pm2 logs kuralai --lines 300 --nostream | grep -E "5b26c128|sarvam-voice|/voice|/sarvam|WEBHOOK|sarvam-stream|error|ERROR" | tail -60
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 300 lines:
+]: Call initiated: 5b26c128-5fa5-4b49-acac-10355958f223 -> +917358337470 | customer=கார்த்திக் வேலன் | chit=Group A
+]: [dispatcher] engine=sarvam call=5b26c128-5fa5-4b49-acac-10355958f223
+]: [Sarvam→Twilio] Dialing +917358337470 (call 5b26c128-5fa5-4b49-acac-10355958f223)
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u automystics-kuralai pm2 logs kuralai --lines 300 --nostream | grep -E "5b26c128|Failed to initiate|Sarvam→|axios|status code|ECONNREFUSED|ETIMEDOUT|certificate" | tail -40
+]: Call initiated: 5b26c128-5fa5-4b49-acac-10355958f223 -> +917358337470 | customer=கார்த்திக் வேலன் | chit=Group A
+]: [dispatcher] engine=sarvam call=5b26c128-5fa5-4b49-acac-10355958f223
+]: [Sarvam→Twilio] Dialing +917358337470 (call 5b26c128-5fa5-4b49-acac-10355958f223)
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# sudo -u automystics-kuralai pm2 logs kuralai --lines 60 --nostream
+[TAILING] Tailing last 60 lines for [kuralai] process (change the value with --lines option)
+/home/automystics-kuralai/.pm2/logs/kuralai-error.log last 60 lines:
+/home/automystics-kuralai/.pm2/logs/kuralai-out.log last 60 lines:
+]: Dashboard WebSocket connected. Total clients: 1
+]: Call initiated: 5b26c128-5fa5-4b49-acac-10355958f223 -> +917358337470 | customer=கார்த்திக் வேலன் | chit=Group A
+]: [dispatcher] engine=sarvam call=5b26c128-5fa5-4b49-acac-10355958f223
+]: [Sarvam→Twilio] Dialing +917358337470 (call 5b26c128-5fa5-4b49-acac-10355958f223)
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: User logged in: superadmin@kuralai.com (role: superadmin, org: none)
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 2
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: User logged in: admin@kuralai.com (role: viewer, org: aaf75207-f21c-4063-b22e-6c458752adcf)
+]: Dashboard WebSocket connected. Total clients: 2
+]: Dashboard WebSocket connected. Total clients: 3
+]: Dashboard WebSocket connected. Total clients: 2
+]: Dashboard WebSocket connected. Total clients: 2
+]: Dashboard WebSocket connected. Total clients: 2
+]: [SIM] Started call 73c5db5e-7350-406e-865a-6dd1efc4fec0 for customer="unknown"
+]: Greeting cache MISS for 73c5db5e-7350-406e-865a-6dd1efc4fec0 — building TwiML from scratch
+]: TTS completed in 2113ms for 106 chars
+]: processCallAnswer timing: db=3ms script=7ms tts=2116ms total=2126ms
+]: [SIM] callId=73c5db5e-7350-406e-865a-6dd1efc4fec0 turn=0 userText="வணக்கம்"
+]: LLM intent detection error:
+]: LLM response generation error:
+]: TTS completed in 783ms for 69 chars
+]: [SIM] callId=73c5db5e-7350-406e-865a-6dd1efc4fec0 turn=1 userText="நீங்கள் நலமா"
+]: LLM intent detection error:
+]: LLM response generation error:
+]: TTS completed in 792ms for 69 chars
+
+root@srv1609330:/home/automystics-kuralai/htdocs/kuralai.automystics.tech# 
