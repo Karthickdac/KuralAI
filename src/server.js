@@ -207,9 +207,18 @@ async function bootstrap() {
     startRetryScheduler();
     logger.info('✅ Retry scheduler started');
 
-    // Pre-warm TTS cache with static Tamil phrases so first calls are instant
+    // Pre-warm TTS cache with static Tamil phrases so first calls are instant.
+    // Only meaningful for the legacy speechService (ElevenLabs/Azure) path —
+    // skip when the active voice engine is Sarvam or local, which use their
+    // own per-turn TTS and ignore this cache.
     setImmediate(async () => {
       try {
+        const { getSettingsSync } = require('./services/settingsService');
+        const engine = (getSettingsSync().defaultEngine || 'elevenlabs').toLowerCase();
+        if (engine === 'sarvam' || engine === 'local') {
+          logger.info(`Static TTS pre-warm skipped (engine=${engine} uses live TTS)`);
+          return;
+        }
         const { synthesizeSpeech } = require('./services/speechService');
         const { TAMIL_PROMPTS } = require('./config/tamilPrompts');
         const staticPhrases = [

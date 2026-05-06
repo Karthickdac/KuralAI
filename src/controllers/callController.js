@@ -87,6 +87,15 @@ async function initiateCallController(req, res) {
         const { synthesizeSpeech } = require('../services/speechService');
         const { getPromptText }    = require('../services/aiService');
         const { applyTemplate }    = require('../utils/templateEngine');
+        // Skip TTS pre-warm when the active voice engine bypasses speechService
+        // (Sarvam and local both stream their own TTS per-turn).
+        const { getSettingsSync: _getSettingsSync } = require('../services/settingsService');
+        const _engine = (_getSettingsSync().defaultEngine || 'elevenlabs').toLowerCase();
+        if (_engine === 'sarvam' || _engine === 'local') {
+          logger.debug(`Per-call TTS pre-warm skipped for ${call.id} (engine=${_engine})`);
+          return;
+        }
+
         const { generateConversationExoML } = require('../services/telephonyService');
         const { setGreetingCache } = require('../services/conversationEngine');
         const QaTemplate           = require('../models/QaTemplate');

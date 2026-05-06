@@ -332,6 +332,12 @@ async function executeCampaign(campaignId) {
 function preWarmTts(meta, callId) {
   (async () => {
     try {
+      const { getSettingsSync } = require('../services/settingsService');
+      const _engine = (getSettingsSync().defaultEngine || 'elevenlabs').toLowerCase();
+      if (_engine === 'sarvam' || _engine === 'local') {
+        logger.debug(`Campaign TTS pre-warm skipped for ${callId} (engine=${_engine})`);
+        return;
+      }
       const { synthesizeSpeech } = require('../services/speechService');
       const { getPromptText }    = require('../services/aiService');
       const { applyTemplate }    = require('../utils/templateEngine');
