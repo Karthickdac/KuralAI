@@ -47,7 +47,7 @@ async function stt(wavBuffer, { languageCode = 'ta-IN', model = 'saarika:v2.5' }
  * Chat completion (OpenAI-compatible).
  * messages = [{role:'system'|'user'|'assistant', content:'...'}]
  */
-async function chat(messages, { model = 'sarvam-m', temperature = 0.4, maxTokens = 256 } = {}) {
+async function chat(messages, { model = 'sarvam-m', temperature = 0.4, maxTokens = 800 } = {}) {
   const resp = await axios.post(
     `${SARVAM_BASE}/v1/chat/completions`,
     {
@@ -55,6 +55,7 @@ async function chat(messages, { model = 'sarvam-m', temperature = 0.4, maxTokens
       messages,
       temperature,
       max_tokens: maxTokens,
+      reasoning_effort: 'low',
     },
     {
       headers: authHeaders({ 'Content-Type': 'application/json' }),

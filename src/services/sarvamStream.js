@@ -336,6 +336,7 @@ class Session {
         logger.warn(`[sarvam-stream] chat failed call=${this.callId}: ${e.message} body=${body}`);
         reply = 'மன்னிக்கவும், ஒரு சிறிய தொழில்நுட்பக் கோளாறு. திரும்ப சொல்ல முடியுமா?';
       }
+      reply = stripReasoning(reply);
       reply = (reply || '').trim() || 'மன்னிக்கவும், கேட்கவில்லை. திரும்ப சொல்ல முடியுமா?';
 
       logger.info(`[sarvam-stream] ${this.callId} BOT : ${reply}`);
@@ -449,5 +450,19 @@ class Session {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/**
+ * Some Sarvam models (sarvam-m) emit chain-of-thought wrapped in <think>...</think>.
+ * Strip those blocks before TTS. Handle the truncated case where </think> never
+ * arrives by dropping everything from <think> onward.
+ */
+function stripReasoning(text) {
+  if (!text) return '';
+  let out = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  const openIdx = out.search(/<think>/i);
+  if (openIdx !== -1) out = out.slice(0, openIdx).trim();
+  out = out.replace(/^```[a-z]*\s*|\s*```$/gi, '').trim();
+  return out;
+}
 
 module.exports = { init, getWss };

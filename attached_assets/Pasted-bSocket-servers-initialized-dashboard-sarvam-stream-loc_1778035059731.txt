@@ -1,0 +1,109 @@
+bSocket servers initialized (dashboard + sarvam-stream + local-stream)
+]: Retry scheduler started (runs every minute)
+]: ✅ Retry scheduler started
+]: 🚀 KuralAI server running on port 3000
+]:    Environment: production
+]:    App URL: https://kuralai.automystics.tech
+]: ElevenLabs TTS completed in 258ms for 69 chars
+]: ElevenLabs TTS completed in 259ms for 61 chars
+]: ElevenLabs TTS completed in 263ms for 51 chars
+]: ElevenLabs TTS completed in 285ms for 85 chars
+]: ElevenLabs TTS completed in 273ms for 82 chars
+]: ✅ Pre-warmed 5 static TTS phrases
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Dashboard WebSocket connected. Total clients: 1
+]: Call initiated: 2bd1c62e-1ac8-4666-9472-391b6579740e -> +917358337470 | customer=கார்த்திக் வேலன் | chit=Group A
+]: [dispatcher] engine=sarvam call=2bd1c62e-1ac8-4666-9472-391b6579740e
+]: [Sarvam→Twilio] Dialing +917358337470 (call 2bd1c62e-1ac8-4666-9472-391b6579740e)
+]: WEBHOOK HIT: POST /call/status | ip=107.20.57.56 | qs={"callId":"2bd1c62e-1ac8-4666-9472-391b6579740e","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Wed, 06 May 2026 02:36:00 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"0","CallSid":"CAeab95ab772f706ec4869deb9b919090c","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"initiated","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: Call status update: initiated for callId=2bd1c62e-1ac8-4666-9472-391b6579740e, sid=CAeab95ab772f706ec4869deb9b919090c
+]: ElevenLabs TTS completed in 332ms for 106 chars
+]: Greeting TwiML pre-cached for call 2bd1c62e-1ac8-4666-9472-391b6579740e in ring phase
+]: ElevenLabs TTS completed in 144ms for 6 chars
+]: ElevenLabs TTS completed in 211ms for 65 chars
+]: ElevenLabs TTS completed in 242ms for 70 chars
+]: ElevenLabs TTS completed in 245ms for 87 chars
+]: ElevenLabs TTS completed in 351ms for 119 chars
+]: ElevenLabs TTS completed in 421ms for 156 chars
+]: ElevenLabs TTS completed in 192ms for 55 chars
+]: ElevenLabs TTS completed in 206ms for 47 chars
+]: ElevenLabs TTS completed in 240ms for 84 chars
+]: WEBHOOK HIT: POST /call/status | ip=35.175.245.45 | qs={"callId":"2bd1c62e-1ac8-4666-9472-391b6579740e","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Wed, 06 May 2026 02:36:00 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"1","CallSid":"CAeab95ab772f706ec4869deb9b919090c","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"ringing","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: Call status update: ringing for callId=2bd1c62e-1ac8-4666-9472-391b6579740e, sid=CAeab95ab772f706ec4869deb9b919090c
+]: ElevenLabs TTS completed in 354ms for 122 chars
+]: ElevenLabs TTS completed in 377ms for 112 chars
+]: ElevenLabs TTS completed in 390ms for 150 chars
+]: ElevenLabs TTS completed in 132ms for 11 chars
+]: ElevenLabs TTS completed in 247ms for 70 chars
+]: ElevenLabs TTS completed in 247ms for 85 chars
+]: ElevenLabs TTS completed in 252ms for 83 chars
+]: ElevenLabs TTS completed in 317ms for 101 chars
+]: ElevenLabs TTS completed in 354ms for 109 chars
+]: ElevenLabs TTS completed in 142ms for 16 chars
+]: ElevenLabs TTS completed in 198ms for 40 chars
+]: ElevenLabs TTS completed in 202ms for 39 chars
+]: ElevenLabs TTS completed in 208ms for 67 chars
+]: ElevenLabs TTS completed in 330ms for 98 chars
+]: ElevenLabs TTS completed in 411ms for 177 chars
+]: ElevenLabs TTS completed in 148ms for 27 chars
+]: ElevenLabs TTS completed in 194ms for 60 chars
+]: ElevenLabs TTS completed in 199ms for 70 chars
+]: ElevenLabs TTS completed in 210ms for 77 chars
+]: ElevenLabs TTS completed in 235ms for 85 chars
+]: ElevenLabs TTS completed in 395ms for 77 chars
+]: ElevenLabs TTS completed in 200ms for 68 chars
+]: ElevenLabs TTS completed in 217ms for 81 chars
+]: ElevenLabs TTS completed in 218ms for 81 chars
+]: ElevenLabs TTS completed in 236ms for 75 chars
+]: ElevenLabs TTS completed in 245ms for 88 chars
+]: ElevenLabs TTS completed in 312ms for 101 chars
+]: ElevenLabs TTS completed in 209ms for 68 chars
+]: ElevenLabs TTS completed in 225ms for 84 chars
+]: ElevenLabs TTS completed in 229ms for 61 chars
+]: ElevenLabs TTS completed in 337ms for 98 chars
+]: ElevenLabs TTS completed in 339ms for 129 chars
+]: ElevenLabs TTS completed in 358ms for 130 chars
+]: ElevenLabs TTS completed in 183ms for 46 chars
+]: ElevenLabs TTS completed in 190ms for 39 chars
+]: ElevenLabs TTS completed in 308ms for 98 chars
+]: ElevenLabs TTS completed in 344ms for 47 chars
+]: ElevenLabs TTS completed in 428ms for 178 chars
+]: ElevenLabs TTS completed in 433ms for 205 chars
+]: ElevenLabs TTS completed in 199ms for 72 chars
+]: ElevenLabs TTS completed in 226ms for 68 chars
+]: ElevenLabs TTS completed in 247ms for 61 chars
+]: ElevenLabs TTS completed in 312ms for 101 chars
+]: ElevenLabs TTS completed in 315ms for 110 chars
+]: ElevenLabs TTS completed in 364ms for 101 chars
+]: ElevenLabs TTS completed in 201ms for 67 chars
+]: ElevenLabs TTS completed in 224ms for 87 chars
+]: ElevenLabs TTS completed in 229ms for 82 chars
+]: ElevenLabs TTS completed in 324ms for 106 chars
+]: ElevenLabs TTS completed in 329ms for 120 chars
+]: ElevenLabs TTS completed in 347ms for 104 chars
+]: ElevenLabs TTS completed in 321ms for 112 chars
+]: ElevenLabs TTS completed in 367ms for 135 chars
+]: Pre-warmed 63 TTS entries for call 2bd1c62e-1ac8-4666-9472-391b6579740e (workflow: due_reminder)
+]: WEBHOOK HIT: POST /call/status | ip=34.235.118.51 | qs={"callId":"2bd1c62e-1ac8-4666-9472-391b6579740e","wt":"kuralai-wh"} | body={"Called":"+917358337470","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Wed, 06 May 2026 02:36:11 +0000","CallbackSource":"call-progress-events","CallerState":"IA","ToZip":"","SequenceNumber":"2","CallSid":"CAeab95ab772f706ec4869deb9b919090c","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"in-progress","From":"+16416666746","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","FromState":"IA"}
+]: Call status update: in-progress for callId=2bd1c62e-1ac8-4666-9472-391b6579740e, sid=CAeab95ab772f706ec4869deb9b919090c
+]: [sarvam-voice] TwiML returned for call 2bd1c62e-1ac8-4666-9472-391b6579740e → stream wss://kuralai.automystics.tech/sarvam-stream
+]: [sarvam-stream] no wt in query (callId=n/a) — deferring auth to start message
+]: [sarvam-stream] wt verified from <Parameter> for call=2bd1c62e-1ac8-4666-9472-391b6579740e
+]: [sarvam-stream] START call=2bd1c62e-1ac8-4666-9472-391b6579740e provider=twilio stream=MZaf1105e37ece676dc3b82dcf4c2b132d in=mulaw@8000Hz
+]: [sarvam-stream] 2bd1c62e-1ac8-4666-9472-391b6579740e USER: வணக்கம் என் பேர் கார்த்திக்
+]: [sarvam-stream] 2bd1c62e-1ac8-4666-9472-391b6579740e BOT : <think>
+0|kuralai  | Okay, the user greeted me with "வணக்கம் என் பேர் கார்த்திக்" which means "Hello, my name is Karthik." I need to respond in Tamil as per the guidelines.
+0|kuralai  | 
+0|kuralai  | First, I should acknowledge their greeting and introduce myself as Samuthra from Automystics. Keep it friendly and respectful. The response should be natural and in colloquial Tamil, not formal. Also, make sure it's concise, one or two short sentences.
+0|kuralai  | 
+0|kuralai  | Check the language rules: only Tamil, no markdown, avoid English words. The company info is Automystics, services are listed in SERVICES_LIST, but since it's a placeholder, maybe just mention the company name. Time is 10 AM to 6 PM, but maybe not necessary to mention unless relevant.
+0|kuralai  | 
+0|kuralai  | The user might be calling for support, so I should ask how I can assist them. Make sure to ask one question at a time. Also, keep the tone warm and helpful.
+0|kuralai  | 
+0|kuralai  | Possible response: "வணக்கம் கார்த்திக்! நான் சமுத்திரா, ஆட்டோமிஸ்டிக்ஸ்-ல இருந்து. உங்களுக்கு எப்படி உதவ முடியும்?" which translates to "Hello Karthik! I
+]: [sarvam-stream] STOP call=2bd1c62e-1ac8-4666-9472-391b6579740e
+]: WEBHOOK HIT: POST /call/status | ip=35.171.86.162 | qs={"callId":"2bd1c62e-1ac8-4666-9472-391b6579740e","wt":"kuralai-wh"} | body={"Called":"+917358337470","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REc4acb3a68eb30344db6cdde472966a5f","ToState":"","CallerCountry":"US","Direction":"outbound-api","Timestamp":"Wed, 06 May 2026 02:37:02 +0000","CallbackSource":"call-progress-events","SipResponseCode":"200","CallerState":"IA","ToZip":"","SequenceNumber":"3","CallSid":"CAeab95ab772f706ec4869deb9b919090c","To":"+917358337470","CallerZip":"","ToCountry":"IN","CalledZip":"","ApiVersion":"2010-04-01","CalledCity":"","CallStatus":"completed","RecordingSid":"REc4acb3a68eb30344db6cdde472966a5f","Duration":"1","From":"+16416666746","CallDuration":"52","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","CalledCountry":"IN","CallerCity":"","ToCity":"","FromCountry":"US","Caller":"+16416666746","FromCity":"","CalledState":"","FromZip":"","RecordingDuration":"52","FromState":"IA"}
+]: Call status update: completed for callId=2bd1c62e-1ac8-4666-9472-391b6579740e, sid=CAeab95ab772f706ec4869deb9b919090c
+]: WEBHOOK HIT: POST /recording/status | ip=44.203.38.169 | qs={"callId":"2bd1c62e-1ac8-4666-9472-391b6579740e","wt":"kuralai-wh"} | body={"RecordingSource":"OutboundAPI","RecordingTrack":"both","RecordingSid":"REc4acb3a68eb30344db6cdde472966a5f","RecordingUrl":"https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REc4acb3a68eb30344db6cdde472966a5f","RecordingStatus":"completed","RecordingChannels":"2","ErrorCode":"0","CallSid":"CAeab95ab772f706ec4869deb9b919090c","RecordingStartTime":"Wed, 06 May 2026 02:36:11 +0000","AccountSid":"ACb0d77cd81e661ed093bcb0617c57d99e","RecordingDuration":"50"}
+]: Recording saved for call 2bd1c62e-1ac8-4666-9472-391b6579740e: https://api.twilio.com/2010-04-01/Accounts/ACb0d77cd81e661ed093bcb0617c57d99e/Recordings/REc4acb3a68eb30344db6cdde472966a5f.mp3
